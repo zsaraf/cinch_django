@@ -1,0 +1,10 @@
+*.pyc
+*.swp
+local_settings.py
+*.sock
+sesh_db.cnf
+*.ini
+**/static/admin/
+**/static/wagtail/
+**/static/ckeditor/
+media
