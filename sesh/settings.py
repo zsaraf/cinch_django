@@ -38,7 +38,16 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api'
+    'apps.university',
+    'apps.account',
+    'apps.student',
+    'apps.tutor',
+    'apps.chatroom',
+    'apps.group',
+    'apps.emailclient',
+    'apps.tutoring',
+    'apps.notification',
+    'apps.transaction'
 )
 
 MIDDLEWARE_CLASSES = (

@@ -16,14 +16,26 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
-from api import views
+from apps.university import urls as university_urls
+from apps.tutoring import urls as tutoring_urls
+from apps.tutor import urls as tutor_urls
+from apps.transaction import urls as transaction_urls
+from apps.student import urls as student_urls
+from apps.notification import urls as notification_urls
+from apps.emailclient import urls as emailclient_urls
+from apps.account import urls as account_urls
 
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'students', views.StudentViewSet)
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^django/admin/', include(admin.site.urls)),
+    url(r'^django/', include(router.urls)),
+    url(r'^django/universities/', include(university_urls)),
+    url(r'^django/tutoring/', include(tutoring_urls)),
+    url(r'^django/transactions/', include(transaction_urls)),
+    url(r'^django/students/', include(student_urls)),
+    url(r'^django/notifications/', include(notification_urls)),
+    url(r'^django/email-client/', include(emailclient_urls)),
+    url(r'^django/accounts/', include(account_urls)),
+    url(r'^django/api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

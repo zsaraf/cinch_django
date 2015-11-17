@@ -23,15 +23,6 @@ class AddedOnlineCredit(models.Model):
         db_table = 'added_online_credit'
 
 
-class AnonymousDevices(models.Model):
-    token = models.CharField(max_length=200)
-    type = models.CharField(max_length=25)
-
-    class Meta:
-        managed = False
-        db_table = 'anonymous_devices'
-
-
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=80)
 
@@ -635,7 +626,7 @@ class SeshStates(models.Model):
         db_table = 'sesh_states'
 
 
-class Student(models.Model):
+class Students(models.Model):
     user_id = models.IntegerField()
     credits = models.DecimalField(max_digits=19, decimal_places=4)
 
@@ -696,7 +687,7 @@ class TutorTiers(models.Model):
         db_table = 'tutor_tiers'
 
 
-class Tutor(models.Model):
+class Tutors(models.Model):
     user_id = models.IntegerField()
     enabled = models.IntegerField()
     num_seshes = models.IntegerField()
@@ -712,7 +703,7 @@ class Tutor(models.Model):
         db_table = 'tutors'
 
 
-class User(models.Model):
+class Users(models.Model):
     email = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     full_name = models.CharField(max_length=100)
@@ -725,7 +716,7 @@ class User(models.Model):
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
     stripe_recipient_id = models.CharField(max_length=32, blank=True, null=True)
     full_legal_name = models.CharField(max_length=100)
-    profile_picture = models.CharField(max_length=100)
+    profile_picture = models.CharField(max_length=250)
     major = models.CharField(max_length=100)
     class_year = models.CharField(max_length=25, blank=True, null=True)
     bio = models.CharField(max_length=256)
