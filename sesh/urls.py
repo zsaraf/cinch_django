@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
+from rest_framework.authtoken import views
 from apps.university import urls as university_urls
 from apps.tutoring import urls as tutoring_urls
 from apps.tutor import urls as tutor_urls

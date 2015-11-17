@@ -4,6 +4,7 @@ local_settings.py
 *.sock
 sesh_db.cnf
 *.ini
+*.log
 **/static/admin/
 **/static/wagtail/
 **/static/ckeditor/

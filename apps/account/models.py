@@ -99,6 +99,21 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
+        
+    def is_authenticated(self):
+        return True 
+    
+    @property
+    def is_admin(self):
+        return self.is_test
+    
+    @property
+    def is_superuser(self):
+        return self.is_test
+
+    @property
+    def is_staff(self):
+        return self.is_test
 
     class Meta:
         managed = False

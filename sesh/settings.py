@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'apps.university',
     'apps.account',
     'apps.student',
@@ -47,7 +48,7 @@ INSTALLED_APPS = (
     'apps.emailclient',
     'apps.tutoring',
     'apps.notification',
-    'apps.transaction'
+    'apps.transaction',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -60,6 +61,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+# AUTHENTICATION_BACKENDS = (
+# 	'apps.account.AuthenticationBackend',
+# )
 
 ROOT_URLCONF = 'sesh.urls'
 
@@ -79,11 +84,59 @@ TEMPLATES = [
     },
 ]
 
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'sesh_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/sesh.log',
+            'formatter': 'verbose'
+        },
+        'django_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/django.log',
+            'formatter': 'verbose'
+        },
+        
+    },
+    'loggers': {
+        'django': {
+            'handlers':['django_file'],
+            'propagate': True,
+            'level':'DEBUG',
+        },
+        'apps': {
+            'handlers': ['sesh_file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
 WSGI_APPLICATION = 'sesh.wsgi.application'
 
 # REST FRAMEWORK
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'apps.account.AuthenticationBackend.SeshAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication'
+    ),
     'PAGE_SIZE': 10
 }
 
@@ -112,7 +165,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
