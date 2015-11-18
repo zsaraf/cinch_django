@@ -17,7 +17,7 @@ class NotificationType(models.Model):
 class OpenNotification(models.Model):
     user_id = models.IntegerField()
     data = models.TextField(blank=True, null=True)
-    notification_type_id = models.IntegerField()
+    notification_type = models.ForeignKey('NotificationType')
     notification_vars = models.TextField(blank=True, null=True)
     has_sent = models.IntegerField()
     send_time = models.DateTimeField()
@@ -30,7 +30,7 @@ class OpenNotification(models.Model):
 class PastNotification(models.Model):
     user_id = models.IntegerField()
     data = models.TextField(blank=True, null=True)
-    notification_type_id = models.IntegerField()
+    notification_type = models.ForeignKey('NotificationType')
     notification_vars = models.TextField(blank=True, null=True)
     has_sent = models.IntegerField()
     send_time = models.DateTimeField()

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Device(models.Model):
     user = models.OneToOneField('User')
     token = models.CharField(max_length=200)
@@ -14,6 +15,7 @@ class Device(models.Model):
         managed = False
         db_table = 'devices'
 
+
 class DoNotEmail(models.Model):
     email = models.CharField(max_length=100)
     timestamp = models.DateTimeField()
@@ -21,6 +23,7 @@ class DoNotEmail(models.Model):
     class Meta:
         managed = False
         db_table = 'do_not_email'
+
 
 class EmailUserData(models.Model):
     user = models.OneToOneField('User')
@@ -32,6 +35,7 @@ class EmailUserData(models.Model):
         managed = False
         db_table = 'email_user_data'
 
+
 class PasswordChangeRequest(models.Model):
     user = models.OneToOneField('User', blank=True, null=True)
     random_hash = models.CharField(max_length=100, blank=True, null=True)
@@ -40,6 +44,7 @@ class PasswordChangeRequest(models.Model):
     class Meta:
         managed = False
         db_table = 'password_change_requests'
+
 
 class PastBonus(models.Model):
     user_id = models.IntegerField()
@@ -51,6 +56,7 @@ class PastBonus(models.Model):
         managed = False
         db_table = 'past_bonuses'
 
+
 class PromoCode(models.Model):
     code = models.CharField(max_length=25)
     value = models.DecimalField(max_digits=19, decimal_places=4)
@@ -59,12 +65,14 @@ class PromoCode(models.Model):
         managed = False
         db_table = 'promo_codes'
 
+
 class SeshState(models.Model):
     identifier = models.CharField(max_length=32, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'sesh_states'
+
 
 class Token(models.Model):
     session_id = models.CharField(max_length=100)
@@ -73,6 +81,7 @@ class Token(models.Model):
     class Meta:
         managed = False
         db_table = 'tokens'
+
 
 class User(models.Model):
     email = models.CharField(max_length=100)
@@ -99,14 +108,14 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
-        
+
     def is_authenticated(self):
-        return True 
-    
+        return True
+
     @property
     def is_admin(self):
         return self.is_test
-    
+
     @property
     def is_superuser(self):
         return self.is_test

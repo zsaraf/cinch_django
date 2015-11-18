@@ -1,7 +1,8 @@
 from django.db import models
 
+
 class PendingEmail(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey('account.User')
     category = models.IntegerField()
     tag = models.CharField(max_length=75)
     template_name = models.CharField(max_length=75)

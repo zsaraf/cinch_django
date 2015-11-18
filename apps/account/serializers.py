@@ -2,46 +2,46 @@ from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChang
 from rest_framework import serializers
 
 
-class DeviceSerializer(serializers.HyperlinkedModelSerializer):
+class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Device
 
 
-class DoNotEmailSerializer(serializers.HyperlinkedModelSerializer):
+class DoNotEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoNotEmail
 
 
-class EmailUserDataSerializer(serializers.HyperlinkedModelSerializer):
+class EmailUserDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailUserData
 
 
-class PasswordChangeRequestSerializer(serializers.HyperlinkedModelSerializer):
+class PasswordChangeRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = PasswordChangeRequest
 
 
-class PastBonusSerializer(serializers.HyperlinkedModelSerializer):
+class PastBonusSerializer(serializers.ModelSerializer):
     class Meta:
         model = PastBonus
 
 
-class PromoCodeSerializer(serializers.HyperlinkedModelSerializer):
+class PromoCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PromoCode
 
 
-class SeshStateSerializer(serializers.HyperlinkedModelSerializer):
+class SeshStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SeshState
 
 
-class TokenSerializer(serializers.HyperlinkedModelSerializer):
+class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Token
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

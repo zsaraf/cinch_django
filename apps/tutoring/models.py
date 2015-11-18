@@ -1,9 +1,9 @@
 from django.db import models
 
-# Create your models here.
+
 class OpenBid(models.Model):
     request_id = models.IntegerField()
-    tutor_id = models.IntegerField()
+    tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
     tutor_latitude = models.FloatField(blank=True, null=True)
     tutor_longitude = models.FloatField(blank=True, null=True)
@@ -12,10 +12,11 @@ class OpenBid(models.Model):
         managed = False
         db_table = 'open_bids'
 
+
 class OpenRequest(models.Model):
-    student_id = models.IntegerField()
-    school_id = models.IntegerField()
-    class_id = models.IntegerField()
+    student = models.ForeignKey('student.Student')
+    school = models.ForeignKey('university.School')
+    course = models.ForeignKey('university.Course', db_column='class_id')
     description = models.CharField(max_length=100)
     processing = models.IntegerField()
     timestamp = models.DateTimeField()
@@ -28,20 +29,21 @@ class OpenRequest(models.Model):
     is_instant = models.IntegerField()
     available_blocks = models.TextField()
     location_notes = models.CharField(max_length=32)
-    discount_id = models.IntegerField(blank=True, null=True)
+    discount = models.ForeignKey('university.Discount', blank=True, null=True)
     sesh_comp = models.DecimalField(max_digits=19, decimal_places=4)
 
     class Meta:
         managed = False
         db_table = 'open_requests'
 
+
 class OpenSesh(models.Model):
-    past_request_id = models.IntegerField()
-    tutor_id = models.IntegerField()
+    past_request = models.ForeignKey('PastRequest')
+    tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
     start_time = models.DateTimeField(blank=True, null=True)
     has_started = models.IntegerField()
-    student_id = models.IntegerField()
+    student = models.ForeignKey('student.Student')
     tutor_longitude = models.FloatField(blank=True, null=True)
     tutor_latitude = models.FloatField(blank=True, null=True)
     set_time = models.DateTimeField(blank=True, null=True)
@@ -49,25 +51,27 @@ class OpenSesh(models.Model):
     location_notes = models.CharField(max_length=32)
     has_received_start_time_approaching_reminder = models.IntegerField(blank=True, null=True)
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
-    #open_chatroom = models.ForeignKey(OpenChatroom, blank=True, null=True)
+    open_chatroom = models.ForeignKey('chatroom.OpenChatroom', blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'open_seshes'
-        
+
+
 class PastBid(models.Model):
-    past_request_id = models.IntegerField()
-    tutor_id = models.IntegerField()
+    past_request = models.ForeignKey('PastRequest')
+    tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
 
     class Meta:
         managed = False
         db_table = 'past_bids'
 
+
 class PastRequest(models.Model):
-    student_id = models.IntegerField()
-    class_id = models.IntegerField()
-    school_id = models.IntegerField()
+    student = models.ForeignKey('student.Student')
+    course = models.ForeignKey('university.Course', db_column='class_id')  # Field renamed because it was a Python reserved word.
+    school = models.ForeignKey('university.School')
     description = models.CharField(max_length=100)
     time = models.DateTimeField()
     num_people = models.IntegerField()
@@ -88,10 +92,11 @@ class PastRequest(models.Model):
         managed = False
         db_table = 'past_requests'
 
+
 class PastSesh(models.Model):
-    past_request_id = models.IntegerField()
-    tutor_id = models.IntegerField()
-    student_id = models.IntegerField(blank=True, null=True)
+    past_request = models.ForeignKey('PastRequest')
+    tutor = models.ForeignKey('tutor.Tutor')
+    student = models.ForeignKey('student.Student', blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField()
     student_credits_applied = models.DecimalField(max_digits=19, decimal_places=4)
@@ -109,12 +114,13 @@ class PastSesh(models.Model):
     cancellation_reason = models.CharField(max_length=30, blank=True, null=True)
     cancellation_charge = models.IntegerField()
     set_time = models.DateTimeField(blank=True, null=True)
-    #past_chatroom = models.ForeignKey(PastChatrooms, blank=True, null=True)
+    past_chatroom = models.ForeignKey('chatroom.PastChatroom', blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'past_seshes'
-        
+
+
 class ReportedProblem(models.Model):
     past_sesh = models.ForeignKey(PastSesh, blank=True, null=True)
     content = models.CharField(max_length=512, blank=True, null=True)

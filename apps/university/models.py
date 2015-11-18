@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
     sesh_completed_points = models.SmallIntegerField()
@@ -12,7 +13,8 @@ class BonusPointAllocation(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'bonus_point_allocation' 
+        db_table = 'bonus_point_allocation'
+
 
 class Course(models.Model):
     school = models.ForeignKey('School')
@@ -23,7 +25,8 @@ class Course(models.Model):
     class Meta:
         managed = False
         db_table = 'classes'
-        
+
+
 class Constant(models.Model):
     school_id = models.IntegerField()
     free_credits = models.DecimalField(max_digits=19, decimal_places=4)
@@ -52,7 +55,7 @@ class Constant(models.Model):
         managed = False
         db_table = 'constants'
 
-        
+
 class Department(models.Model):
     school = models.ForeignKey('School', blank=True, null=True)
     name = models.CharField(max_length=20, blank=True, null=True)
@@ -61,6 +64,7 @@ class Department(models.Model):
     class Meta:
         managed = False
         db_table = 'departments'
+
 
 class Discount(models.Model):
     credit_amount = models.FloatField()
@@ -76,6 +80,7 @@ class Discount(models.Model):
         managed = False
         db_table = 'discounts'
 
+
 class DiscountUse(models.Model):
     discount = models.ForeignKey('Discount', blank=True, null=True)
     user = models.ForeignKey('account.User', blank=True, null=True)
@@ -84,7 +89,8 @@ class DiscountUse(models.Model):
     class Meta:
         managed = False
         db_table = 'discount_uses'
-        
+
+
 class School(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     enabled = models.IntegerField()

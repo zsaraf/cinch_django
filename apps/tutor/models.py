@@ -51,8 +51,8 @@ class PendingTutor(models.Model):
 
 
 class TutorClass(models.Model):
-    tutor_id = models.IntegerField()
-    class_id = models.IntegerField()
+    tutor = models.ForeignKey('tutor.Tutor')
+    course = models.ForeignKey('university.Course', db_column='class_id')
     timestamp = models.DateTimeField()
 
     class Meta:
@@ -61,8 +61,8 @@ class TutorClass(models.Model):
 
 
 class TutorDepartment(models.Model):
-    tutor_id = models.IntegerField()
-    department_id = models.IntegerField()
+    tutor = models.ForeignKey('tutor.Tutor')
+    department = models.ForeignKey('university.Department')
     timestamp = models.DateTimeField()
 
     class Meta:
@@ -88,7 +88,7 @@ class Tutor(models.Model):
 
 class TutorSignup(models.Model):
     email = models.CharField(max_length=100)
-    school_id = models.IntegerField()
+    school = models.ForeignKey('university.School')
     timestamp = models.DateTimeField()
     recruiter = models.CharField(max_length=250, blank=True, null=True)
     reason = models.CharField(max_length=100, blank=True, null=True)
