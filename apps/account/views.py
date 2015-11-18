@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChangeRequest, PastBonus, PromoCode, SeshState, Token, User
@@ -56,12 +56,10 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    @detail_route(methods=['get'],
-                  permission_classes=[IsAuthenticated],
-                  url_path='get_full_info')
-    def get_full_info(self, request, pk=None):
-        user = self.get_object()
-
+    @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
+    def get_full_info(self, request):
+        # user = self.get_object()
+        user = request.user
         responseObject = {}
         responseObject['session_id'] = user.token.session_id
         responseObject['student'] = StudentSerializer(user.student).data
