@@ -1,7 +1,7 @@
 from django.db import models
 
 class Device(models.Model):
-    user = models.ForeignKey('User')
+    user = models.OneToOneField('User')
     token = models.CharField(max_length=200)
     type = models.CharField(max_length=100)
     device_model = models.CharField(max_length=40, blank=True, null=True)
@@ -13,7 +13,7 @@ class Device(models.Model):
     class Meta:
         managed = False
         db_table = 'devices'
-        
+
 class DoNotEmail(models.Model):
     email = models.CharField(max_length=100)
     timestamp = models.DateTimeField()
@@ -21,9 +21,9 @@ class DoNotEmail(models.Model):
     class Meta:
         managed = False
         db_table = 'do_not_email'
-        
+
 class EmailUserData(models.Model):
-    user = models.ForeignKey('User')
+    user = models.OneToOneField('User')
     received_timeout_credits = models.DateTimeField(blank=True, null=True)
     received_student_cancellation_credits = models.DateTimeField(blank=True, null=True)
     received_tutor_cancellation_credits = models.DateTimeField(blank=True, null=True)
@@ -33,7 +33,7 @@ class EmailUserData(models.Model):
         db_table = 'email_user_data'
 
 class PasswordChangeRequest(models.Model):
-    user = models.ForeignKey('User', blank=True, null=True)
+    user = models.OneToOneField('User', blank=True, null=True)
     random_hash = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
 

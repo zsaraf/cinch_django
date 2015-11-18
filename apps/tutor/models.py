@@ -64,7 +64,7 @@ class TutorDepartment(models.Model):
         db_table = 'tutor_departments'
         
 class Tutor(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.OneToOneField('account.User')
     enabled = models.IntegerField()
     num_seshes = models.IntegerField()
     ave_rating_1 = models.FloatField()

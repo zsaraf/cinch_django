@@ -1,5 +1,4 @@
 from django.db import models
-from apps.group.models import CourseGroup
 
 class Favorite(models.Model):
     student_id = models.IntegerField(blank=True, null=True)
@@ -11,7 +10,7 @@ class Favorite(models.Model):
         db_table = 'favorites'
 
 class Student(models.Model):
-    user_id = models.IntegerField()
+    user = models.OneToOneField('account.User')
     credits = models.DecimalField(max_digits=19, decimal_places=4)
 
     class Meta:
@@ -20,7 +19,7 @@ class Student(models.Model):
         
 class StudentCourse(models.Model):
     student = models.ForeignKey(Student)
-    course_group = models.ForeignKey(CourseGroup)
+    course_group = models.ForeignKey('group.CourseGroup')
     timestamp = models.DateTimeField(blank=True, null=True)
     
     class Meta:
