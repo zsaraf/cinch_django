@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 # Application definition
 
@@ -143,7 +144,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'read_default_file': '/home/ec2-user/django/sesh/sesh_db.cnf',
+            'read_default_file': '%s/sesh_db.cnf' % ROOT_DIR
         },
     }
 }
