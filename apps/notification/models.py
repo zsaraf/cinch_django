@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class NotificationType(models.Model):
     identifier = models.CharField(max_length=25)
     title = models.CharField(max_length=250, blank=True, null=True)
@@ -12,6 +13,7 @@ class NotificationType(models.Model):
         managed = False
         db_table = 'notification_types'
 
+
 class OpenNotification(models.Model):
     user_id = models.IntegerField()
     data = models.TextField(blank=True, null=True)
@@ -23,7 +25,8 @@ class OpenNotification(models.Model):
     class Meta:
         managed = False
         db_table = 'open_notifications'
-        
+
+
 class PastNotification(models.Model):
     user_id = models.IntegerField()
     data = models.TextField(blank=True, null=True)

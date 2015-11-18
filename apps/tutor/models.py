@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class OpenTutorPromo(models.Model):
     old_user_id = models.IntegerField()
     tutor_email = models.CharField(max_length=100)
@@ -12,6 +13,7 @@ class OpenTutorPromo(models.Model):
         managed = False
         db_table = 'open_tutor_promos'
 
+
 class PastTutorPromo(models.Model):
     old_user_id = models.IntegerField()
     tutor_user_id = models.IntegerField()
@@ -23,6 +25,7 @@ class PastTutorPromo(models.Model):
         managed = False
         db_table = 'past_tutor_promos'
 
+
 class PendingTutorClass(models.Model):
     class_id = models.IntegerField()
     pending_tutor_id = models.IntegerField()
@@ -30,6 +33,7 @@ class PendingTutorClass(models.Model):
     class Meta:
         managed = False
         db_table = 'pending_tutor_classes'
+
 
 class PendingTutor(models.Model):
     full_name = models.CharField(max_length=100)
@@ -45,6 +49,7 @@ class PendingTutor(models.Model):
         managed = False
         db_table = 'pending_tutors'
 
+
 class TutorClass(models.Model):
     tutor_id = models.IntegerField()
     class_id = models.IntegerField()
@@ -54,6 +59,7 @@ class TutorClass(models.Model):
         managed = False
         db_table = 'tutor_classes'
 
+
 class TutorDepartment(models.Model):
     tutor_id = models.IntegerField()
     department_id = models.IntegerField()
@@ -62,9 +68,10 @@ class TutorDepartment(models.Model):
     class Meta:
         managed = False
         db_table = 'tutor_departments'
-        
+
+
 class Tutor(models.Model):
-    user_id = models.OneToOneField('account.User')
+    user = models.OneToOneField('account.User')
     enabled = models.IntegerField()
     num_seshes = models.IntegerField()
     ave_rating_1 = models.FloatField()
@@ -77,7 +84,8 @@ class Tutor(models.Model):
     class Meta:
         managed = False
         db_table = 'tutors'
-        
+
+
 class TutorSignup(models.Model):
     email = models.CharField(max_length=100)
     school_id = models.IntegerField()
@@ -89,6 +97,7 @@ class TutorSignup(models.Model):
         managed = False
         db_table = 'tutor_signups'
 
+
 class TutorTier(models.Model):
     identifier = models.CharField(max_length=100, blank=True, null=True)
     name = models.CharField(max_length=100)
@@ -98,5 +107,3 @@ class TutorTier(models.Model):
     class Meta:
         managed = False
         db_table = 'tutor_tiers'
-
-
