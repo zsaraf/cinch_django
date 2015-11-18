@@ -1,8 +1,7 @@
 from django.db import models
-from apps.university.models import School
 
 class Device(models.Model):
-    user = models.ForeignKey('Users')
+    user = models.ForeignKey('User')
     token = models.CharField(max_length=200)
     type = models.CharField(max_length=100)
     device_model = models.CharField(max_length=40, blank=True, null=True)
@@ -24,7 +23,7 @@ class DoNotEmail(models.Model):
         db_table = 'do_not_email'
         
 class EmailUserData(models.Model):
-    user = models.ForeignKey('Users')
+    user = models.ForeignKey('User')
     received_timeout_credits = models.DateTimeField(blank=True, null=True)
     received_student_cancellation_credits = models.DateTimeField(blank=True, null=True)
     received_tutor_cancellation_credits = models.DateTimeField(blank=True, null=True)
@@ -34,7 +33,7 @@ class EmailUserData(models.Model):
         db_table = 'email_user_data'
 
 class PasswordChangeRequest(models.Model):
-    user = models.ForeignKey('Users', blank=True, null=True)
+    user = models.ForeignKey('User', blank=True, null=True)
     random_hash = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
 
@@ -81,8 +80,8 @@ class User(models.Model):
     full_name = models.CharField(max_length=100)
     share_code = models.CharField(max_length=10)
     token = models.ForeignKey(Token, blank=True, null=True)
-    web_token = models.ForeignKey(Token, blank=True, null=True)
-    school = models.ForeignKey(School)
+    web_token_id = models.IntegerField()
+    school = models.ForeignKey('university.School')
     is_verified = models.IntegerField()
     verification_id = models.CharField(max_length=100)
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
