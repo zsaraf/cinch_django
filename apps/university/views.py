@@ -1,15 +1,15 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from apps.university.models import School, Class, Department, Discount, DiscountUse, Constant, BonusPointAllocation
-from apps.university.serializers import SchoolSerializer, ClassSerializer, DepartmentSerializer, DiscountSerializer, DiscountUseSerializer, ConstantSerializer, BonusPointAllocationSerializer
+from apps.university.models import School, Course, Department, Discount, DiscountUse, Constant, BonusPointAllocation
+from apps.university.serializers import SchoolSerializer, CourseSerializer, DepartmentSerializer, DiscountSerializer, DiscountUseSerializer, ConstantSerializer, BonusPointAllocationSerializer
 
 class BonusPointAllocationViewSet(viewsets.ModelViewSet):
 	queryset = BonusPointAllocation.objects.all()
 	serializer_class = BonusPointAllocationSerializer
 
-class ClassViewSet(viewsets.ModelViewSet):
-	queryset = Class.objects.all()
-	serializer_class = ClassSerializer
+class CourseViewSet(viewsets.ModelViewSet):
+	queryset = Course.objects.all()
+	serializer_class = CourseSerializer
 	
 class ConstantViewSet(viewsets.ModelViewSet):
 	queryset = Constant.objects.all()

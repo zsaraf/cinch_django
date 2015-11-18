@@ -62,10 +62,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-# AUTHENTICATION_BACKENDS = (
-# 	'apps.account.AuthenticationBackend',
-# )
-
 ROOT_URLCONF = 'sesh.urls'
 
 TEMPLATES = [

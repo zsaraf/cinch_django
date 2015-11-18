@@ -1,7 +1,12 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
+from rest_framework.decorators import detail_route
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChangeRequest, PastBonus, PromoCode, SeshState, Token, User
 from apps.account.serializers import DeviceSerializer, DoNotEmailSerializer, EmailUserDataSerializer, PasswordChangeRequestSerializer, PastBonusSerializer, PromoCodeSerializer, SeshStateSerializer, TokenSerializer, UserSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 class DeviceViewSet(viewsets.ModelViewSet):
 	queryset = Device.objects.all()
@@ -38,3 +43,9 @@ class TokenViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
+	
+	@detail_route(methods=['get'], permission_classes=[IsAuthenticated], url_path='get_full_info')
+	def get_full_info(self, request, pk=None):
+		logger.debug(self.get_object())
+		Tutor
+		return Response(["hello"])

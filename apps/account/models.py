@@ -1,7 +1,7 @@
 from django.db import models
 
 class Device(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey('Users')
     token = models.CharField(max_length=200)
     type = models.CharField(max_length=100)
     device_model = models.CharField(max_length=40, blank=True, null=True)
@@ -23,7 +23,7 @@ class DoNotEmail(models.Model):
         db_table = 'do_not_email'
         
 class EmailUserData(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey('Users')
     received_timeout_credits = models.DateTimeField(blank=True, null=True)
     received_student_cancellation_credits = models.DateTimeField(blank=True, null=True)
     received_tutor_cancellation_credits = models.DateTimeField(blank=True, null=True)
@@ -33,7 +33,7 @@ class EmailUserData(models.Model):
         db_table = 'email_user_data'
 
 class PasswordChangeRequest(models.Model):
-    user_id = models.IntegerField(blank=True, null=True)
+	user = models.ForeignKey('Users', blank=True, null=True)
     random_hash = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
 
@@ -79,9 +79,9 @@ class User(models.Model):
     password = models.CharField(max_length=100)
     full_name = models.CharField(max_length=100)
     share_code = models.CharField(max_length=10)
-    token_id = models.IntegerField()
-    web_token_id = models.IntegerField()
-    school_id = models.IntegerField()
+    token = models.ForeignKey(Tokens, blank=True, null=True)
+    web_token = models.ForeignKey(Tokens, blank=True, null=True)
+    school = models.ForeignKey(Schools)
     is_verified = models.IntegerField()
     verification_id = models.CharField(max_length=100)
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
@@ -91,7 +91,7 @@ class User(models.Model):
     major = models.CharField(max_length=100)
     class_year = models.CharField(max_length=25, blank=True, null=True)
     bio = models.CharField(max_length=256)
-    sesh_state_id = models.IntegerField()
+    sesh_state = models.ForeignKey(SeshStates)
     salt = models.CharField(max_length=25)
     notifications_enabled = models.IntegerField()
     completed_app_tour = models.IntegerField()

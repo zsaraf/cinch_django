@@ -1,13 +1,13 @@
-from apps.university.models import School, Class, Department, Discount, DiscountUse, Constant, BonusPointAllocation
+from apps.university.models import School, Course, Department, Discount, DiscountUse, Constant, BonusPointAllocation
 from rest_framework import serializers
 
 class BonusPointAllocationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = BonusPointAllocation
 
-class ClassSerializer(serializers.HyperlinkedModelSerializer):
+class CourseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Class
+        model = Course
 
 class ConstantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

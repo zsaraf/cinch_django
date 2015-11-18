@@ -12,11 +12,11 @@ class BonusPointAllocation(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'bonus_point_allocation'
+        db_table = 'bonus_point_allocation' 
 
-class Class(models.Model):
-    school_id = models.IntegerField(blank=True, null=True)
-    department_id = models.IntegerField(blank=True, null=True)
+class Course(models.Model):
+    school = models.ForeignKey('Schools')
+    department = models.ForeignKey('Departments', blank=True, null=True)
     name = models.CharField(max_length=200, blank=True, null=True)
     number = models.CharField(max_length=5, blank=True, null=True)
 
@@ -54,7 +54,7 @@ class Constant(models.Model):
 
         
 class Department(models.Model):
-    school_id = models.IntegerField(blank=True, null=True)
+    school = models.ForeignKey('Schools', blank=True, null=True)
     name = models.CharField(max_length=20, blank=True, null=True)
     abbrev = models.CharField(max_length=10, blank=True, null=True)
 
@@ -65,7 +65,7 @@ class Department(models.Model):
 class Discount(models.Model):
     credit_amount = models.FloatField()
     one_time_use = models.IntegerField()
-    school_id = models.IntegerField()
+    school = models.ForeignKey('Schools')
     exp_date = models.DateTimeField(blank=True, null=True)
     banner_message = models.CharField(max_length=200)
     num_uses = models.IntegerField(blank=True, null=True)
@@ -77,8 +77,8 @@ class Discount(models.Model):
         db_table = 'discounts'
 
 class DiscountUse(models.Model):
-    discount_id = models.IntegerField(blank=True, null=True)
-    user_id = models.IntegerField(blank=True, null=True)
+    discount = models.ForeignKey('Discounts', blank=True, null=True)
+    user = models.ForeignKey('Users', blank=True, null=True)
     timestamp = models.DateTimeField()
 
     class Meta:

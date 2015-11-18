@@ -4,7 +4,7 @@ from apps.university import views
 
 router = routers.DefaultRouter()
 router.register(r'bonus_point_allocations', views.BonusPointAllocationViewSet);
-router.register(r'classes', views.ClassViewSet)
+router.register(r'classes', views.CourseViewSet)
 router.register(r'constants', views.ConstantViewSet);
 router.register(r'departments', views.DepartmentViewSet)
 router.register(r'discounts', views.DiscountViewSet);
