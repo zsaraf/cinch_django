@@ -49,7 +49,7 @@ class OpenSesh(models.Model):
     location_notes = models.CharField(max_length=32)
     has_received_start_time_approaching_reminder = models.IntegerField(blank=True, null=True)
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
-    open_chatroom = models.ForeignKey(OpenChatrooms, blank=True, null=True)
+    #open_chatroom = models.ForeignKey(OpenChatroom, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -109,14 +109,14 @@ class PastSesh(models.Model):
     cancellation_reason = models.CharField(max_length=30, blank=True, null=True)
     cancellation_charge = models.IntegerField()
     set_time = models.DateTimeField(blank=True, null=True)
-    past_chatroom = models.ForeignKey(PastChatrooms, blank=True, null=True)
+    #past_chatroom = models.ForeignKey(PastChatrooms, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'past_seshes'
         
 class ReportedProblem(models.Model):
-    past_sesh = models.ForeignKey(PastSeshes, blank=True, null=True)
+    past_sesh = models.ForeignKey(PastSesh, blank=True, null=True)
     content = models.CharField(max_length=512, blank=True, null=True)
     timestamp = models.DateTimeField()
 

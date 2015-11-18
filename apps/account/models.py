@@ -1,4 +1,5 @@
 from django.db import models
+from apps.university.models import School
 
 class Device(models.Model):
     user = models.ForeignKey('Users')
@@ -33,7 +34,7 @@ class EmailUserData(models.Model):
         db_table = 'email_user_data'
 
 class PasswordChangeRequest(models.Model):
-	user = models.ForeignKey('Users', blank=True, null=True)
+    user = models.ForeignKey('Users', blank=True, null=True)
     random_hash = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
 
@@ -79,9 +80,9 @@ class User(models.Model):
     password = models.CharField(max_length=100)
     full_name = models.CharField(max_length=100)
     share_code = models.CharField(max_length=10)
-    token = models.ForeignKey(Tokens, blank=True, null=True)
-    web_token = models.ForeignKey(Tokens, blank=True, null=True)
-    school = models.ForeignKey(Schools)
+    token = models.ForeignKey(Token, blank=True, null=True)
+    web_token = models.ForeignKey(Token, blank=True, null=True)
+    school = models.ForeignKey(School)
     is_verified = models.IntegerField()
     verification_id = models.CharField(max_length=100)
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
@@ -91,7 +92,7 @@ class User(models.Model):
     major = models.CharField(max_length=100)
     class_year = models.CharField(max_length=25, blank=True, null=True)
     bio = models.CharField(max_length=256)
-    sesh_state = models.ForeignKey(SeshStates)
+    sesh_state = models.ForeignKey(SeshState)
     salt = models.CharField(max_length=25)
     notifications_enabled = models.IntegerField()
     completed_app_tour = models.IntegerField()
