@@ -55,7 +55,10 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
     tutor = TutorSerializer()
     school = SchoolSerializer()
-    token = TokenSerializer()
+    cards = serializers.SerializerMethodField()
 
     class Meta:
         model = User
+
+    def get_cards(self, obj):
+        return obj.get_cards()

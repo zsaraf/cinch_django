@@ -58,13 +58,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
     def get_full_info(self, request):
-        # user = self.get_object()
         user = request.user
         serializer = UserFullInfoSerializer(user)
         return Response(serializer.data)
-        # responseObject = {}
-        # responseObject['session_id'] = user.token.session_id
-        # responseObject['student'] = StudentSerializer(user.student).data
-        # responseObject['tutor'] = TutorSerializer(user.tutor).data
-        # responseObject['school'] = SchoolSerializer(user.school).data
-        # return Response(responseObject)

@@ -1,4 +1,8 @@
 from django.db import models
+from sesh import settings
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Device(models.Model):
@@ -108,6 +112,49 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
+
+    def get_cards(self):
+        """
+        Gets both the stripe recipient and payment cards for the user instance
+        """
+        import stripe
+        stripe.api_key = settings.STRIPE_API_KEY
+
+        def serialize_card_with_default(stripe_card, default_card_id):
+            card_object = {}
+            card_object['card_id'] = card.id
+            card_object['last_four'] = card.last4
+            card_object['type'] = card.brand
+            card_object['is_recipient'] = False
+            if (default_card_id == card.id):
+                card_object['is_default'] = True
+            else:
+                card_object['is_default'] = False
+            if (card.funding == "debit"):
+                card_object['is_debit'] = True
+            else:
+                card_object['is_debit'] = False
+
+            return card_object
+
+        cards = []
+        if (self.stripe_customer_id):
+            logger.debug(self.stripe_customer_id)
+            cu = stripe.Customer.retrieve(self.stripe_customer_id)
+            default_card_id = cu.default_source
+            all_cards = cu.sources.data
+            for card in all_cards:
+                cards.append(serialize_card_with_default(card, default_card_id))
+
+        if (self.stripe_recipient_id):
+
+            rp = stripe.Recipient.retrieve(self.stripe_recipient_id)
+            default_card_id = rp.default_card
+            all_cards = rp.cards.data
+            for card in all_cards:
+                cards.append(serialize_card_with_default(card, default_card_id))
+
+        return cards
 
     def is_authenticated(self):
         return True
