@@ -50,7 +50,7 @@ class PendingTutor(models.Model):
         db_table = 'pending_tutors'
 
 
-class TutorClass(models.Model):
+class TutorCourse(models.Model):
     tutor = models.ForeignKey('tutor.Tutor')
     course = models.ForeignKey('university.Course', db_column='class_id')
     timestamp = models.DateTimeField()

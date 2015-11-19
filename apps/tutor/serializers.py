@@ -1,5 +1,10 @@
-from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorClass, TutorDepartment, Tutor, TutorSignup, TutorTier
+from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorCourse, TutorDepartment, Tutor, TutorSignup, TutorTier
 from rest_framework import serializers
+from apps.university.serializers import CourseSerializer, DepartmentSerializer
+from django.conf import settings
+
+import json
+import os
 
 
 class OpenTutorPromoSerializer(serializers.ModelSerializer):
@@ -22,19 +27,37 @@ class PendingTutorSerializer(serializers.ModelSerializer):
         model = PendingTutor
 
 
-class TutorClassSerializer(serializers.ModelSerializer):
+class TutorCourseSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
+
     class Meta:
-        model = TutorClass
+        model = TutorCourse
 
 
 class TutorDepartmentSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer()
+
     class Meta:
         model = TutorDepartment
 
 
 class TutorSerializer(serializers.ModelSerializer):
+    courses = TutorCourseSerializer(many=True, source='tutorcourse_set')
+    departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
+    bonus_info = serializers.SerializerMethodField()
+
     class Meta:
         model = Tutor
+
+    def get_bonus_info(self, obj):
+        with open(os.path.join(settings.ROOT_DIR, 'files/monthly_bonus.json'), 'r') as f:
+            monthly_bonus_description = json.load(f)
+            school = obj.user.school
+
+            if str(school.id) in monthly_bonus_description:
+                return monthly_bonus_description[str(school.id)]
+            else:
+                return monthly_bonus_description["0"]
 
 
 class TutorSignupSerializer(serializers.ModelSerializer):

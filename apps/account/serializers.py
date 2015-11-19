@@ -1,4 +1,7 @@
 from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChangeRequest, PastBonus, PromoCode, SeshState, Token, User
+from apps.tutor.serializers import TutorSerializer
+from apps.student.serializers import StudentSerializer
+from apps.university.serializers import SchoolSerializer
 from rest_framework import serializers
 
 
@@ -42,6 +45,17 @@ class TokenSerializer(serializers.ModelSerializer):
         model = Token
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserBasicInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('full_name', 'profile_picture', 'major', 'bio')
+
+
+class UserFullInfoSerializer(serializers.ModelSerializer):
+    student = StudentSerializer()
+    tutor = TutorSerializer()
+    school = SchoolSerializer()
+    token = TokenSerializer()
+
     class Meta:
         model = User

@@ -1,0 +1,21 @@
+{
+    "0": {
+
+        "tutor_bonus_values": [
+            {
+                "column_name": "sesh_completed_points",
+                "title": "Tutor a Sesh",
+                "description": "The length of Sesh does not matter.\n\nNo points are awarded for cancelled Seshes.",
+                "points": "5"
+            },
+            {
+                "column_name": "tutor_referral_points",
+                "title": "Refer a Tutor",
+                "description": "Using your referral code found within the Promote page of the app, have a friend or classmate sign up to tutor and add classes to their profile!\n\nYour referral does not have to have a Sesh for points to be awarded.",
+                "points": "2"
+            }
+        ],
+        "point_goal": "20",
+        "bonus_amount": "30"
+    }
+}

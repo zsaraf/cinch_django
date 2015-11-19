@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Favorite(models.Model):
-    student_id = models.IntegerField(blank=True, null=True)
+    student = models.ForeignKey('student.Student', blank=True, null=True)
     tutor = models.ForeignKey('tutor.Tutor', blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
 
