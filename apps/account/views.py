@@ -59,5 +59,15 @@ class UserViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
     def get_full_info(self, request):
         user = request.user
+
+        # Check against pending tutors
+        user.tutor.check_if_pending()
+        user.refresh_from_db()
+        user.tutor.refresh_from_db()
+
         serializer = UserFullInfoSerializer(user)
         return Response(serializer.data)
+
+
+
+

@@ -15,7 +15,6 @@ class SeshAuthentication(authentication.BaseAuthentication):
 
         try:
             tokenId = Token.objects.get(session_id=token).id
-            logger.debug(tokenId)
             user = User.objects.get(Q(token_id=tokenId) | Q(web_token_id=tokenId))
         except User.DoesNotExist:
             raise exceptions.AuthenticationFailed('No such user')
