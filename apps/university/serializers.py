@@ -33,5 +33,10 @@ class DiscountUseSerializer(serializers.ModelSerializer):
 
 
 class SchoolSerializer(serializers.ModelSerializer):
+    line_position = serializers.SerializerMethodField()
+
     class Meta:
         model = School
+
+    def get_line_position(self, obj):
+        return obj.line_position()

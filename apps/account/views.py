@@ -67,7 +67,3 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = UserFullInfoSerializer(user)
         return Response(serializer.data)
-
-
-
-

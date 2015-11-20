@@ -3,6 +3,8 @@ from apps.tutor.serializers import TutorSerializer
 from apps.student.serializers import StudentSerializer
 from apps.university.serializers import SchoolSerializer
 from rest_framework import serializers
+from apps.transaction.models import OutstandingCharge
+from apps.transaction.serializers import OutstandingChargeSerializer
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -56,9 +58,13 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
     tutor = TutorSerializer()
     school = SchoolSerializer()
     cards = serializers.SerializerMethodField()
+    outstanding_charges = serializers.SerializerMethodField()
 
     class Meta:
         model = User
 
     def get_cards(self, obj):
         return obj.get_cards()
+
+    def get_outstanding_charges(self, obj):
+        return OutstandingChargeSerializer(OutstandingCharge.objects.filter(user=obj), many=True).data

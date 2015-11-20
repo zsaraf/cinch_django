@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 
 class BonusPointAllocation(models.Model):
@@ -103,3 +104,9 @@ class School(models.Model):
     class Meta:
         managed = False
         db_table = 'schools'
+
+    def line_position(self):
+        if self.enabled:
+            return -1
+
+        return School.objects.filter(Q(num_tutors__gt=self.num_tutors) & Q(enabled=False)).count() + 1

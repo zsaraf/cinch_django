@@ -41,10 +41,16 @@ class TutorDepartmentSerializer(serializers.ModelSerializer):
         model = TutorDepartment
 
 
+class TutorTierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TutorTier
+
+
 class TutorSerializer(serializers.ModelSerializer):
     courses = TutorCourseSerializer(many=True, source='tutorcourse_set')
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
     bonus_info = serializers.SerializerMethodField()
+    tiers = serializers.SerializerMethodField()
 
     class Meta:
         model = Tutor
@@ -59,12 +65,10 @@ class TutorSerializer(serializers.ModelSerializer):
             else:
                 return monthly_bonus_description["0"]
 
+    def get_tiers(self, obj):
+        return TutorTierSerializer(TutorTier.objects.all(), many=True).data
+
 
 class TutorSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = TutorSignup
-
-
-class TutorTierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TutorTier
