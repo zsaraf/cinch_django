@@ -2,9 +2,8 @@ from django.db import models
 
 
 class Announcement(models.Model):
-    message = models.CharField(max_length=1024)
-    chatroom = models.ForeignKey('chatroom.Chatroom')
-    user = models.ForeignKey('account.User')
+    message = models.CharField(max_length=500)
+    chatroom = models.ForeignKey('Chatroom')
 
     class Meta:
         managed = False
@@ -12,10 +11,10 @@ class Announcement(models.Model):
 
 
 class Chatroom(models.Model):
-    name = models.CharField(max_length=250, blank=True, null=True)
-    description = models.CharField(max_length=250, blank=True, null=True)
     last_updated = models.DateTimeField(blank=True, null=True)
-    timestamp = models.DateTimeField()
+    name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
+    timestamp = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -24,7 +23,7 @@ class Chatroom(models.Model):
 
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
-    chatroom = models.ForeignKey('chatroom.Chatroom')
+    chatroom = models.ForeignKey(Chatroom)
 
     class Meta:
         managed = False
@@ -32,9 +31,10 @@ class ChatroomMember(models.Model):
 
 
 class ChatroomActivity(models.Model):
-    chatroom = models.ForeignKey('chatroom.Chatroom')
-    chatroom_activity = models.ForeignKey('chatroom.ChatroomActivityType')
-    activity_id = models.IntegerField()
+    chatroom = models.ForeignKey(Chatroom)
+    chatroom_activity_type = models.ForeignKey('ChatroomActivityType')
+    timestamp = models.DateTimeField()
+    activity_id = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -50,10 +50,10 @@ class ChatroomActivityType(models.Model):
 
 
 class File(models.Model):
-    chatroom = models.ForeignKey('chatroom.Chatroom')
-    src = models.CharField(max_length=256)
-    name = models.CharField(max_length=128)
+    chatroom = models.ForeignKey(Chatroom)
     user = models.ForeignKey('account.User')
+    src = models.CharField(max_length=250)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -61,9 +61,9 @@ class File(models.Model):
 
 
 class Message(models.Model):
-    message = models.CharField(max_length=1024)
-    timestamp = models.DateTimeField()
-    hasbeenread = models.IntegerField(db_column='hasBeenRead')  # Field name made lowercase.
+    message = models.CharField(max_length=500)
+    chatroom = models.ForeignKey(Chatroom)
+    user = models.ForeignKey('account.User')
 
     class Meta:
         managed = False

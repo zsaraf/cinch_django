@@ -139,7 +139,6 @@ class User(models.Model):
 
         cards = []
         if (self.stripe_customer_id):
-            logger.debug(self.stripe_customer_id)
             cu = stripe.Customer.retrieve(self.stripe_customer_id)
             default_card_id = cu.default_source
             all_cards = cu.sources.data

@@ -1,6 +1,7 @@
 from rest_framework import viewsets
-from apps.chatroom.serializers import *
-from apps.chatroom.models import *
+from rest_framework.permissions import IsAuthenticated
+from .serializers import *
+from .models import *
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
@@ -31,3 +32,6 @@ class FileViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+
