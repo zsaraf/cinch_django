@@ -68,15 +68,3 @@ class Message(models.Model):
     class Meta:
         managed = False
         db_table = 'message'
-
-
-class UnreadActivityCount(models.Model):
-    user = models.ForeignKey('account.User')
-    chatroom = models.ForeignKey('chatroom.Chatroom')
-    number = models.IntegerField()
-    last_updated = models.DateTimeField(blank=True, null=True)
-    timestamp = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'unread_activity_count'

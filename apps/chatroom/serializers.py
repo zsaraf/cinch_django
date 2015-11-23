@@ -12,11 +12,6 @@ class ChatroomSerializer(serializers.ModelSerializer):
         model = Chatroom
 
 
-class ChatroomTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatroomType
-
-
 class ChatroomActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatroomActivity
@@ -35,8 +30,3 @@ class FileSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-
-
-class UnreadActivityCountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UnreadActivityCount

@@ -13,11 +13,6 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
 
-class ChatroomTypeViewSet(viewsets.ModelViewSet):
-    queryset = ChatroomType.objects.all()
-    serializer_class = ChatroomTypeSerializer
-
-
 class ChatroomActivityViewSet(viewsets.ModelViewSet):
     queryset = ChatroomActivity.objects.all()
     serializer_class = ChatroomActivitySerializer
@@ -36,8 +31,3 @@ class FileViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-
-
-class UnreadActivityCountViewSet(viewsets.ModelViewSet):
-    queryset = UnreadActivityCount.objects.all()
-    serializer_class = UnreadActivityCountSerializer
