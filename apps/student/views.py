@@ -1,6 +1,6 @@
-from apps.student.models import Favorite, Student, StudentCourse
+from apps.student.models import Favorite, Student
 from rest_framework import viewsets
-from apps.student.serializers import FavoriteSerializer, StudentSerializer, StudentCourseSerializer
+from apps.student.serializers import FavoriteSerializer, StudentSerializer
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
@@ -11,8 +11,3 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-
-
-class StudentCourseViewSet(viewsets.ModelViewSet):
-    queryset = StudentCourse.objects.all()
-    serializer_class = StudentCourseSerializer

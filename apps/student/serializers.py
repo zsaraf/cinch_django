@@ -1,4 +1,6 @@
-from apps.student.models import Student, Favorite, StudentCourse
+from apps.student.models import Student, Favorite
+from apps.group.serializers import CourseGroupMemberSerializer
+from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer
 from rest_framework import serializers
 
 
@@ -15,11 +17,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     favorite_set = FavoriteSerializer(many=True)
+    open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
+    past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
+    courses = CourseGroupMemberSerializer(many=True, source='coursegroupmember_set')
 
     class Meta:
         model = Student
-
-
-class StudentCourseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StudentCourse

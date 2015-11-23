@@ -38,7 +38,7 @@ class OpenRequest(models.Model):
 
 
 class OpenSesh(models.Model):
-    past_request = models.ForeignKey('PastRequest')
+    past_request = models.OneToOneField('PastRequest')
     tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
     start_time = models.DateTimeField(blank=True, null=True)
@@ -51,7 +51,7 @@ class OpenSesh(models.Model):
     location_notes = models.CharField(max_length=32)
     has_received_start_time_approaching_reminder = models.IntegerField(blank=True, null=True)
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
-    open_chatroom = models.ForeignKey('chatroom.OpenChatroom', blank=True, null=True)
+    chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -94,7 +94,7 @@ class PastRequest(models.Model):
 
 
 class PastSesh(models.Model):
-    past_request = models.ForeignKey('PastRequest')
+    past_request = models.OneToOneField('PastRequest')
     tutor = models.ForeignKey('tutor.Tutor')
     student = models.ForeignKey('student.Student', blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
@@ -114,7 +114,7 @@ class PastSesh(models.Model):
     cancellation_reason = models.CharField(max_length=30, blank=True, null=True)
     cancellation_charge = models.IntegerField()
     set_time = models.DateTimeField(blank=True, null=True)
-    past_chatroom = models.ForeignKey('chatroom.PastChatroom', blank=True, null=True)
+    chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
     class Meta:
         managed = False

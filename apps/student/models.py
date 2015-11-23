@@ -18,13 +18,3 @@ class Student(models.Model):
     class Meta:
         managed = False
         db_table = 'students'
-
-
-class StudentCourse(models.Model):
-    student = models.ForeignKey(Student)
-    course_group = models.ForeignKey('group.CourseGroup')
-    timestamp = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'student_courses'

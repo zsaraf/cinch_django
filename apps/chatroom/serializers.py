@@ -2,14 +2,14 @@ from apps.chatroom.models import *
 from rest_framework import serializers
 
 
-class OpenMessageSerializer(serializers.ModelSerializer):
+class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OpenMessage
+        model = Announcement
 
 
-class OpenChatroomSerializer(serializers.ModelSerializer):
+class ChatroomSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OpenChatroom
+        model = Chatroom
 
 
 class ChatroomTypeSerializer(serializers.ModelSerializer):
@@ -17,11 +17,26 @@ class ChatroomTypeSerializer(serializers.ModelSerializer):
         model = ChatroomType
 
 
-class PastChatroomSerializer(serializers.ModelSerializer):
+class ChatroomActivitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = PastChatroom
+        model = ChatroomActivity
 
 
-class PastMessageSerializer(serializers.ModelSerializer):
+class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PastMessage
+        model = ChatroomActivityType
+
+
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+
+
+class UnreadActivityCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnreadActivityCount
