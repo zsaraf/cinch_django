@@ -163,7 +163,7 @@ class User(models.Model):
         first_name = split_name[0]
         last_name = split_name[len(split_name) - 1]
 
-        return first_name + last_name[0]
+        return first_name + " " + last_name[0] + "."
 
     @property
     def is_admin(self):
