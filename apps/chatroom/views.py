@@ -1,7 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from .serializers import *
 from .models import *
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
@@ -34,4 +38,15 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request):
+        data_with_user = request.data
+        data_with_user["user"] = request.user.id
+        serializer = MessageSerializer(data=data_with_user)
 
+        if serializer.is_valid():
+            message = serializer.save()
+            message.send_notifications()
+        else:
+            logger.debug("Invalid request.")
+
+        return Response(serializer.errors, 200)

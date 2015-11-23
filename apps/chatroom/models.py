@@ -1,4 +1,6 @@
 from django.db import models
+from apps.notification.managers import *
+from django.db.models import Q
 
 
 class Announcement(models.Model):
@@ -65,6 +67,15 @@ class Message(models.Model):
     message = models.CharField(max_length=500)
     chatroom = models.ForeignKey(Chatroom)
     user = models.ForeignKey('account.User')
+
+    def send_notifications(self):
+        '''
+        Sends a notification to the chatroom members
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self)
+        
+        OpenNotificationManager.create(to_user_id, data, merge_vars, send_time)
+
 
     class Meta:
         managed = False
