@@ -10,7 +10,7 @@ class CourseGroup(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'course_groups'
+        db_table = 'course_group'
 
 
 class CourseGroupMember(models.Model):

@@ -11,11 +11,11 @@ class CourseGroupSerializer(serializers.ModelSerializer):
 
 
 class CourseGroupMemberSerializer(serializers.ModelSerializer):
-    coursegroup = CourseGroupSerializer
+    course_group = CourseGroupSerializer()
 
     class Meta:
         model = CourseGroupMember
-        fields = ('coursegroup')
+        fields = ('course_group', )
 
 
 class StudyGroupSerializer(serializers.ModelSerializer):
