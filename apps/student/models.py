@@ -18,3 +18,18 @@ class Student(models.Model):
     class Meta:
         managed = False
         db_table = 'students'
+
+    @property
+    def stats(self):
+        print 'here'
+        # Get total hours learned
+        hours_learned = 0.0
+        for past_sesh in self.pastsesh_set.all():
+            hours_learned += past_sesh.duration()
+
+        # Create stats dict
+        stats = {}
+        stats['hours_learned'] = hours_learned
+        stats['credits'] = self.credits
+
+        return stats

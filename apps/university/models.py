@@ -105,6 +105,7 @@ class School(models.Model):
         managed = False
         db_table = 'schools'
 
+    @property
     def line_position(self):
         if self.enabled:
             return -1

@@ -2,6 +2,7 @@ from django.db import models
 from apps.account.models import User
 from rest_framework import exceptions
 from datetime import datetime
+from decimal import *
 
 
 class OpenTutorPromo(models.Model):
@@ -113,6 +114,30 @@ class Tutor(models.Model):
         pt = qs[0]
         if pt.ready_to_publish:
             pt.make_real_tutor()
+
+    @property
+    def stats(self):
+        cashout_attempt_queryset = self.user.cashoutattempt_set.filter(successful=1)
+
+        # Get total earned for tutor
+        total_earned = Decimal(0.0)
+        for cashout_attempt in cashout_attempt_queryset:
+            total_earned += cashout_attempt.amount
+
+        total_earned += self.credits
+
+        # Get hours tutored
+        hours_tutored = Decimal(0.0)
+        for past_sesh in self.pastsesh_set.all():
+            hours_tutored += Decimal(past_sesh.duration())
+
+        # Create stats dict
+        stats = {}
+        stats['credits'] = self.credits
+        stats['total_earned'] = total_earned
+        stats['hours_tutored'] = hours_tutored
+
+        return stats
 
     class Meta:
         managed = False

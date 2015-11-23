@@ -51,6 +51,7 @@ class TutorSerializer(serializers.ModelSerializer):
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
     bonus_info = serializers.SerializerMethodField()
     tiers = serializers.SerializerMethodField()
+    stats = serializers.ReadOnlyField()
 
     class Meta:
         model = Tutor

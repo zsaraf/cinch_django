@@ -21,7 +21,7 @@ class PastRequestSerializer(serializers.ModelSerializer):
 
 
 class OpenSeshSerializer(serializers.ModelSerializer):
-    pastrequest = PastRequestSerializer()
+    past_request = PastRequestSerializer()
 
     class Meta:
         model = OpenSesh
@@ -35,7 +35,7 @@ class OpenSeshStudentSerializer(OpenSeshSerializer):
 
     def get_tutor_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user)
+        return UserBasicInfoSerializer(obj.tutor.user).data
 
 
 class OpenSeshTutorSerializer(OpenSeshSerializer):
@@ -46,7 +46,7 @@ class OpenSeshTutorSerializer(OpenSeshSerializer):
 
     def get_student_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user)
+        return UserBasicInfoSerializer(obj.student.user).data
 
 
 class PastBidSerializer(serializers.ModelSerializer):
@@ -67,7 +67,7 @@ class PastSeshStudentSerializer(serializers.ModelSerializer):
 
     def get_tutor_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user)
+        return UserBasicInfoSerializer(obj.tutor.user).data
 
 
 class PastSeshTutorSerializer(serializers.ModelSerializer):
@@ -78,7 +78,7 @@ class PastSeshTutorSerializer(serializers.ModelSerializer):
 
     def get_student_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user)
+        return UserBasicInfoSerializer(obj.student.user).data
 
 
 class ReportedProblemSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def get_user_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user)
+        return UserBasicInfoSerializer(obj.tutor.user).data
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -20,6 +20,7 @@ class StudentSerializer(serializers.ModelSerializer):
     open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     courses = CourseGroupMemberSerializer(many=True, source='coursegroupmember_set')
+    stats = serializers.ReadOnlyField()
 
     class Meta:
         model = Student
