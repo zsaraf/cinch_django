@@ -146,7 +146,6 @@ class User(models.Model):
                 cards.append(serialize_card_with_default(card, default_card_id))
 
         if (self.stripe_recipient_id):
-
             rp = stripe.Recipient.retrieve(self.stripe_recipient_id)
             default_card_id = rp.default_card
             all_cards = rp.cards.data
@@ -157,6 +156,14 @@ class User(models.Model):
 
     def is_authenticated(self):
         return True
+
+    @property
+    def readable_name(self):
+        split_name = self.full_name.split(' ')
+        first_name = split_name[0]
+        last_name = split_name[len(split_name) - 1]
+
+        return first_name + last_name[0]
 
     @property
     def is_admin(self):

@@ -1,6 +1,5 @@
 from django.db import models
-from apps.notification.managers import *
-from django.db.models import Q
+from apps.notification.models import NotificationType, OpenNotification
 
 
 class Announcement(models.Model):
@@ -25,8 +24,7 @@ class Chatroom(models.Model):
 
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
-    chatroom = models.ForeignKey('chatroom.Chatroom')
-    unread_activity_count = models.IntegerField()
+    chatroom = models.ForeignKey(Chatroom)
 
     class Meta:
         managed = False
@@ -72,10 +70,18 @@ class Message(models.Model):
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self)
-        
-        OpenNotificationManager.create(to_user_id, data, merge_vars, send_time)
-
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        data = {
+            "NAME": self.user.readable_name,
+            "MESSAGE": self.message
+        }
+        merge_vars = {
+            "chatroom_id": self.chatroom.id,
+            "message": self.message
+        }
+        notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False

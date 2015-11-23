@@ -1,4 +1,5 @@
 from django.db import models
+from .managers import *
 
 
 class NotificationType(models.Model):
@@ -15,12 +16,13 @@ class NotificationType(models.Model):
 
 
 class OpenNotification(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey('account.User')
     data = models.TextField(blank=True, null=True)
-    notification_type = models.ForeignKey('NotificationType')
+    notification_type = models.ForeignKey(NotificationType)
     notification_vars = models.TextField(blank=True, null=True)
     has_sent = models.IntegerField()
     send_time = models.DateTimeField()
+    objects = OpenNotificationManager()
 
     class Meta:
         managed = False
@@ -30,7 +32,7 @@ class OpenNotification(models.Model):
 class PastNotification(models.Model):
     user_id = models.IntegerField()
     data = models.TextField(blank=True, null=True)
-    notification_type = models.ForeignKey('NotificationType')
+    notification_type = models.ForeignKey(NotificationType)
     notification_vars = models.TextField(blank=True, null=True)
     has_sent = models.IntegerField()
     send_time = models.DateTimeField()
