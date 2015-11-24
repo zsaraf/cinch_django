@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import Q
-
+from apps.account.models import User
+import re
+import logging
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
@@ -16,16 +18,51 @@ class BonusPointAllocation(models.Model):
         managed = False
         db_table = 'bonus_point_allocation'
 
+class Department(models.Model):
+    school = models.ForeignKey('School', blank=True, null=True)
+    name = models.CharField(max_length=20, blank=True, null=True)
+    abbrev = models.CharField(max_length=10, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'departments'
+
+
+class CourseManager(models.Manager):
+    def search(self, user_id, search_term):
+        user = User.objects.get(pk=user_id)
+        dept_name = ""
+        class_num = ""
+        all_courses = []
+        matches = re.search(r'([a-zA-Z]+)', search_term)
+        if (matches):
+            dept_name = matches.group()
+        num_matches = re.search(r'([0-9]+[a-zA-z]*)', search_term)
+        if (num_matches):
+            class_num = num_matches.group()
+        
+        depts = Department.objects.filter(school__id__exact=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
+        for dept in depts:
+            dept_id = dept.pk
+            courses = Course.objects.filter(department__id__exact=dept_id, number__startswith=class_num).order_by('number')[:10]
+            all_courses.extend(courses)
+
+        return all_courses
 
 class Course(models.Model):
+
     school = models.ForeignKey('School')
     department = models.ForeignKey('Department', blank=True, null=True)
     name = models.CharField(max_length=200, blank=True, null=True)
     number = models.CharField(max_length=5, blank=True, null=True)
+    objects = CourseManager()
 
     class Meta:
         managed = False
         db_table = 'classes'
+
+    def get_readable_name(self):
+        return self.department.abbrev + str(self.number)
 
 
 class Constant(models.Model):
@@ -55,16 +92,6 @@ class Constant(models.Model):
     class Meta:
         managed = False
         db_table = 'constants'
-
-
-class Department(models.Model):
-    school = models.ForeignKey('School', blank=True, null=True)
-    name = models.CharField(max_length=20, blank=True, null=True)
-    abbrev = models.CharField(max_length=10, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'departments'
 
 
 class Discount(models.Model):
