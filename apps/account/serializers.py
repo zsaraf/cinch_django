@@ -57,8 +57,10 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
     tutor = TutorSerializer()
     school = SchoolSerializer()
+    sesh_state = SeshStateSerializer()
     cards = serializers.SerializerMethodField()
     outstanding_charges = serializers.SerializerMethodField()
+    discounts = serializers.ReadOnlyField()
 
     class Meta:
         model = User

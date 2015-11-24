@@ -121,10 +121,7 @@ class PastSesh(models.Model):
         db_table = 'past_seshes'
 
     def duration(self):
-        print self.end_time - self.start_time
-        print self.start_time.__str__()
-        print self.end_time.__str__()
-        return 1.0
+        return (self.end_time - self.start_time).total_seconds()/3600
 
 
 class ReportedProblem(models.Model):

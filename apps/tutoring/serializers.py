@@ -9,6 +9,12 @@ class OpenBidSerializer(serializers.ModelSerializer):
 
 
 class OpenRequestSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
+    class Meta:
+        model = OpenRequest
+
+
+class OpenRequestStudentSerializer(OpenRequestSerializer):
     class Meta:
         model = OpenRequest
 

@@ -1,5 +1,8 @@
 from django.db import models
+from django.db.models import Q, Count, F
 from sesh import settings
+from apps.university.serializers import DiscountSerializer
+from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -112,6 +115,18 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
+
+    @property
+    def discounts(self):
+        discounts = self.school.discount_set.annotate(
+                                                        discount_num_uses=Count('discountuse')
+                                                     ).filter(
+                                                        Q(exp_date__isnull=True) | Q(exp_date__gt=datetime.now()),
+                                                        Q(num_uses__isnull=True) | Q(num_uses__gt=F('discount_num_uses')),
+                                                     ).exclude(
+                                                        Q(one_time_use=1), Q(discountuse__user=self)
+                                                     )
+        return DiscountSerializer(discounts, many=True).data
 
     def get_cards(self):
         """
