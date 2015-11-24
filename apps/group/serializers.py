@@ -1,10 +1,12 @@
-from apps.group.models import *
-from apps.university.serializers import CourseSerializer
 from rest_framework import serializers
+from .models import *
+from apps.university.serializers import CourseSerializer
+from apps.chatroom.serializers import ChatroomSerializer
 
 
 class CourseGroupSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
+    chatroom = ChatroomSerializer()
 
     class Meta:
         model = CourseGroup

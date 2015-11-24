@@ -1,8 +1,8 @@
-from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChangeRequest, PastBonus, PromoCode, SeshState, Token, User
+from rest_framework import serializers
+from .models import *
 from apps.tutor.serializers import TutorSerializer
 from apps.student.serializers import StudentSerializer
 from apps.university.serializers import SchoolSerializer
-from rest_framework import serializers
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
 

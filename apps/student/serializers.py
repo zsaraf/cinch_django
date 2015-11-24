@@ -1,7 +1,7 @@
-from apps.student.models import Student, Favorite
+from rest_framework import serializers
+from .models import *
 from apps.group.serializers import CourseGroupMemberSerializer
 from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer
-from rest_framework import serializers
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
