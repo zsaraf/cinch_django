@@ -24,9 +24,10 @@ class CourseGroupMember(models.Model):
 
 
 class StudyGroup(models.Model):
-    course = models.ForeignKey(CourseGroup)
-    timestamp = models.DateTimeField()
+    course_group = models.ForeignKey(CourseGroup)
+    #timestamp = models.DateTimeField()
     chatroom = models.ForeignKey('chatroom.Chatroom')
+    user = models.ForeignKey('account.User', db_column='creator_user_id')
 
     class Meta:
         managed = False
@@ -36,7 +37,7 @@ class StudyGroup(models.Model):
 class StudyGroupMember(models.Model):
     user = models.ForeignKey('account.User')
     study_group = models.ForeignKey('group.StudyGroup')
-    timestamp = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
