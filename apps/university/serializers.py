@@ -14,7 +14,7 @@ class CourseWithGroupsSerializer(serializers.ModelSerializer):
     def get_course_groups(self, obj):
         from apps.group.serializers import CourseGroupBasicSerializer
         from apps.group.models import CourseGroup
-        return CourseGroupBasicSerializer(CourseGroup.objects.filter(course__id__exact=obj.pk), many=True).data
+        return CourseGroupBasicSerializer(CourseGroup.objects.filter(course=obj), many=True).data
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:

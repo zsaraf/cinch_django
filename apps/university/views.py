@@ -6,6 +6,8 @@ from apps.university.serializers import (
 )
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.permissions import IsAuthenticated
+
 
 class BonusPointAllocationViewSet(viewsets.ModelViewSet):
     queryset = BonusPointAllocation.objects.all()
@@ -16,16 +18,15 @@ class CourseViewSet(viewsets.ModelViewSet):
 	queryset = Course.objects.all()
 	serializer_class = CourseSerializer
 
-	@list_route(methods=['post'])
+	@list_route(methods=['post'], permission_classes=[IsAuthenticated])
 	def search(self, request):
 		"""
 		Get list of classes
 		"""
 		search_term = request.POST.get('search_term', '')
-		user_id = request.user.pk
-		courses = Course.objects.search(user_id, search_term)
+		courses = Course.objects.search(request.user, search_term)
 		obj = CourseWithGroupsSerializer(courses, many=True)
-		return Response({"status": "SUCCESS", "data":obj.data})
+		return Response(obj.data)
 
 
 class ConstantViewSet(viewsets.ModelViewSet):

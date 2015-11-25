@@ -5,14 +5,15 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from apps.university.models import Course
 from apps.chatroom.models import Chatroom
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import exceptions
 
 
 class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupSerializer
 
-    @list_route(methods=['post'])
+    @list_route(methods=['post'], permission_classes=[IsAuthenticated])
     def join(self, request):
         """
         Join a course_group
@@ -23,7 +24,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         professor_name = request.POST.get('professor_name', '')
         if not course_group_id:
             # must create a group to join
-            course = Course.objects.get(pk=course_id)
+            try:
+                course = Course.objects.get(pk=course_id)
+            except Course.DoesNotExist:
+                raise exceptions.NotFound("Course could not be found")
             chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
             course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
             course_group.save()
@@ -36,7 +40,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         new_group_member.save()
         
         obj = CourseGroupBasicSerializer(course_group)
-        return Response({"status": "SUCCESS", "data":obj.data})
+        return Response(obj.data)
 
 
 class CourseGroupMemberViewSet(viewsets.ModelViewSet):

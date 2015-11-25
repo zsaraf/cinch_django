@@ -29,8 +29,7 @@ class Department(models.Model):
 
 
 class CourseManager(models.Manager):
-    def search(self, user_id, search_term):
-        user = User.objects.get(pk=user_id)
+    def search(self, user, search_term):
         dept_name = ""
         class_num = ""
         all_courses = []
