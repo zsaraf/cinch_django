@@ -3,7 +3,7 @@ from apps.account.models import User
 from rest_framework import exceptions
 from datetime import datetime
 from decimal import *
-
+from .managers import TutorManager
 
 class OpenTutorPromo(models.Model):
     old_user_id = models.IntegerField()
@@ -97,6 +97,7 @@ class Tutor(models.Model):
     credits = models.DecimalField(max_digits=19, decimal_places=4)
     did_accept_terms = models.IntegerField()
     bonus_points = models.FloatField()
+    objects = TutorManager()
 
     def check_if_pending(self):
         # Check if the tutor is already enabled

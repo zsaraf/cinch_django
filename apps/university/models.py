@@ -1,6 +1,10 @@
 from django.db import models
 from django.db.models import Q
 import re
+<<<<<<< 24070866726791445f8951a5ce9a647ea08f9b4f
+=======
+
+>>>>>>> New django login and update device token
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
@@ -15,6 +19,7 @@ class BonusPointAllocation(models.Model):
     class Meta:
         managed = False
         db_table = 'bonus_point_allocation'
+
 
 class Department(models.Model):
     school = models.ForeignKey('School', blank=True, null=True)
@@ -37,14 +42,15 @@ class CourseManager(models.Manager):
         num_matches = re.search(r'([0-9]+[a-zA-z]*)', search_term)
         if (num_matches):
             class_num = num_matches.group()
-        
-        depts = Department.objects.filter(school__id__exact=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
+
+        depts = Department.objects.filter(school__id=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
         for dept in depts:
             dept_id = dept.pk
-            courses = Course.objects.filter(department__id__exact=dept_id, number__startswith=class_num).order_by('number')[:10]
+            courses = Course.objects.filter(department__id=dept_id, number__startswith=class_num).order_by('number')[:10]
             all_courses.extend(courses)
 
         return all_courses
+
 
 class Course(models.Model):
 
