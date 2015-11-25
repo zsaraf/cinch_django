@@ -25,6 +25,7 @@ from apps.notification import urls as notification_urls
 from apps.emailclient import urls as emailclient_urls
 from apps.account import urls as account_urls
 from apps.chatroom import urls as chatroom_urls
+from apps.group import urls as group_urls
 
 router = routers.DefaultRouter()
 
@@ -40,5 +41,6 @@ urlpatterns = [
     url(r'^django/email-client/', include(emailclient_urls)),
     url(r'^django/accounts/', include(account_urls)),
     url(r'^django/chatrooms/', include(chatroom_urls)),
+    url(r'^django/groups/', include(group_urls)),
     url(r'^django/api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

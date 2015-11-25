@@ -5,7 +5,7 @@ from django.db import models
 class CourseGroup(models.Model):
     professor_name = models.CharField(max_length=100)
     course = models.ForeignKey('university.Course')
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     chatroom = models.ForeignKey('chatroom.Chatroom')
 
     class Meta:
@@ -16,7 +16,7 @@ class CourseGroup(models.Model):
 class CourseGroupMember(models.Model):
     student = models.ForeignKey('student.Student')
     course_group = models.ForeignKey('group.CourseGroup')
-    timestamp = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False

@@ -3,6 +3,10 @@ from .models import *
 from apps.university.serializers import CourseSerializer
 from apps.chatroom.serializers import ChatroomSerializer
 
+class CourseGroupBasicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CourseGroup
 
 class CourseGroupSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
