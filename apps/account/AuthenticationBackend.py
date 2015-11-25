@@ -42,7 +42,6 @@ class SeshAuthentication(authentication.BaseAuthentication):
 
         # see if a user exists with the email
         try:
-            logger.debug(email)
             user = User.objects.get(email=email)
         except User.DoesNotExist:
 
