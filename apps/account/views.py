@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from .models import *
 from .serializers import *
 from .AuthenticationBackend import SeshAuthentication
-from apps.student.managers import StudentManager
 from apps.tutor.models import Tutor
 from apps.student.models import Student
 import json
@@ -98,4 +97,4 @@ class UserViewSet(viewsets.ModelViewSet):
         user.tutor.refresh_from_db()
 
         serializer = UserFullInfoSerializer(user)
-        return Response({"data": serializer.data, "session_id": token.session_id})
+        return Response({"status": "SUCCESS", "data": serializer.data, "session_id": token.session_id})
