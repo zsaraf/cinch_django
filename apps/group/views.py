@@ -16,16 +16,29 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
     serializer_class = CourseGroupSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def create_study_group(self, request, pk=None):
+        """
+        Create a study_group
+        """
+        course_group = self.get_object()
+        
+        name = course_group.course.get_readable_name() + " Study Group"
+        desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + request.user.readable_name
+        chatroom = Chatroom.objects.create(name=name, description=desc)
+        chatroom.save()
+        
+        new_study_group = StudyGroup(user=request.user, chatroom=chatroom, course_group=course_group)
+        new_study_group.save()
+
+        obj = StudyGroupSerializer(new_study_group)
+        return Response(obj.data)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_students(self, request, pk=None):
         """
         Get basic info for student members of a course_group
         """
-        if not pk:
-            raise exceptions.NotFound("Course group could not be found")
-        try:
-            course_group = CourseGroup.objects.get(pk=pk)
-        except CourseGroup.DoesNotExist:
-            raise exceptions.NotFound("Course group could not be found")
+        course_group = self.get_object()
         all_members = CourseGroupMember.objects.filter(course_group=course_group)
         all_users = [m.student.user for m in all_members]
         obj = UserBasicInfoSerializer(all_users, many=True)
@@ -83,43 +96,17 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
     serializer_class = StudyGroupSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request):
-        """
-        Create a study_group
-        """
-        course_group_id = request.POST.get('course_group_id', '')
-        if not course_group_id:
-            raise exceptions.NotFound("Course group could not be found")
-        try:
-            course_group = CourseGroup.objects.get(pk=course_group_id)
-        except CourseGroup.DoesNotExist:
-            raise exceptions.NotFound("Course group could not be found")
-        
-        name = course_group.course.get_readable_name() + " Study Group"
-        desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + user.get_readable_name()
-        chatroom = Chatroom.objects.create(name=name, description=desc)
-        chatroom.save()
-        
-        new_study_group = StudyGroup(user=request.user, chatroom=chatroom, course_group=course_group)
-        new_study_group.save()
-
-        obj = StudyGroupSerializer(new_study_group)
-        return Response(obj.data)
-
-
-    @list_route(methods=['post'])
-    def join(self, request):
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def join(self, request, pk=None):
         """
         Join a study_group
         """
         user = request.user
-        study_group_id = request.POST.get('study_group_id', '')
-        if not study_group_id:
-            raise exceptions.NotFound("Study group could not be found")
-        try:
-            study_group = StudyGroup.objects.get(pk=study_group_id)
-        except StudyGroup.DoesNotExist:
-            raise exceptions.NotFound("Study group could not be found")
+        study_group = self.get_object()
+
+        if (len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0):
+            return Response()
+
         new_group_member = StudyGroupMember(study_group=study_group, user=user)
         new_group_member.save()
 

@@ -25,9 +25,12 @@ class CourseGroupMemberSerializer(serializers.ModelSerializer):
 
 
 class StudyGroupSerializer(serializers.ModelSerializer):
+    # chatroom = ChatroomSerializer
+    # creator = UserBasicInfoSerializer
 
     class Meta:
         model = StudyGroup
+        # fields = (['chatroom', 'creator'])
 
 
 class StudyGroupMemberSerializer(serializers.ModelSerializer):

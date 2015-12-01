@@ -25,7 +25,7 @@ class CourseGroupMember(models.Model):
 
 class StudyGroup(models.Model):
     course_group = models.ForeignKey(CourseGroup)
-    #timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     chatroom = models.ForeignKey('chatroom.Chatroom')
     user = models.ForeignKey('account.User', db_column='creator_user_id')
 
