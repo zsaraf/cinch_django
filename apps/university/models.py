@@ -1,8 +1,6 @@
 from django.db import models
 from django.db.models import Q
-from apps.account.models import User
 import re
-import logging
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
