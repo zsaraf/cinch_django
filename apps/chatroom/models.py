@@ -34,7 +34,7 @@ class ChatroomMember(models.Model):
 class ChatroomActivity(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_activity_type = models.ForeignKey('ChatroomActivityType')
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     activity_id = models.IntegerField(blank=True, null=True)
 
     class Meta:
@@ -42,8 +42,18 @@ class ChatroomActivity(models.Model):
         db_table = 'chatroom_activity'
 
 
+class ChatroomActivityTypeManager(models.Manager):
+    ANNOUNCEMENT = "announcement"
+    FILE = "file"
+    STUDY_GROUP = "study_group"
+    MESSAGE = "message"
+    def get_activity_type(self, type_identifier):
+        return ChatroomActivityType.objects.get(identifier=type_identifier)
+        
+
 class ChatroomActivityType(models.Model):
     identifier = models.CharField(max_length=50)
+    objects = ChatroomActivityTypeManager()
 
     class Meta:
         managed = False
