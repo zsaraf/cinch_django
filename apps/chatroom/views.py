@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import *
 from .models import *
-from json import dumps
 import logging
 logger = logging.getLogger(__name__)
 

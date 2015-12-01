@@ -1,10 +1,7 @@
 from django.db import models
 from django.db.models import Q
 import re
-<<<<<<< 24070866726791445f8951a5ce9a647ea08f9b4f
-=======
 
->>>>>>> New django login and update device token
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()

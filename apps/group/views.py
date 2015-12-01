@@ -21,12 +21,12 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         Create a study_group
         """
         course_group = self.get_object()
-        
+
         name = course_group.course.get_readable_name() + " Study Group"
         desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + request.user.readable_name
         chatroom = Chatroom.objects.create(name=name, description=desc)
         chatroom.save()
-        
+
         new_study_group = StudyGroup(user=request.user, chatroom=chatroom, course_group=course_group)
         new_study_group.save()
 
@@ -43,7 +43,6 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         all_users = [m.student.user for m in all_members]
         obj = UserBasicInfoSerializer(all_users, many=True)
         return Response(obj.data)
-
 
     @list_route(methods=['post'], permission_classes=[IsAuthenticated])
     def join(self, request):
