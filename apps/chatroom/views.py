@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import *
 from .models import *
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         data_with_user = request.data
-        data_with_user["user"] = request.user.id
+        data_with_user['user'] = request.user.id
         serializer = MessageSerializer(data=data_with_user)
 
         if serializer.is_valid():

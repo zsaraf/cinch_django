@@ -1,4 +1,5 @@
 from django.db import models
+from .managers import StudentManager
 
 
 class Favorite(models.Model):
@@ -14,6 +15,7 @@ class Favorite(models.Model):
 class Student(models.Model):
     user = models.OneToOneField('account.User')
     credits = models.DecimalField(max_digits=19, decimal_places=4)
+    objects = StudentManager()
 
     class Meta:
         managed = False

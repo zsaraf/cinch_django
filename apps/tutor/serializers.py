@@ -1,6 +1,7 @@
 from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorCourse, TutorDepartment, Tutor, TutorSignup, TutorTier
 from rest_framework import serializers
 from apps.university.serializers import CourseSerializer, DepartmentSerializer
+from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer
 from django.conf import settings
 
 import json
@@ -49,6 +50,8 @@ class TutorTierSerializer(serializers.ModelSerializer):
 class TutorSerializer(serializers.ModelSerializer):
     courses = TutorCourseSerializer(many=True, source='tutorcourse_set')
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
+    open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
+    past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     bonus_info = serializers.SerializerMethodField()
     tiers = serializers.SerializerMethodField()
     stats = serializers.ReadOnlyField()
