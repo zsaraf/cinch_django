@@ -22,16 +22,23 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         Create a study_group
         """
         course_group = self.get_object()
+        user = request.user
 
         name = course_group.course.get_readable_name() + " Study Group"
-        desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + request.user.readable_name
+        desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + user.readable_name
         chatroom = Chatroom.objects.create(name=name, description=desc)
 
-        new_study_group = StudyGroup(user=request.user, chatroom=chatroom, course_group=course_group)
+        new_study_group = StudyGroup(user=user, chatroom=chatroom, course_group=course_group)
         new_study_group.save()
 
+        # add creator to the study group and associated chatroom
+        StudyGroupMember.objects.create(study_group=new_study_group, user=user)
+        ChatroomMember.objects.create(chatroom=new_study_group.chatroom, user=user)
+
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.STUDY_GROUP)
-        activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=new_study_group.pk)
+        ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=new_study_group.pk)
+
+        course_group.send_study_group_notification(user)
 
         obj = StudyGroupSerializer(new_study_group)
         return Response(obj.data)
@@ -80,16 +87,20 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     continue
 
             # now add them to the group
-            new_group_member = CourseGroupMember(course_group=course_group, student=user.student)
-            new_group_member.save()
+            new_group_member = CourseGroupMember.objects.create(course_group=course_group, student=user.student)
             all_course_group_memberships.append(new_group_member)
+
+            # add them to the group's chatroom
+            ChatroomMember.objects.create(chatroom=course_group.chatroom, user=user)
 
             # announce to the group that a new member has joined
             message = user.readable_name + " has joined"
             announcement = Announcement.objects.create(chatroom=course_group.chatroom, message=message)
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-            activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+            course_group.send_new_member_notification(user)
 
         serializer = CourseGroupMemberSerializer(all_course_group_memberships, many=True)
         return Response(serializer.data)
@@ -116,15 +127,18 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         if (len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0):
             return Response()
 
-        new_group_member = StudyGroupMember(study_group=study_group, user=user)
-        new_group_member.save()
+        # add user to both study group and chatroom
+        new_group_member = StudyGroupMember.objects.create(study_group=study_group, user=user)
+        ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
 
         # announce to the group that a new member has joined
         message = user.readable_name + " has joined"
         announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+        study_group.send_new_member_notification(user)
 
         obj = StudyGroupMemberSerializer(new_group_member)
         return Response(obj.data)
