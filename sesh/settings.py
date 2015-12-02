@@ -90,8 +90,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -110,13 +110,13 @@ LOGGING = {
             'filename': 'logs/django.log',
             'formatter': 'verbose'
         },
-        
+
     },
     'loggers': {
         'django': {
-            'handlers':['django_file'],
+            'handlers': ['django_file'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'apps': {
             'handlers': ['sesh_file'],
@@ -129,9 +129,6 @@ WSGI_APPLICATION = 'sesh.wsgi.application'
 
 # REST FRAMEWORK
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'apps.account.AuthenticationBackend.SeshAuthentication',
         'rest_framework.authentication.BasicAuthentication',

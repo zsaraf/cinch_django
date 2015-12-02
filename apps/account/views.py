@@ -2,12 +2,12 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from apps.account.models import Device, DoNotEmail, EmailUserData, PasswordChangeRequest, PastBonus, PromoCode, SeshState, Token, User
-from apps.account.serializers import (
-    DeviceSerializer, DoNotEmailSerializer, EmailUserDataSerializer, PasswordChangeRequestSerializer,
-    PastBonusSerializer, PromoCodeSerializer, SeshStateSerializer,  TokenSerializer, UserBasicInfoSerializer, UserFullInfoSerializer
-)
-
+from .models import *
+from .serializers import *
+from .AuthenticationBackend import SeshAuthentication
+from apps.tutor.models import Tutor
+from apps.student.models import Student
+import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -67,3 +67,34 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = UserFullInfoSerializer(user)
         return Response(serializer.data)
+
+    @list_route(methods=['POST'], url_path='login')
+    def login(self, request):
+
+        authentication = SeshAuthentication()
+        user, token = authentication.authenticate_login(json.loads(request.body))
+
+        if not token:
+            return Response({"status": "UNVERIFIED"})
+
+        # See if the user has a tutor make one if not
+        try:
+            user.tutor
+        except Tutor.DoesNotExist:
+            user.tutor = Tutor.objects.create_default_tutor_with_user(user)
+
+        # Same thing with student
+        try:
+            user.student
+        except Student.DoesNotExist:
+            user.student = Student.objects.create_default_student_with_user(user)
+
+        user.save()
+
+        # Check pending tutor stuff
+        user.tutor.check_if_pending()
+        user.refresh_from_db()
+        user.tutor.refresh_from_db()
+
+        serializer = UserFullInfoSerializer(user)
+        return Response({"status": "SUCCESS", "data": serializer.data, "session_id": token.session_id})

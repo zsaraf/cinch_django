@@ -1,26 +1,12 @@
 from django.db import models
 from django.db.models import Q, Count, F
 from sesh import settings
-from apps.university.serializers import DiscountSerializer
 from datetime import datetime
+from apps.university.serializers import DiscountSerializer
+from .managers import TokenManager, DeviceManager
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-class Device(models.Model):
-    user = models.OneToOneField('User')
-    token = models.CharField(max_length=200)
-    type = models.CharField(max_length=100)
-    device_model = models.CharField(max_length=40, blank=True, null=True)
-    system_version = models.FloatField(blank=True, null=True)
-    app_version = models.FloatField()
-    timezone_name = models.CharField(max_length=100, blank=True, null=True)
-    timestamp = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'devices'
 
 
 class DoNotEmail(models.Model):
@@ -83,7 +69,8 @@ class SeshState(models.Model):
 
 class Token(models.Model):
     session_id = models.CharField(max_length=100)
-    issue_time = models.DateTimeField()
+    issue_time = models.DateTimeField(auto_now_add=True)
+    objects = TokenManager()
 
     class Meta:
         managed = False
@@ -95,7 +82,7 @@ class User(models.Model):
     password = models.CharField(max_length=100)
     full_name = models.CharField(max_length=100)
     share_code = models.CharField(max_length=10)
-    token = models.ForeignKey(Token, blank=True, null=True)
+    token = models.ForeignKey(Token, on_delete=models.SET_NULL, blank=True, null=True)
     web_token_id = models.IntegerField()
     school = models.ForeignKey('university.School')
     is_verified = models.IntegerField()
@@ -195,3 +182,19 @@ class User(models.Model):
     class Meta:
         managed = False
         db_table = 'users'
+
+
+class Device(models.Model):
+    user = models.OneToOneField(User)
+    token = models.CharField(max_length=200, blank=True, null=True)
+    type = models.CharField(max_length=100)
+    device_model = models.CharField(max_length=40, blank=True, null=True)
+    system_version = models.FloatField(blank=True, null=True)
+    app_version = models.FloatField()
+    timezone_name = models.CharField(max_length=100, blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    objects = DeviceManager()
+
+    class Meta:
+        managed = False
+        db_table = 'devices'
