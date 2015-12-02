@@ -24,7 +24,8 @@ class Chatroom(models.Model):
 
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
-    chatroom = models.ForeignKey(Chatroom)
+    chatroom = models.ForeignKey('Chatroom')
+    unread_activity_count = models.IntegerField()
 
     class Meta:
         managed = False

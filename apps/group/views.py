@@ -12,6 +12,16 @@ import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 
 
+class ConversationViewSet(viewsets.ModelViewSet):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer
+
+
+class ConversationParticipantViewSet(viewsets.ModelViewSet):
+    queryset = ConversationParticipant.objects.all()
+    serializer_class = ConversationParticipantSerializer
+
+
 class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupSerializer

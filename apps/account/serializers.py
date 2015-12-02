@@ -5,6 +5,7 @@ from apps.student.serializers import StudentSerializer
 from apps.university.serializers import SchoolSerializer
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
+from apps.group.serializers import ConversationParticipantSerializer
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -50,7 +51,7 @@ class TokenSerializer(serializers.ModelSerializer):
 class UserBasicInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('full_name', 'profile_picture', 'major', 'bio')
+        fields = ('full_name', 'profile_picture', 'major', 'bio', 'id')
 
 
 class UserFullInfoSerializer(serializers.ModelSerializer):
@@ -61,6 +62,7 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
     cards = serializers.SerializerMethodField()
     outstanding_charges = serializers.SerializerMethodField()
     discounts = serializers.ReadOnlyField()
+    conversations = ConversationParticipantSerializer(many=True, source='conversationparticipant_set')
 
     class Meta:
         model = User
