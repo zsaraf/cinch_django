@@ -8,6 +8,7 @@ from apps.chatroom.models import Chatroom, Announcement
 from apps.account.serializers import UserBasicInfoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
+from datetime import datetime
 import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 
@@ -24,11 +25,18 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
         user = request.user
 
+        str_time = request.POST.get('time')
+        topic = request.POST.get('topic')
+        location = request.POST.get('location')
+        num_people = request.POST.get('num_people')
+
+        time = datetime.strptime(str_time, "%Y-%m-%d %H:%M:%S")
+
         name = course_group.course.get_readable_name() + " Study Group"
         desc = "Study group for " + course_group.course.get_readable_name() + ", created by " + user.readable_name
         chatroom = Chatroom.objects.create(name=name, description=desc)
 
-        new_study_group = StudyGroup(user=user, chatroom=chatroom, course_group=course_group)
+        new_study_group = StudyGroup(user=user, chatroom=chatroom, course_group=course_group, time=time, location=location, topic=topic, num_people=num_people)
         new_study_group.save()
 
         # add creator to the study group and associated chatroom
@@ -83,7 +91,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     course_group = CourseGroup.objects.get(pk=course_group_id)
                 except CourseGroup.DoesNotExist:
                     raise exceptions.NotFound("Course Group could not be found")
-                if (len(CourseGroupMember.objects.filter(course_group=course_group, student=user.student)) > 0):
+                if (len(CourseGroupMember.objects.filter(course_group=course_group, student=user.student)) > 0 | course_group.is_past):
                     continue
 
             # now add them to the group
@@ -117,12 +125,72 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def edit(self, request, pk=None):
+        """
+        Edit the details of a study group
+        """
+        user = request.user
+        study_group = self.get_object()
+        if (user != study_group.user):
+            # non-owner cannot edit
+            return Response("You do not own this study group", 200)
+        if (study_group.is_past):
+            return Response("This study group has ended", 200)
+
+        time = request.POST.get('time')
+        topic = request.POST.get('topic')
+        location = request.POST.get('location')
+        num_people = request.POST.get('num_people')
+
+        study_group.time = time
+        study_group.topic = topic
+        study_group.location = location
+        study_group.num_people = num_people
+        study_group.save()
+
+        # notify other members of change
+        study_group.send_group_edited_notification()
+
+        return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def leave(self, request, pk=None):
+        """
+        Leave a study_group (if creator, delete group)
+        """
+        user = request.user
+        study_group = self.get_object()
+        if (study_group.is_past):
+            return Response("This study group has ended", 200)
+
+        if (user == study_group.user):
+            # user is creator of group -> archive group and notify users
+            study_group.is_past = True
+            study_group.save()
+            study_group.send_group_ended_notification()
+        else:
+            try:
+                StudyGroupMember.objects.get(user=user, study_group=study_group).delete()
+                # announce to the group that a member has left
+                message = user.readable_name + " has left the group"
+                announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+                activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+                ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            except StudyGroupMember.DoesNotExist:
+                return Response("You are not a member of this group", 200)
+
+        return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def join(self, request, pk=None):
         """
         Join a study_group
         """
         user = request.user
         study_group = self.get_object()
+
+        if (study_group.is_past):
+            return Response("This study group has ended", 200)
 
         if (len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0):
             return Response()

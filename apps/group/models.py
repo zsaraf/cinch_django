@@ -64,10 +64,50 @@ class StudyGroup(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     chatroom = models.ForeignKey('chatroom.Chatroom')
     user = models.ForeignKey('account.User', db_column='creator_user_id')
+    is_past = models.BooleanField(default=False)
+    topic = models.CharField(max_length=500)
+    location = models.CharField(max_length=250)
+    num_people = models.IntegerField()
+    time = models.DateTimeField()
+
+    def send_group_edited_notification(self):
+        '''
+        Sends a notification to the chatroom members that the group has ended
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        data = {
+            "CREATOR_NAME": self.user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        merge_vars = {
+            "chatroom_id": self.chatroom.id,
+            "study_group_id": self.id,
+        }
+        notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
+    def send_group_ended_notification(self):
+        '''
+        Sends a notification to the chatroom members that the group has ended
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        data = {
+            "CREATOR_NAME": self.user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        merge_vars = {
+            "chatroom_id": self.chatroom.id,
+            "study_group_id": self.id,
+            "course_group_id": self.course_group.id
+        }
+        notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_ENDED")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_new_member_notification(self, new_user):
         '''
-        Sends a notification to the chatroom members
+        Sends a notification to the chatroom members that a new member joined
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
         data = {
