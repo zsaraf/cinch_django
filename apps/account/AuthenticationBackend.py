@@ -2,7 +2,7 @@ import os
 import hashlib
 from rest_framework import authentication
 from rest_framework import exceptions
-from rest_framework.response import Response
+from sesh.exceptions import BadLogin, AccountDisabled, PendingTutorReady, PendingTutorNotReady
 from django.db.models import Q
 from django.contrib.auth.models import AnonymousUser
 from .models import User, Token, Device
@@ -48,14 +48,13 @@ class SeshAuthentication(authentication.BaseAuthentication):
             # see if a pending tutor exists with the email
             try:
                 pt = PendingTutor.objects.get(email=email)
-                first_string = 'Thanks for signing up to tutor!'
                 if pt.ready_to_publish:
-                    raise exceptions.AuthenticationFailed(first_string + ' You still need to create an account. Please use the same email address and you will be enabled to tutor.')
+                    raise PendingTutorReady()
                 else:
-                    raise exceptions.AuthenticationFailed(first_string + ' We\'ve received your tutor application and will get back to you once you\'ve been approved. In the mean time, please create an account with the same email address.')
+                    raise PendingTutorNotReady()
             except PendingTutor.DoesNotExist:
                 pass
-            raise exceptions.AuthenticationFailed('Invalid email/password combination.')
+            raise BadLogin()
 
         str_to_hash = 'Eabltf1!' + user.salt + password
         m = hashlib.sha1()
@@ -66,7 +65,7 @@ class SeshAuthentication(authentication.BaseAuthentication):
 
             # If user isn't enabled -- don't let them in
             if user.is_disabled:
-                raise exceptions.AuthenticationFailed('Your account has been disabled. Please contact team@seshtutoring.com for more information.')
+                raise AccountDisabled()
 
             # If isn't verified -- return 200 response with unverified status
             if not user.is_verified:
@@ -91,4 +90,4 @@ class SeshAuthentication(authentication.BaseAuthentication):
             return (user, token)
 
         else:
-            raise exceptions.AuthenticationFailed('Invalid email/password combination.')
+            raise BadLogin()
