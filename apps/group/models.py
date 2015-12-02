@@ -1,7 +1,25 @@
 from django.db import models
 
 
-# Create your models here.
+class Conversation(models.Model):
+    chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
+    timestamp = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'conversation'
+
+
+class ConversationParticipant(models.Model):
+    conversation = models.ForeignKey('Conversation')
+    user = models.ForeignKey('account.User')
+    timestamp = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'conversation_participant'
+
+
 class CourseGroup(models.Model):
     professor_name = models.CharField(max_length=100)
     course = models.ForeignKey('university.Course')

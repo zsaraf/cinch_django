@@ -1,5 +1,6 @@
 from apps.tutoring.models import OpenBid, OpenRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
 from apps.university.serializers import CourseSerializer
+from apps.chatroom.serializers import ChatroomSerializer
 from rest_framework import serializers
 import json
 
@@ -34,6 +35,7 @@ class PastRequestSerializer(serializers.ModelSerializer):
 
 class OpenSeshSerializer(serializers.ModelSerializer):
     past_request = PastRequestSerializer()
+    chatroom = ChatroomSerializer()
 
     class Meta:
         model = OpenSesh

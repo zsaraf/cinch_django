@@ -11,6 +11,16 @@ from rest_framework import exceptions
 import json
 
 
+class ConversationViewSet(viewsets.ModelViewSet):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer
+
+
+class ConversationParticipantViewSet(viewsets.ModelViewSet):
+    queryset = ConversationParticipant.objects.all()
+    serializer_class = ConversationParticipantSerializer
+
+
 class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupSerializer
