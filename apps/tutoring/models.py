@@ -1,4 +1,6 @@
 from django.db import models
+from apps.chatroom.models import ChatroomMember
+from apps.notification.models import OpenNotification, NotificationType
 
 
 class OpenBid(models.Model):
@@ -52,6 +54,40 @@ class OpenSesh(models.Model):
     has_received_start_time_approaching_reminder = models.IntegerField(blank=True, null=True)
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
+
+    def send_set_time_notification(self):
+        '''
+        Sends a notification to the chatroom members
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.tutor.user)
+        data = {
+            "TUTOR_NAME": self.tutor.user.readable_name,
+            "SET_TIME": self.set_time
+        }
+        merge_vars = {
+            "chatroom_id": self.chatroom.id,
+            "set_time": self.set_time
+        }
+        notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
+    def send_set_location_notification(self):
+        '''
+        Sends a notification to the chatroom members
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        data = {
+            "STUDENT_NAME": self.student.user.readable_name,
+            "LOCATION_NOTES": self.location_notes
+        }
+        merge_vars = {
+            "chatroom_id": self.chatroom.id,
+            "location_notes": self.location_notes
+        }
+        notification_type = NotificationType.objects.get(identifier="LOCATION_NOTES_UPDATED")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False

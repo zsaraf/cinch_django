@@ -36,10 +36,11 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+        open_sesh.send_set_location_notification()
 
         return Response()
-        
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_start_time(self, request, pk=None):
@@ -48,15 +49,17 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         """
         user = request.user
         open_sesh = self.get_object()
-        start_time = request.POST.get('start_time')
-        open_sesh.start_time = start_time
+        set_time = request.POST.get('set_time')
+        open_sesh.set_time = set_time
         open_sesh.save()
 
-        message = user.readable_name + " set the start time for " + start_time
+        message = user.readable_name + " set the start time for " + set_time
         announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+        open_sesh.send_set_time_notification()
 
         return Response()
 
