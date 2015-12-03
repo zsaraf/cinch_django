@@ -284,39 +284,4 @@
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
     </object>
-    <object type="LMREQUEST" id="z126">
-        <attribute name="uuid" type="string">8D3C7211-BEEE-4E30-B666-7A3FE80DEB7F</attribute>
-        <attribute name="url" type="string">http://localhost:8000/mix/day_mixes/?format=json</attribute>
-        <attribute name="storecookies" type="bool">1</attribute>
-        <attribute name="sendcookies" type="bool">1</attribute>
-        <attribute name="redirectmethod" type="bool">0</attribute>
-        <attribute name="redirectauthorization" type="bool">0</attribute>
-        <attribute name="method" type="string">GET</attribute>
-        <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">0</attribute>
-        <attribute name="name" type="string">Get DayMixes</attribute>
-        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z128"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z127"></relationship>
-    </object>
-    <object type="LMKEYVALUE" id="z127">
-        <attribute name="value" type="string"></attribute>
-        <attribute name="order" type="int64">0</attribute>
-        <attribute name="name" type="string"></attribute>
-        <attribute name="enabled" type="bool">1</attribute>
-        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
-        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
-        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
-        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z126"></relationship>
-    </object>
-    <object type="LMREQUESTGROUP" id="z128">
-        <attribute name="uuid" type="string">498FA6E2-732D-472D-B26D-FB053D7192D1</attribute>
-        <attribute name="order" type="int64">2</attribute>
-        <attribute name="name" type="string">Daymix Api</attribute>
-        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z126"></relationship>
-        <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
-        <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
-        <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
-    </object>
 </database>
