@@ -8,17 +8,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
 
 class ChatroomSerializer(serializers.ModelSerializer):
-    messages = serializers.SerializerMethodField()
+    chatroom_activities = serializers.SerializerMethodField()
     chatroom_members = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
 
-    def get_messages(self, obj):
+    def get_chatroom_activities(self, obj):
         '''
         Limits the number of messages to [:5]
         '''
-        return BasicMessageSerializer(Message.objects.filter(chatroom=obj)[:20], many=True).data
+        return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj)[:20], many=True).data
 
     def get_chatroom_members(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
@@ -35,14 +35,31 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
         model = ChatroomMember
 
 
-class ChatroomActivitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatroomActivity
-
-
 class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatroomActivityType
+
+
+class ChatroomActivitySerializer(serializers.ModelSerializer):
+    activity = serializers.SerializerMethodField()
+    chatroom_activity_type = ChatroomActivityTypeSerializer()
+
+    class Meta:
+        model = ChatroomActivity
+
+    def get_activity(self, obj):
+        if obj.chatroom_activity_type.is_message():
+            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_announcement():
+            return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_file():
+            return FileSerializer(File.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_study_group():
+            from apps.group.serializers import StudyGroupSerializer
+            from apps.group.models import StudyGroup
+            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id)).data
+        else:
+            return []
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -51,11 +68,10 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class BasicMessageSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ('message', 'user')
+        fields = ('message', 'user', 'id')
 
     def get_user(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
