@@ -44,7 +44,7 @@ class BasicMessageSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.user).data
+        return UserBasicInfoSerializer(obj.chatroom_member.user).data
 
 
 class MessageSerializer(serializers.ModelSerializer):

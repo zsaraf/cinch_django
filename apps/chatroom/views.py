@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import detail_route, list_route
 from .serializers import *
 from .models import *
 import logging
@@ -15,6 +16,32 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 class ChatroomViewSet(viewsets.ModelViewSet):
     queryset = Chatroom.objects.all()
     serializer_class = ChatroomSerializer
+
+    # @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    # @detail_route(methods=['post'])
+    # def upload_file(self, request, pk=None):
+    # @list_route(methods=['get'])
+    # def upload_file(self, request):
+
+    #     import boto
+    #     s3 = boto.connect_s3('AKIAIRQE6V6WEPIPVGVA', 'UcFmvCIzv41VhQ8uYv0GgSUpl1v4VY3o5HcenKeN')
+    #     s3.connect_to_region('us-west-2')
+    #     bucket = s3.lookup('sesh-tutoring-dev')
+    #     if bucket:
+    #         return Response("Success", 200)
+    #     else:
+    #         return Response("FAIL", 200)
+
+    #     # upload_file = request.FILES['src']
+    #     # name = request.POST.get('name')
+    #     # user = request.user
+    #     # chatroom = self.get_object()
+
+    #     # form = FileUploadForm(request.POST, request.FILES)
+    #     # if form.is_valid():
+    #     #     File.objects.create(chatroom=chatroom, user=user, src=upload_file, name=name)
+    #     # # File.objects.create(chatroom=chatroom, user=user, name=name)
+    #     # return Response()
 
 
 class ChatroomActivityViewSet(viewsets.ModelViewSet):
