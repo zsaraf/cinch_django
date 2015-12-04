@@ -25,7 +25,8 @@ class Chatroom(models.Model):
 
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
-    chatroom = models.ForeignKey(Chatroom)
+    chatroom = models.ForeignKey('Chatroom')
+    unread_activity_count = models.IntegerField()
 
     class Meta:
         managed = False
@@ -48,9 +49,10 @@ class ChatroomActivityTypeManager(models.Manager):
     FILE = "file"
     STUDY_GROUP = "study_group"
     MESSAGE = "message"
+
     def get_activity_type(self, type_identifier):
         return ChatroomActivityType.objects.get(identifier=type_identifier)
-        
+
 
 class ChatroomActivityType(models.Model):
     identifier = models.CharField(max_length=50)
@@ -59,6 +61,18 @@ class ChatroomActivityType(models.Model):
     class Meta:
         managed = False
         db_table = 'chatroom_activity_type'
+
+    def is_announcement(self):
+        return self.identifier == "announcement"
+
+    def is_file(self):
+        return self.identifier == "file"
+
+    def is_study_group(self):
+        return self.identifier == "study_group"
+
+    def is_message(self):
+        return self.identifier == "message"
 
 
 def upload_file_to(instance, filename):

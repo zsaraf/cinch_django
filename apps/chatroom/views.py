@@ -44,6 +44,11 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     #     # return Response()
 
 
+class ChatroomMemberViewSet(viewsets.ModelViewSet):
+    queryset = ChatroomMember.objects.all()
+    serializer_class = ChatroomMemberSerializer
+
+
 class ChatroomActivityViewSet(viewsets.ModelViewSet):
     queryset = ChatroomActivity.objects.all()
     serializer_class = ChatroomActivitySerializer

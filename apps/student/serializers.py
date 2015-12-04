@@ -13,6 +13,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         from apps.account.serializers import UserBasicInfoSerializer
         return UserBasicInfoSerializer(obj.tutor.user).data
 
+
 class StudentUserInfoSerializer(serializers.ModelSerializer):
     user_data = serializers.SerializerMethodField()
 
