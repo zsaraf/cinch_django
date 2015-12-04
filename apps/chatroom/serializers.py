@@ -36,15 +36,11 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class BasicMessageSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ('message', 'user')
+        fields = ('message', 'chatroom_member')
 
-    def get_user(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.chatroom_member.user).data
 
 
 class MessageSerializer(serializers.ModelSerializer):
