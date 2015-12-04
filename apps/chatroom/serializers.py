@@ -71,11 +71,7 @@ class BasicMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ('message', 'user', 'id')
-
-    def get_user(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.user).data
+        fields = ('message', 'chatroom_member', 'id')
 
 
 class MessageSerializer(serializers.ModelSerializer):
