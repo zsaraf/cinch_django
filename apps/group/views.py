@@ -4,6 +4,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from apps.university.models import Course
+from apps.student.models import Student
 from apps.chatroom.models import Chatroom, Announcement
 from apps.account.serializers import UserBasicInfoSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -73,15 +74,29 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         return Response(obj.data)
 
     @list_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def join(self, request):
+    def edit(self, request):
         """
-        Join a course_group
+        Add or remove course_groups
         """
-        jsonArr = json.loads(request.POST.get('course_group_array'))
+        addJsonArr = json.loads(request.data.get('course_group_additions'))
+        deleteJsonArr = json.loads(request.data.get('course_group_deletions'))
         user = request.user
         all_course_group_memberships = []
 
-        for obj in jsonArr:
+        for obj in deleteJsonArr:
+            course_group_id = obj.get('course_group_id', '')
+            try:
+                course_group = CourseGroup.objects.get(pk=course_group_id)
+                student = Student.objects.get(user=user)
+                CourseGroupMember.objects.get(student=student, course_group=course_group).delete()
+            except CourseGroup.DoesNotExist:
+                raise exceptions.NotFound("Course Group could not be found")
+            except Student.DoesNotExist:
+                raise exceptions.NotFound("Couldn't find a record of this student")
+            except CourseGroupMember.DoesNotExist:
+                raise exceptions.NotFound("Couldn't find a member of the course group for this user")
+
+        for obj in addJsonArr:
 
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
