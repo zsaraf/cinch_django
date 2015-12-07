@@ -23,7 +23,6 @@ class Student(models.Model):
 
     @property
     def stats(self):
-        print 'here'
         # Get total hours learned
         hours_learned = 0.0
         for past_sesh in self.pastsesh_set.all():

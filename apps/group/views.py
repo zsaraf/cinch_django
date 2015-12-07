@@ -132,7 +132,6 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-
             course_group.send_new_member_notification(user, chatroom_activity)
 
         serializer = CourseGroupMemberSerializer(all_course_group_memberships, many=True)
