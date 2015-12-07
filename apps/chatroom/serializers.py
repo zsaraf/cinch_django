@@ -1,10 +1,37 @@
 from rest_framework import serializers
-from .models import *
+from models import *
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
+
+
+class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatroomActivityType
+
+
+class ChatroomActivitySerializer(serializers.ModelSerializer):
+    activity = serializers.SerializerMethodField()
+    chatroom_activity_type = ChatroomActivityTypeSerializer()
+
+    class Meta:
+        model = ChatroomActivity
+
+    def get_activity(self, obj):
+        if obj.chatroom_activity_type.is_message():
+            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_announcement():
+            return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_file():
+            return FileSerializer(File.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_study_group():
+            from apps.group.serializers import StudyGroupSerializer
+            from apps.group.models import StudyGroup
+            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id)).data
+        else:
+            return []
 
 
 class ChatroomSerializer(serializers.ModelSerializer):
@@ -33,33 +60,6 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatroomMember
-
-
-class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatroomActivityType
-
-
-class ChatroomActivitySerializer(serializers.ModelSerializer):
-    activity = serializers.SerializerMethodField()
-    chatroom_activity_type = ChatroomActivityTypeSerializer()
-
-    class Meta:
-        model = ChatroomActivity
-
-    def get_activity(self, obj):
-        if obj.chatroom_activity_type.is_message():
-            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
-        elif obj.chatroom_activity_type.is_announcement():
-            return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
-        elif obj.chatroom_activity_type.is_file():
-            return FileSerializer(File.objects.get(pk=obj.activity_id)).data
-        elif obj.chatroom_activity_type.is_study_group():
-            from apps.group.serializers import StudyGroupSerializer
-            from apps.group.models import StudyGroup
-            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id)).data
-        else:
-            return []
 
 
 class FileSerializer(serializers.ModelSerializer):

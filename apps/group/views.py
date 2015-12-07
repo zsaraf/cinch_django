@@ -131,9 +131,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             announcement = Announcement.objects.create(chatroom=course_group.chatroom, message=message)
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-            ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-            course_group.send_new_member_notification(user)
+            course_group.send_new_member_notification(user, chatroom_activity)
 
         serializer = CourseGroupMemberSerializer(all_course_group_memberships, many=True)
         return Response(serializer.data)
@@ -174,7 +174,12 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         study_group.save()
 
         # notify other members of change
-        study_group.send_group_edited_notification()
+        message = user.readable_name + " has edited the group details"
+        announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+        activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+        study_group.send_group_edited_notification(activity)
 
         return Response()
 
@@ -229,9 +234,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        study_group.send_new_member_notification(user)
+        study_group.send_new_member_notification(user, chatroom_activity)
 
         obj = StudyGroupMemberSerializer(new_group_member)
         return Response(obj.data)
