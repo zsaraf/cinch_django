@@ -179,6 +179,38 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         return Response()
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def transfer_ownership(self, request, pk=None):
+        """
+        Transfer ownership of a study group to a different user
+        """
+        from apps.account.models import User
+        user = request.user
+        new_owner_id = int(request.data.get('new_owner_id'))
+        study_group = self.get_object()
+        if (study_group.is_past):
+            return Response("This study group has ended", 200)
+
+        if (user == study_group.user):
+            try:
+                new_user = User.objects.get(pk=new_owner_id)
+                StudyGroupMember.objects.get(user=new_user, study_group=study_group)
+                study_group.user = new_user
+                study_group.save()
+                message = new_user.readable_name + " is now leading the group"
+                announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+                activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+                activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+                study_group.send_owner_changed_notification(activity)
+                return Response(StudyGroupSerializer(study_group).data)
+            except User.DoesNotExist:
+                raise exceptions.NotFound("User not found")
+            except StudyGroupMember.DoesNotExist:
+                raise exceptions.NotFound("User is not part of the study group")
+
+        else:
+            return Response("Only owner can alter study group", 200)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def leave(self, request, pk=None):
         """
         Leave a study_group (if creator, delete group)
