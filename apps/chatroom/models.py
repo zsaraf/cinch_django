@@ -26,7 +26,7 @@ class Chatroom(models.Model):
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
     chatroom = models.ForeignKey('Chatroom')
-    unread_activity_count = models.IntegerField()
+    unread_activity_count = models.IntegerField(default=0)
 
     class Meta:
         managed = False
@@ -42,6 +42,28 @@ class ChatroomActivity(models.Model):
     class Meta:
         managed = False
         db_table = 'chatroom_activity'
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # only happens when not in db
+            chatroom_members = []
+            if self.chatroom_activity_type.is_message():
+                message = Message.objects.get(pk=self.activity_id)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=message.chatroom_member.user)
+            elif self.chatroom_activity_type.is_announcement():
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
+            elif self.chatroom_activity_type.is_file():
+                new_file = File.objects.get(pk=self.activity_id)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_file.chatroom_member.user)
+            elif self.chatroom_activity_type.is_study_group():
+                from apps.group.models import StudyGroup
+                group = StudyGroup.objects.get(pk=self.activity_id)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=group.user)
+            for member in chatroom_members:
+                member.unread_activity_count = member.unread_activity_count + 1
+                member.save()
+
+        super(ChatroomActivity, self).save(*args, **kwargs)
 
 
 class ChatroomActivityTypeManager(models.Manager):
