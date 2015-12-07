@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'apps.tutoring',
     'apps.notification',
     'apps.transaction',
+    'storages'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -148,6 +149,12 @@ DATABASES = {
         },
     }
 }
+
+
+AWS_ACCESS_KEY_ID = 'AKIAIIP5DJ2KQYHRULPA'  # Root access key
+AWS_SECRET_ACCESS_KEY = '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'  # Root secret access key
+AWS_STORAGE_BUCKET_NAME = 'sesh-tutoring-dev'
+S3_URL = 'https://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 
 
 # Internationalization
