@@ -7,8 +7,14 @@ class BonusPointAllocationSerializer(serializers.ModelSerializer):
         model = BonusPointAllocation
 
 
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+
+
 class CourseWithGroupsSerializer(serializers.ModelSerializer):
     course_groups = serializers.SerializerMethodField()
+    department = DepartmentSerializer()
 
     class Meta:
         model = Course
@@ -17,11 +23,6 @@ class CourseWithGroupsSerializer(serializers.ModelSerializer):
         from apps.group.serializers import CourseGroupBasicSerializer
         from apps.group.models import CourseGroup
         return CourseGroupBasicSerializer(CourseGroup.objects.filter(course=obj), many=True).data
-
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
 
 
 class CourseSerializer(serializers.ModelSerializer):

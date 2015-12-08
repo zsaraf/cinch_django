@@ -31,7 +31,7 @@ class StudentSerializer(serializers.ModelSerializer):
     open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     open_requests = OpenRequestStudentSerializer(many=True, source='openrequest_set')
-    courses = CourseGroupMemberSerializer(many=True, source='coursegroupmember_set')
+    course_groups = CourseGroupMemberSerializer(many=True, source='coursegroupmember_set')
     stats = serializers.ReadOnlyField()
 
     class Meta:

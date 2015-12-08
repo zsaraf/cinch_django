@@ -12,6 +12,8 @@ from rest_framework import exceptions
 from datetime import datetime
 import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -78,10 +80,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Add or remove course_groups
         """
-        addJsonArr = json.loads(request.data.get('course_group_additions'))
-        deleteJsonArr = json.loads(request.data.get('course_group_deletions'))
+        addJsonArr = request.data['course_group_additions']
+        deleteJsonArr = request.data['course_group_deletions']
         user = request.user
-        all_course_group_memberships = []
 
         for obj in deleteJsonArr:
             course_group_id = obj.get('course_group_id', '')
@@ -101,16 +102,14 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
             professor_name = obj.get('professor_name', '')
-            if not course_group_id:
+            if course_group_id == -1:
                 # must create a group to join
                 try:
                     course = Course.objects.get(pk=course_id)
                 except Course.DoesNotExist:
                     raise exceptions.NotFound("Course could not be found")
                 chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
-                chatroom.save()
                 course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
-                course_group.save()
             else:
                 try:
                     course_group = CourseGroup.objects.get(pk=course_group_id)
@@ -120,8 +119,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     continue
 
             # now add them to the group
-            new_group_member = CourseGroupMember.objects.create(course_group=course_group, student=user.student)
-            all_course_group_memberships.append(new_group_member)
+            CourseGroupMember.objects.create(course_group=course_group, student=user.student)
 
             # add them to the group's chatroom
             ChatroomMember.objects.create(chatroom=course_group.chatroom, user=user)
@@ -132,10 +130,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-
             course_group.send_new_member_notification(user, chatroom_activity)
 
-        serializer = CourseGroupMemberSerializer(all_course_group_memberships, many=True)
+        serializer = CourseGroupMemberSerializer(CourseGroupMember.objects.filter(student=user.student), many=True)
         return Response(serializer.data)
 
 
