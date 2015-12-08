@@ -27,6 +27,7 @@ class CourseGroup(models.Model):
     course = models.ForeignKey('university.Course')
     timestamp = models.DateTimeField(auto_now_add=True)
     chatroom = models.ForeignKey('chatroom.Chatroom')
+    is_past = models.BooleanField(default=False)
 
     class Meta:
         managed = False
