@@ -113,7 +113,8 @@ class Message(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
 
-    def send_notifications(self):
+    def send_notifications(self, chatroom_activity):
+        import serializers
         '''
         Sends a notification to the chatroom members
         '''
@@ -123,8 +124,7 @@ class Message(models.Model):
             "MESSAGE": self.message
         }
         merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "message": self.message
+            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         for cm in chatroom_members:

@@ -31,9 +31,9 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         serializer = MessageSerializer(data=data_with_user)
         if serializer.is_valid():
             message = serializer.save()
-            message.send_notifications()
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
             activity = ChatroomActivity.objects.create(chatroom=message.chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+            message.send_notifications(activity)
             return Response(ChatroomActivitySerializer(activity).data)
         else:
             logger.debug("Invalid request.")

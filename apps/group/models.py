@@ -28,40 +28,6 @@ class CourseGroup(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     chatroom = models.ForeignKey('chatroom.Chatroom')
 
-    def send_study_group_notification(self, creator):
-        '''
-        Sends a notification to the chatroom members
-        '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=creator)
-        data = {
-            "CREATOR_NAME": creator.readable_name,
-            "CLASS_NAME": self.course.get_readable_name()
-        }
-        merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "study_group_id": self.id
-        }
-        notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
-        for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
-
-    def send_new_member_notification(self, new_user):
-        '''
-        Sends a notification to the chatroom members
-        '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
-        data = {
-            "NEW_USER_NAME": new_user.readable_name,
-            "CHATROOM_NAME": self.chatroom.name
-        }
-        merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "new_user_id": new_user.id
-        }
-        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
-        for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
-
     class Meta:
         managed = False
         db_table = 'course_group'
@@ -88,18 +54,19 @@ class StudyGroup(models.Model):
     num_people = models.IntegerField()
     time = models.DateTimeField()
 
-    def send_group_edited_notification(self):
+    def send_group_edited_notification(self, chatroom_activity):
         '''
         Sends a notification to the chatroom members that the group has ended
         '''
+        from apps.chatroom.serializers import ChatroomActivitySerializer
+
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
         data = {
             "CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
         merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "study_group_id": self.id,
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
@@ -115,25 +82,24 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "study_group_id": self.id,
-            "course_group_id": self.course_group.id
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_ENDED")
         for cm in chatroom_members:
             OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
-    def send_new_member_notification(self, new_user):
+    def send_new_member_notification(self, new_user, chatroom_activity):
         '''
         Sends a notification to the chatroom members that a new member joined
         '''
+        from apps.chatroom.serializers import ChatroomActivitySerializer
+
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
         data = {
             "NEW_USER_NAME": new_user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
         merge_vars = {
-            "chatroom_id": self.chatroom.id,
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data,
             "new_user_id": new_user.id
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
