@@ -18,6 +18,13 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def get_activity_with_offset(self, request, pk=None):
+        chatroom = self.get_object()
+        max_id = request.data.get('max_id')
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id)[:50]
+        return Response(ChatroomActivitySerializer(activity, many=True).data)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def send_message(self, request, pk=None):
         data_with_user = request.data
         chatroom = self.get_object()
