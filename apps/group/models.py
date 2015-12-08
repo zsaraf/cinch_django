@@ -55,6 +55,24 @@ class StudyGroup(models.Model):
     num_people = models.IntegerField()
     time = models.DateTimeField()
 
+    def send_owner_changed_notification(self, chatroom_activity):
+        '''
+        Sends a notification to the chatroom members that the group has a new leader
+        '''
+        from apps.chatroom.serializers import ChatroomActivitySerializer
+
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        data = {
+            "NEW_CREATOR_NAME": self.user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        merge_vars = {
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+        }
+        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
     def send_group_edited_notification(self, chatroom_activity):
         '''
         Sends a notification to the chatroom members that the group has ended
