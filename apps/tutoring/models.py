@@ -62,11 +62,11 @@ class OpenSesh(models.Model):
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.tutor.user)
-        data = {
+        merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name,
             "SET_TIME": self.set_time
         }
-        merge_vars = {
+        data = {
             "chatroom_id": ChatroomActivitySerializer(chatroom_activity).data,
             "set_time": self.set_time
         }
@@ -81,11 +81,11 @@ class OpenSesh(models.Model):
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
-        data = {
+        merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name,
             "LOCATION_NOTES": self.location_notes
         }
-        merge_vars = {
+        data = {
             "chatroom_id": ChatroomActivitySerializer(chatroom_activity).data,
             "location_notes": self.location_notes
         }
