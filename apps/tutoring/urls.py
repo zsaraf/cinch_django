@@ -4,10 +4,9 @@ from apps.tutoring import views as tutoring_views
 
 router = routers.DefaultRouter()
 router.register(r'open_bids', tutoring_views.OpenBidViewSet);
-router.register(r'open_requests', tutoring_views.OpenRequestViewSet);
+router.register(r'sesh_requests', tutoring_views.SeshRequestViewSet);
 router.register(r'open_seshes', tutoring_views.OpenSeshViewSet);
 router.register(r'past_bids', tutoring_views.PastBidViewSet);
-router.register(r'past_requests', tutoring_views.PastRequestViewSet);
 router.register(r'past_seshes', tutoring_views.PastSeshViewSet);
 router.register(r'reported_problems', tutoring_views.ReportedProblemViewSet);
 
