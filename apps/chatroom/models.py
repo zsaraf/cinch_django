@@ -97,20 +97,10 @@ class ChatroomActivityType(models.Model):
         return self.identifier == "message"
 
 
-def upload_file_to(instance, filename):
-    import os
-    from django.utils.timezone import now
-    filename_base, filename_ext = os.path.splitext(filename)
-    return 'images/files/%s%s' % (
-        now().strftime("%Y%m%d%H%M%S"),
-        filename_ext.lower(),
-    )
-
-
 class File(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
-    src = models.FileField(upload_to='files', blank=True, null=True)
+    src = models.CharField(max_length=250, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
@@ -118,27 +108,23 @@ class File(models.Model):
         db_table = 'file'
 
 
-class FileUploadForm(forms.Form):
-    src = forms.FileField()
-
-
 class Message(models.Model):
     message = models.CharField(max_length=500)
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
 
-    def send_notifications(self):
+    def send_notifications(self, chatroom_activity):
+        import serializers
         '''
         Sends a notification to the chatroom members
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
-        data = {
+        merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
             "MESSAGE": self.message
         }
-        merge_vars = {
-            "chatroom_id": self.chatroom.id,
-            "message": self.message
+        data = {
+            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         for cm in chatroom_members:

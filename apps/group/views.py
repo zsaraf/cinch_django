@@ -12,6 +12,8 @@ from rest_framework import exceptions
 from datetime import datetime
 import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -78,10 +80,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Add or remove course_groups
         """
-        addJsonArr = json.loads(request.data.get('course_group_additions'))
-        deleteJsonArr = json.loads(request.data.get('course_group_deletions'))
+        addJsonArr = request.data['course_group_additions']
+        deleteJsonArr = request.data['course_group_deletions']
         user = request.user
-        all_course_group_memberships = []
 
         for obj in deleteJsonArr:
             course_group_id = obj.get('course_group_id', '')
@@ -101,16 +102,14 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
             professor_name = obj.get('professor_name', '')
-            if not course_group_id:
+            if course_group_id == -1:
                 # must create a group to join
                 try:
                     course = Course.objects.get(pk=course_id)
                 except Course.DoesNotExist:
                     raise exceptions.NotFound("Course could not be found")
                 chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
-                chatroom.save()
                 course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
-                course_group.save()
             else:
                 try:
                     course_group = CourseGroup.objects.get(pk=course_group_id)
@@ -120,8 +119,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     continue
 
             # now add them to the group
-            new_group_member = CourseGroupMember.objects.create(course_group=course_group, student=user.student)
-            all_course_group_memberships.append(new_group_member)
+            CourseGroupMember.objects.create(course_group=course_group, student=user.student)
 
             # add them to the group's chatroom
             ChatroomMember.objects.create(chatroom=course_group.chatroom, user=user)
@@ -131,11 +129,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             announcement = Announcement.objects.create(chatroom=course_group.chatroom, message=message)
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-            ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            course_group.send_new_member_notification(user, chatroom_activity)
 
-            course_group.send_new_member_notification(user)
-
-        serializer = CourseGroupMemberSerializer(all_course_group_memberships, many=True)
+        serializer = CourseGroupMemberSerializer(CourseGroupMember.objects.filter(student=user.student), many=True)
         return Response(serializer.data)
 
 
@@ -174,9 +171,46 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         study_group.save()
 
         # notify other members of change
-        study_group.send_group_edited_notification()
+        message = user.readable_name + " has edited the group details"
+        announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+        activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+        study_group.send_group_edited_notification(activity)
 
         return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def transfer_ownership(self, request, pk=None):
+        """
+        Transfer ownership of a study group to a different user
+        """
+        from apps.account.models import User
+        user = request.user
+        new_owner_id = int(request.data.get('new_owner_id'))
+        study_group = self.get_object()
+        if (study_group.is_past):
+            return Response("This study group has ended", 200)
+
+        if (user == study_group.user):
+            try:
+                new_user = User.objects.get(pk=new_owner_id)
+                StudyGroupMember.objects.get(user=new_user, study_group=study_group)
+                study_group.user = new_user
+                study_group.save()
+                message = new_user.readable_name + " is now leading the group"
+                announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+                activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+                activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+                study_group.send_owner_changed_notification(activity)
+                return Response(StudyGroupSerializer(study_group).data)
+            except User.DoesNotExist:
+                raise exceptions.NotFound("User not found")
+            except StudyGroupMember.DoesNotExist:
+                raise exceptions.NotFound("User is not part of the study group")
+
+        else:
+            return Response("Only owner can alter study group", 200)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def leave(self, request, pk=None):
@@ -229,9 +263,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        study_group.send_new_member_notification(user)
+        study_group.send_new_member_notification(user, chatroom_activity)
 
         obj = StudyGroupMemberSerializer(new_group_member)
         return Response(obj.data)

@@ -93,9 +93,9 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        open_sesh.send_set_location_notification()
+        open_sesh.send_set_location_notification(activity)
 
         return Response()
 
@@ -114,9 +114,9 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+        activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        open_sesh.send_set_time_notification()
+        open_sesh.send_set_time_notification(activity)
 
         return Response()
 
