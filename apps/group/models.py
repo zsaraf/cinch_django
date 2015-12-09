@@ -62,11 +62,11 @@ class StudyGroup(models.Model):
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
-        data = {
+        merge_vars = {
             "NEW_CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        merge_vars = {
+        data = {
             "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
@@ -80,11 +80,11 @@ class StudyGroup(models.Model):
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
-        data = {
+        merge_vars = {
             "CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        merge_vars = {
+        data = {
             "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
@@ -96,11 +96,11 @@ class StudyGroup(models.Model):
         Sends a notification to the chatroom members that the group has ended
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
-        data = {
+        merge_vars = {
             "CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        merge_vars = {
+        data = {
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_ENDED")
         for cm in chatroom_members:
@@ -113,11 +113,11 @@ class StudyGroup(models.Model):
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
-        data = {
+        merge_vars = {
             "NEW_USER_NAME": new_user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        merge_vars = {
+        data = {
             "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data,
             "new_user_id": new_user.id
         }

@@ -1,8 +1,9 @@
-from apps.tutoring.models import OpenBid, OpenRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
+from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
 from apps.tutoring.serializers import *
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.http import require_POST
 from apps.chatroom.models import Announcement, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from rest_framework.response import Response
 
@@ -12,9 +13,65 @@ class OpenBidViewSet(viewsets.ModelViewSet):
     serializer_class = OpenBidSerializer
 
 
-class OpenRequestViewSet(viewsets.ModelViewSet):
-    queryset = OpenRequest.objects.all()
-    serializer_class = OpenRequestSerializer
+class SeshRequestViewSet(viewsets.ModelViewSet):
+    queryset = SeshRequest.objects.all()
+    serializer_class = SeshRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request):
+        '''
+        Create a request
+        '''
+        from apps.student.models import Student
+        from apps.university.models import Constant
+
+        data = request.data
+        data['student'] = Student.objects.get(user=request.user).pk
+        data['hourly_rate'] = Constant.objects.get(school_id=request.user.school.pk).hourly_rate
+        data['school'] = request.user.school.pk
+        serializer = SeshRequestSerializer(data=data)
+        if serializer.is_valid():
+            sesh_request = serializer.save()
+            if sesh_request.tutor:
+                sesh_request.send_new_request_notification()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    @detail_route(methods=['post'])
+    def cancel(self, request, pk=None):
+        '''
+        Cancel a request
+        '''
+        sesh_request = self.get_object()
+        if not sesh_request.tutor or request.user.student != sesh_request.student:
+            return Response("Student cannot cancel this request")
+        if sesh_request.status > 0:
+            return Response("It's too late to cancel this request")
+        sesh_request.status = 2
+        sesh_request.save()
+        sesh_request.send_cancelled_request_notification()
+        return Response("Request cancelled")
+
+    @detail_route(methods=['post'])
+    def accept(self, request, pk=None):
+        '''
+        Tutor accepts a direct request
+        '''
+        from apps.chatroom.models import Chatroom
+
+        sesh_request = self.get_object()
+        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor:
+            return Response("Tutor cannot respond to this request")
+        sesh_request.status = 1
+        sesh_request.save()
+        name = sesh_request.course.get_readable_name() + " Sesh"
+        desc = sesh_request.tutor.user.readable_name + " tutoring " + sesh_request.student.user.readable_name + " in " + sesh_request.course.get_readable_name()
+        chatroom = Chatroom.objects.create(name=name, description=desc)
+        sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
+        sesh_request.send_tutor_accepted_notification(sesh)
+
+        return Response(OpenSeshSerializer(sesh).data)
 
 
 class OpenSeshViewSet(viewsets.ModelViewSet):
@@ -28,7 +85,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         """
         user = request.user
         open_sesh = self.get_object()
-        location_notes = request.POST.get('location_notes')
+        location_notes = request.data.get('location_notes')
         open_sesh.location_notes = location_notes
         open_sesh.save()
 
@@ -67,11 +124,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 class PastBidViewSet(viewsets.ModelViewSet):
     queryset = PastBid.objects.all()
     serializer_class = PastBidSerializer
-
-
-class PastRequestViewSet(viewsets.ModelViewSet):
-    queryset = PastRequest.objects.all()
-    serializer_class = PastRequestSerializer
 
 
 class PastSeshViewSet(viewsets.ModelViewSet):

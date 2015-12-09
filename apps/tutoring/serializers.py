@@ -1,4 +1,4 @@
-from apps.tutoring.models import OpenBid, OpenRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
+from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from apps.university.serializers import CourseSerializer
 from apps.chatroom.serializers import ChatroomSerializer
 from rest_framework import serializers
@@ -10,31 +10,18 @@ class OpenBidSerializer(serializers.ModelSerializer):
         model = OpenBid
 
 
-class OpenRequestSerializer(serializers.ModelSerializer):
-    course = CourseSerializer()
-    available_blocks = serializers.SerializerMethodField()
-
+class SeshRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OpenRequest
-
-    def get_available_blocks(self, obj):
-        return json.loads(obj.available_blocks)
+        model = SeshRequest
 
 
-class OpenRequestStudentSerializer(OpenRequestSerializer):
+class OpenSeshRequestStudentSerializer(SeshRequestSerializer):
     class Meta:
-        model = OpenRequest
-
-
-class PastRequestSerializer(serializers.ModelSerializer):
-    course = CourseSerializer()
-
-    class Meta:
-        model = PastRequest
+        model = SeshRequest
 
 
 class OpenSeshSerializer(serializers.ModelSerializer):
-    past_request = PastRequestSerializer()
+    past_request = SeshRequestSerializer()
     chatroom = ChatroomSerializer()
 
     class Meta:

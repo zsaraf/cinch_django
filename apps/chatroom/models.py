@@ -154,11 +154,11 @@ class Message(models.Model):
         Sends a notification to the chatroom members
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
-        data = {
+        merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
             "MESSAGE": self.message
         }
-        merge_vars = {
+        data = {
             "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
