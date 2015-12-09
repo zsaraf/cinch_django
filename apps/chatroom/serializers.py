@@ -24,8 +24,8 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
             return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
         elif obj.chatroom_activity_type.is_announcement():
             return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
-        elif obj.chatroom_activity_type.is_file():
-            return FileSerializer(File.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_upload():
+            return UploadSerializer(Upload.objects.get(pk=obj.activity_id)).data
         elif obj.chatroom_activity_type.is_study_group():
             from apps.group.serializers import StudyGroupSerializer
             from apps.group.models import StudyGroup
@@ -61,6 +61,9 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatroomMember
 
+class UploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Upload
 
 class FileSerializer(serializers.ModelSerializer):
     class Meta:

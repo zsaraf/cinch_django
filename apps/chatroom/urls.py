@@ -9,6 +9,7 @@ router.register(r'chatrooms', views.ChatroomViewSet)
 router.register(r'chatroom_activity', views.ChatroomActivityViewSet)
 router.register(r'chatroom_activity_types', views.ChatroomActivityTypeViewSet)
 router.register(r'files', views.FileViewSet)
+router.register(r'uploads', views.UploadViewSet)
 router.register(r'messages', views.MessageViewSet)
 
 urlpatterns = [

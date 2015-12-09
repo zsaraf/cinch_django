@@ -1,10 +1,7 @@
 from rest_framework import viewsets
-from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
-from django.utils.crypto import get_random_string
-import os
 from .serializers import *
 from .models import *
 import logging
@@ -47,38 +44,17 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors)
 
-    # def upload_file(self, request):
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def upload_file(self, request, pk=None):
-
-        import boto
-        from boto.s3.key import Key
+    def upload(self, request, pk=None):
 
         chatroom = self.get_object()
         chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
-        file_name = request.POST.get('file_name')
+        name = request.POST.get('name')
+        upload_obj = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name)
 
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        # connect to the bucket
-        conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
-        bucket = conn.get_bucket(bucket_name)
+        for fp in request.FILES.getlist('file'):
+            upload_obj.upload_file(fp)
 
-        key = '%s.png' % get_random_string(20)
-        path = 'images/files'
-        full_key_name = os.path.join(path, key)
-        fp = request.FILES['src']
-
-        # create a key to keep track of our file in the storage
-        k = Key(bucket)
-        k.key = full_key_name
-        k.set_contents_from_file(fp)
-
-        # we need to make it public so it can be accessed publicly
-        # using a URL like http://sesh-tutoring-dev.s3.amazonaws.com/file_name.png
-        k.make_public()
-
-        url = settings.S3_URL + "/" + full_key_name
-        File.objects.create(chatroom_member=chatroom_member, src=url, chatroom=chatroom, name=file_name)
         return Response()
 
 
@@ -95,6 +71,11 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
 class ChatroomActivityTypeViewSet(viewsets.ModelViewSet):
     queryset = ChatroomActivityType.objects.all()
     serializer_class = ChatroomActivityTypeSerializer
+
+
+class UploadViewSet(viewsets.ModelViewSet):
+    queryset = Upload.objects.all()
+    serializer_class = UploadSerializer
 
 
 class FileViewSet(viewsets.ModelViewSet):
