@@ -34,9 +34,20 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
             return []
 
 
+class ChatroomMemberSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChatroomMember
+
+    def get_user(self, obj):
+        from apps.account.serializers import UserBasicInfoSerializer
+        return UserBasicInfoSerializer(obj.user).data
+
+
 class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_activities = serializers.SerializerMethodField()
-    chatroom_members = serializers.SerializerMethodField()
+    chatroom_members = ChatroomMemberSerializer(many=True, source="chatroommember_set")
 
     class Meta:
         model = Chatroom
@@ -46,20 +57,6 @@ class ChatroomSerializer(serializers.ModelSerializer):
         Limits the number of messages to [:5]
         '''
         return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj)[:20], many=True).data
-
-    def get_chatroom_members(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-
-        chatroom_members = []
-        for chatroom_member in obj.chatroommember_set.all():
-            chatroom_members.append(UserBasicInfoSerializer(chatroom_member.user).data)
-        return chatroom_members
-
-
-class ChatroomMemberSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ChatroomMember
 
 
 class FileSerializer(serializers.ModelSerializer):
