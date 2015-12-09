@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from sesh.s3utils import upload_png_to_s3
 from .models import *
 from .serializers import *
 from .AuthenticationBackend import SeshAuthentication
@@ -55,6 +56,54 @@ class TokenViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserBasicInfoSerializer
+
+    @list_route(methods=['POST'], permission_classes=[IsAuthenticated], url_path='upload_profile_picture')
+    def upload_profile_picture(self, request):
+        from PIL import Image
+        from StringIO import StringIO
+        from django.utils.crypto import get_random_string
+
+        user = request.user
+        fp = request.FILES['profile_picture']
+        base_name = get_random_string(20)
+        path = 'images/profile_pictures'
+
+        file_name = '%s.png' % base_name
+        url = upload_png_to_s3(fp, path, file_name)
+        user.profile_picture = url
+        user.save()
+
+        fp.seek(0)
+        size = 100, 100
+        image = Image.open(fp)
+        image.thumbnail(size, Image.ANTIALIAS)
+        small_fp = StringIO()
+        image.save(small_fp, 'png')
+        file_name = '%s_small.png' % base_name
+        small_fp.seek(0)
+        upload_png_to_s3(small_fp, path, file_name)
+
+        fp.seek(0)
+        size = 300, 300
+        image = Image.open(fp)
+        image.thumbnail(size, Image.ANTIALIAS)
+        med_fp = StringIO()
+        image.save(med_fp, 'png')
+        file_name = '%s_medium.png' % base_name
+        med_fp.seek(0)
+        upload_png_to_s3(med_fp, path, file_name)
+
+        fp.seek(0)
+        size = 600, 600
+        image = Image.open(fp)
+        image.thumbnail(size, Image.ANTIALIAS)
+        large_fp = StringIO()
+        image.save(large_fp, 'png')
+        file_name = '%s_large.png' % base_name
+        large_fp.seek(0)
+        upload_png_to_s3(large_fp, path, file_name)
+
+        return Response("Test")
 
     @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
     def get_full_info(self, request):

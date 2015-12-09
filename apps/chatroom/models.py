@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 import os
 from django.conf import settings
+from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
 
 
@@ -109,28 +110,8 @@ class Upload(models.Model):
         db_table = 'upload'
 
     def upload_file(self, fp):
-        import boto
-        from boto.s3.key import Key
-
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        # connect to the bucket
-        conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
-        bucket = conn.get_bucket(bucket_name)
-
-        key = '%s.png' % get_random_string(20)
-        path = 'images/files'
-        full_key_name = os.path.join(path, key)
-
-        # create a key to keep track of our file in the storage
-        k = Key(bucket)
-        k.key = full_key_name
-        k.set_contents_from_file(fp)
-
-        # we need to make it public so it can be accessed publicly
-        # using a URL like http://sesh-tutoring-dev.s3.amazonaws.com/file_name.png
-        k.make_public()
-
-        url = settings.S3_URL + "/" + full_key_name
+        file_name = '%s.png' % get_random_string(20)
+        url = upload_png_to_s3(fp, 'images/files', file_name)
         File.objects.create(src=url, upload=self)
 
 
