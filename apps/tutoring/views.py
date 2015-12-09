@@ -1,4 +1,4 @@
-from apps.tutoring.models import OpenBid, OpenRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
+from apps.tutoring.models import OpenBid, OpenRequest, SeshRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
 from rest_framework import viewsets
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
@@ -18,9 +18,9 @@ class OpenRequestViewSet(viewsets.ModelViewSet):
     serializer_class = OpenRequestSerializer
 
 
-class RequestViewSet(viewsets.ModelViewSet):
-    queryset = Request.objects.all()
-    serializer_class = RequestSerializer
+class SeshRequestViewSet(viewsets.ModelViewSet):
+    queryset = SeshRequest.objects.all()
+    serializer_class = SeshRequestSerializer
     permission_classes = [IsAuthenticated]
 
     def create(self, request):
@@ -34,14 +34,29 @@ class RequestViewSet(viewsets.ModelViewSet):
         data['student'] = Student.objects.get(user=request.user).pk
         data['hourly_rate'] = Constant.objects.get(school_id=request.user.school.pk).hourly_rate
         data['school'] = request.user.school.pk
-        serializer = RequestSerializer(data=data)
+        serializer = SeshRequestSerializer(data=data)
         if serializer.is_valid():
-            request = serializer.save()
-            if request.tutor:
-                request.send_new_request_notification()
+            sesh_request = serializer.save()
+            if sesh_request.tutor:
+                sesh_request.send_new_request_notification()
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
+    @detail_route(methods=['post'])
+    def cancel(self, request, pk=None):
+        '''
+        Cancel a request
+        '''
+        sesh_request = self.get_object()
+        if not sesh_request.tutor or request.user.student != sesh_request.student:
+            return Response("Student cannot cancel this request")
+        if sesh_request.status > 0:
+            return Response("It's too late to cancel this request")
+        sesh_request.status = 2
+        sesh_request.save()
+        sesh_request.send_cancelled_request_notification()
+        return Response("Request cancelled")
 
     @detail_route(methods=['post'])
     def accept(self, request, pk=None):
@@ -50,16 +65,16 @@ class RequestViewSet(viewsets.ModelViewSet):
         '''
         from apps.chatroom.models import Chatroom
 
-        request = self.get_object()
-        if not request.tutor:
+        sesh_request = self.get_object()
+        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor:
             return Response("Tutor cannot respond to this request")
-        request.status = 1
-        request.save()
-        name = request.course.get_readable_name() + " Sesh"
-        desc = request.tutor.user.readable_name + " tutoring " + request.student.user.readable_name + " in " + request.course.get_readable_name()
+        sesh_request.status = 1
+        sesh_request.save()
+        name = sesh_request.course.get_readable_name() + " Sesh"
+        desc = sesh_request.tutor.user.readable_name + " tutoring " + sesh_request.student.user.readable_name + " in " + sesh_request.course.get_readable_name()
         chatroom = Chatroom.objects.create(name=name, description=desc)
-        sesh = OpenSesh.objects.create(past_request=request, tutor=request.tutor, student=request.student, chatroom=chatroom)
-        request.send_tutor_accepted_notification(sesh)
+        sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
+        sesh_request.send_tutor_accepted_notification(sesh)
 
         return Response(OpenSeshSerializer(sesh).data)
 

@@ -22,7 +22,7 @@ class OpenRequest(models.Model):
         db_table = 'open_requests'
 
 
-class Request(models.Model):
+class SeshRequest(models.Model):
     tutor = models.ForeignKey('tutor.Tutor')
     student = models.ForeignKey('student.Student')
     school = models.ForeignKey('university.School')
@@ -42,22 +42,36 @@ class Request(models.Model):
     discount = models.ForeignKey('university.Discount', blank=True, null=True)
     sesh_comp = models.DecimalField(max_digits=19, decimal_places=4, default=0)
     status = models.IntegerField(default=0)
+    has_seen = models.BooleanField(default=False)
+    cancellation_reason = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'request'
 
+    def send_cancelled_request_notification(self):
+        '''
+        Sends a notification to the tutor that the student cancelled their direct request
+        '''
+        from serializers import SeshRequestSerializer
+        data = {}
+        merge_vars = {
+            "request": SeshRequestSerializer(self).data
+        }
+        notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_CANCELLED")
+        OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
+
     def send_new_request_notification(self):
         '''
         Sends a notification to the tutor that job is available
         '''
-        from serializers import RequestSerializer
+        from serializers import SeshRequestSerializer
         data = {
             "STUDENT_NAME": self.student.user.readable_name,
             "COURSE_NAME": self.course.get_readable_name()
         }
         merge_vars = {
-            "request": RequestSerializer(self).data
+            "request": SeshRequestSerializer(self).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
@@ -79,7 +93,7 @@ class Request(models.Model):
 
 
 class OpenSesh(models.Model):
-    past_request = models.OneToOneField('Request')
+    past_request = models.OneToOneField('SeshRequest')
     tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField(auto_now_add=True)
     start_time = models.DateTimeField(blank=True, null=True)
