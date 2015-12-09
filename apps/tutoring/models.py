@@ -15,13 +15,6 @@ class OpenBid(models.Model):
         db_table = 'open_bids'
 
 
-class OpenRequest(models.Model):
-
-    class Meta:
-        managed = False
-        db_table = 'open_requests'
-
-
 class SeshRequest(models.Model):
     tutor = models.ForeignKey('tutor.Tutor')
     student = models.ForeignKey('student.Student')
@@ -148,7 +141,7 @@ class OpenSesh(models.Model):
 
 
 class PastBid(models.Model):
-    past_request = models.ForeignKey('PastRequest')
+    past_request = models.ForeignKey('SeshRequest')
     tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
 
@@ -157,33 +150,8 @@ class PastBid(models.Model):
         db_table = 'past_bids'
 
 
-class PastRequest(models.Model):
-    student = models.ForeignKey('student.Student')
-    course = models.ForeignKey('university.Course', db_column='class_id')  # Field renamed because it was a Python reserved word.
-    school = models.ForeignKey('university.School')
-    description = models.CharField(max_length=100)
-    time = models.DateTimeField()
-    num_people = models.IntegerField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    est_time = models.IntegerField()
-    status = models.IntegerField()
-    hourly_rate = models.DecimalField(max_digits=19, decimal_places=4)
-    available_blocks = models.TextField()
-    is_instant = models.IntegerField()
-    expiration_time = models.DateTimeField()
-    has_seen = models.IntegerField()
-    discount_id = models.IntegerField(blank=True, null=True)
-    cancellation_reason = models.CharField(max_length=30, blank=True, null=True)
-    sesh_comp = models.DecimalField(max_digits=19, decimal_places=4)
-
-    class Meta:
-        managed = False
-        db_table = 'past_requests'
-
-
 class PastSesh(models.Model):
-    past_request = models.OneToOneField('PastRequest')
+    past_request = models.OneToOneField('SeshRequest')
     tutor = models.ForeignKey('tutor.Tutor')
     student = models.ForeignKey('student.Student', blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)

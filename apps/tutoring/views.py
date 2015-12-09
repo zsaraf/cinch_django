@@ -1,4 +1,4 @@
-from apps.tutoring.models import OpenBid, OpenRequest, SeshRequest, OpenSesh, PastBid, PastRequest, PastSesh, ReportedProblem
+from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
@@ -11,11 +11,6 @@ from rest_framework.response import Response
 class OpenBidViewSet(viewsets.ModelViewSet):
     queryset = OpenBid.objects.all()
     serializer_class = OpenBidSerializer
-
-
-class OpenRequestViewSet(viewsets.ModelViewSet):
-    queryset = OpenRequest.objects.all()
-    serializer_class = OpenRequestSerializer
 
 
 class SeshRequestViewSet(viewsets.ModelViewSet):
@@ -129,11 +124,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 class PastBidViewSet(viewsets.ModelViewSet):
     queryset = PastBid.objects.all()
     serializer_class = PastBidSerializer
-
-
-class PastRequestViewSet(viewsets.ModelViewSet):
-    queryset = PastRequest.objects.all()
-    serializer_class = PastRequestSerializer
 
 
 class PastSeshViewSet(viewsets.ModelViewSet):

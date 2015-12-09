@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer, OpenRequestStudentSerializer
+from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer, OpenSeshRequestStudentSerializer
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -30,9 +30,13 @@ class StudentSerializer(serializers.ModelSerializer):
     favorite_set = FavoriteSerializer(many=True)
     open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
-    open_requests = OpenRequestStudentSerializer(many=True, source='openrequest_set')
+    open_requests = serializers.SerializerMethodField()
     courses = CourseGroupMemberSerializer(many=True, source='coursegroupmember_set')
     stats = serializers.ReadOnlyField()
 
     class Meta:
         model = Student
+
+    def get_open_requests(self, obj):
+        from apps.tutoring.models import SeshRequest
+        return OpenSeshRequestStudentSerializer(SeshRequest.objects.filter(student=obj, status=0), many=True).data
