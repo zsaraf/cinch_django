@@ -57,9 +57,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         ChatroomMember.objects.create(chatroom=new_study_group.chatroom, user=user)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.STUDY_GROUP)
-        ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=new_study_group.pk)
+        chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=new_study_group.pk)
 
-        course_group.send_study_group_notification(user)
+        course_group.send_study_group_notification(user, chatroom_activity)
 
         obj = StudyGroupSerializer(new_study_group)
         return Response(obj.data)

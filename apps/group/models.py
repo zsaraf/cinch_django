@@ -33,6 +33,42 @@ class CourseGroup(models.Model):
         managed = False
         db_table = 'course_group'
 
+    def send_new_member_notification(self, user, chatroom_activity):
+        '''
+        Sends a notification to the chatroom members that the group has a new member
+        '''
+        from apps.chatroom.serializers import ChatroomActivitySerializer
+
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=user)
+        merge_vars = {
+            "NEW_USER_NAME": user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        data = {
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+        }
+        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
+    def send_study_group_notification(self, user, chatroom_activity):
+        '''
+        Sends a notification to the chatroom members that the group has a new member
+        '''
+        from apps.chatroom.serializers import ChatroomActivitySerializer
+
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=user)
+        merge_vars = {
+            "CREATOR_NAME": user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        data = {
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+        }
+        notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
 
 class CourseGroupMember(models.Model):
     student = models.ForeignKey('student.Student')
