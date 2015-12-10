@@ -51,7 +51,7 @@ class TokenSerializer(serializers.ModelSerializer):
 class UserBasicInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('full_name', 'profile_picture', 'major', 'bio', 'id')
+        fields = ('full_name', 'profile_picture', 'major', 'bio', 'id', 'chavatar_color')
 
 
 class UserFullInfoSerializer(serializers.ModelSerializer):

@@ -1,5 +1,8 @@
 from django.db import models
-from django import forms
+from django.utils.crypto import get_random_string
+import os
+from django.conf import settings
+from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
 
 
@@ -52,9 +55,9 @@ class ChatroomActivity(models.Model):
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=message.chatroom_member.user)
             elif self.chatroom_activity_type.is_announcement():
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
-            elif self.chatroom_activity_type.is_file():
-                new_file = File.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_file.chatroom_member.user)
+            elif self.chatroom_activity_type.is_upload():
+                new_upload = Upload.objects.get(pk=self.activity_id)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_upload.chatroom_member.user)
             elif self.chatroom_activity_type.is_study_group():
                 from apps.group.models import StudyGroup
                 group = StudyGroup.objects.get(pk=self.activity_id)
@@ -68,7 +71,7 @@ class ChatroomActivity(models.Model):
 
 class ChatroomActivityTypeManager(models.Manager):
     ANNOUNCEMENT = "announcement"
-    FILE = "file"
+    UPLOAD = "upload"
     STUDY_GROUP = "study_group"
     MESSAGE = "message"
 
@@ -87,8 +90,8 @@ class ChatroomActivityType(models.Model):
     def is_announcement(self):
         return self.identifier == "announcement"
 
-    def is_file(self):
-        return self.identifier == "file"
+    def is_upload(self):
+        return self.identifier == "upload"
 
     def is_study_group(self):
         return self.identifier == "study_group"
@@ -97,11 +100,24 @@ class ChatroomActivityType(models.Model):
         return self.identifier == "message"
 
 
-class File(models.Model):
+class Upload(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
-    src = models.CharField(max_length=250, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'upload'
+
+    def upload_file(self, fp):
+        file_name = '%s.png' % get_random_string(20)
+        url = upload_png_to_s3(fp, 'images/files', file_name)
+        File.objects.create(src=url, upload=self)
+
+
+class File(models.Model):
+    upload = models.ForeignKey(Upload)
+    src = models.CharField(max_length=250, blank=True, null=True)
 
     class Meta:
         managed = False

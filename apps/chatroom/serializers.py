@@ -24,8 +24,8 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
             return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
         elif obj.chatroom_activity_type.is_announcement():
             return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
-        elif obj.chatroom_activity_type.is_file():
-            return FileSerializer(File.objects.get(pk=obj.activity_id)).data
+        elif obj.chatroom_activity_type.is_upload():
+            return UploadSerializer(Upload.objects.get(pk=obj.activity_id)).data
         elif obj.chatroom_activity_type.is_study_group():
             from apps.group.serializers import StudyGroupSerializer
             from apps.group.models import StudyGroup
@@ -57,6 +57,16 @@ class ChatroomSerializer(serializers.ModelSerializer):
         Limits the number of messages to [:5]
         '''
         return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj)[:20], many=True).data
+
+
+class UploadSerializer(serializers.ModelSerializer):
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Upload
+
+    def get_files(self, obj):
+        return FileSerializer(File.objects.filter(upload=upload), many=True).data
 
 
 class FileSerializer(serializers.ModelSerializer):

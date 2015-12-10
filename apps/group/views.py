@@ -10,7 +10,6 @@ from apps.account.serializers import UserBasicInfoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
 from datetime import datetime
-import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 import logging
 logger = logging.getLogger(__name__)
