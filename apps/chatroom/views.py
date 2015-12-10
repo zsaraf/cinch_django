@@ -52,12 +52,16 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         name = request.POST.get('name')
         tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
-        upload_obj = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
+        new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
+
+        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
+        activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
+        new_upload.send_created_notification(activity)
 
         for fp in request.FILES.getlist('file'):
-            upload_obj.upload_file(fp)
+            new_upload.upload_file(fp)
 
-        return Response(UploadSerializer(upload_obj).data)
+        return Response(UploadSerializer(new_upload).data)
 
 
 class TagViewSet(viewsets.ModelViewSet):

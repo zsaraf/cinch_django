@@ -78,7 +78,7 @@ class UploadSerializer(serializers.ModelSerializer):
         model = Upload
 
     def get_files(self, obj):
-        return FileSerializer(File.objects.filter(upload=upload), many=True).data
+        return FileSerializer(File.objects.filter(upload=obj), many=True).data
 
 
 class FileSerializer(serializers.ModelSerializer):
