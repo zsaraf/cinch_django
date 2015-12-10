@@ -50,12 +50,19 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
         name = request.POST.get('name')
-        upload_obj = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name)
+        tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
+
+        upload_obj = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
 
         for fp in request.FILES.getlist('file'):
             upload_obj.upload_file(fp)
 
-        return Response()
+        return Response(UploadSerializer(upload_obj).data)
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
 
 
 class ChatroomMemberViewSet(viewsets.ModelViewSet):

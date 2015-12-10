@@ -11,6 +11,7 @@ router.register(r'chatroom_activity_types', views.ChatroomActivityTypeViewSet)
 router.register(r'files', views.FileViewSet)
 router.register(r'uploads', views.UploadViewSet)
 router.register(r'messages', views.MessageViewSet)
+router.register(r'tags', views.TagViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls))

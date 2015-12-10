@@ -1,7 +1,5 @@
 from django.db import models
 from django.utils.crypto import get_random_string
-import os
-from django.conf import settings
 from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
 
@@ -104,6 +102,8 @@ class Upload(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
     name = models.CharField(max_length=100, blank=True, null=True)
+    timestamp = models.DateField(auto_now_add=True)
+    tag = models.ForeignKey('Tag')
 
     class Meta:
         managed = False
@@ -118,10 +118,20 @@ class Upload(models.Model):
 class File(models.Model):
     upload = models.ForeignKey(Upload)
     src = models.CharField(max_length=250, blank=True, null=True)
+    timestamp = models.DateField(auto_now_add=True)
 
     class Meta:
         managed = False
         db_table = 'file'
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tag'
 
 
 class Message(models.Model):
