@@ -47,8 +47,18 @@ class TutorTierSerializer(serializers.ModelSerializer):
         model = TutorTier
 
 
+class TutorCourseGroupSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Tutor
+
+    def get_user_id(self, obj):
+        return obj.user.id
+
+
 class TutorSerializer(serializers.ModelSerializer):
-    courses = TutorCourseSerializer(many=True, source='tutorcourse_set')
+    courses = serializers.SerializerMethodField()
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
     open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
@@ -58,6 +68,9 @@ class TutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tutor
+
+    def get_courses(self, obj):
+        return TutorCourseSerializer(TutorCourse.objects.filter(tutor=obj), many=True).data
 
     def get_bonus_info(self, obj):
         with open(os.path.join(settings.ROOT_DIR, 'files/monthly_bonus.json'), 'r') as f:
