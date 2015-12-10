@@ -106,7 +106,7 @@ class User(models.Model):
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
 
     def assign_chavatar(self):
-        colors = ["PURPLE", "DEEP_PURPLE", "BLACK", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]
+        colors = ["PURPLE", "DEEPPURPLE", "BLACK", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]
         index = randint(0, 7)
         self.chavatar_color = colors[index]
         self.save()
