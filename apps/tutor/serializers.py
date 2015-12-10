@@ -47,6 +47,16 @@ class TutorTierSerializer(serializers.ModelSerializer):
         model = TutorTier
 
 
+class TutorCourseGroupSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Tutor
+
+    def get_user_id(self, obj):
+        return obj.user.id
+
+
 class TutorSerializer(serializers.ModelSerializer):
     courses = serializers.SerializerMethodField()
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
