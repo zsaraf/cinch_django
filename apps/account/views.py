@@ -144,6 +144,8 @@ class UserViewSet(viewsets.ModelViewSet):
         user.tutor.check_if_pending()
         user.refresh_from_db()
         user.tutor.refresh_from_db()
+        if not user.profile_picture and not user.chavatar_color:
+            user.assign_chavatar()
 
         serializer = UserFullInfoSerializer(user)
         return Response({"status": "SUCCESS", "data": serializer.data, "session_id": token.session_id})

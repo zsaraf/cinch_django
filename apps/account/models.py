@@ -4,6 +4,7 @@ from sesh import settings
 from datetime import datetime
 from apps.university.serializers import DiscountSerializer
 from .managers import TokenManager, DeviceManager
+from random import randint
 
 import logging
 logger = logging.getLogger(__name__)
@@ -90,7 +91,7 @@ class User(models.Model):
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
     stripe_recipient_id = models.CharField(max_length=32, blank=True, null=True)
     full_legal_name = models.CharField(max_length=100)
-    profile_picture = models.CharField(max_length=250)
+    profile_picture = models.CharField(max_length=250, blank=True, null=True)
     major = models.CharField(max_length=100)
     class_year = models.CharField(max_length=25, blank=True, null=True)
     bio = models.CharField(max_length=256)
@@ -102,6 +103,13 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
+    chavatar_color = models.CharField(max_length=25, blank=True, null=True)
+
+    def assign_chavatar(self):
+        colors = ["PURPLE", "DEEP_PURPLE", "BLACK", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]
+        index = randint(0, 7)
+        self.chavatar_color = colors[index]
+        self.save()
 
     @property
     def discounts(self):
