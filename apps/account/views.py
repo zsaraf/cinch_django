@@ -103,7 +103,7 @@ class UserViewSet(viewsets.ModelViewSet):
         large_fp.seek(0)
         upload_png_to_s3(large_fp, path, file_name)
 
-        return Response("Test")
+        return Response(UserBasicInfoSerializer(user).data)
 
     @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
     def get_full_info(self, request):
