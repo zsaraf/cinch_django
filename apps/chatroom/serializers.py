@@ -60,8 +60,13 @@ class ChatroomSerializer(serializers.ModelSerializer):
 
 
 class UploadSerializer(serializers.ModelSerializer):
+    files = serializers.SerializerMethodField()
+
     class Meta:
-        model=Upload
+        model = Upload
+
+    def get_files(self, obj):
+        return FileSerializer(File.objects.filter(upload=upload), many=True).data
 
 
 class FileSerializer(serializers.ModelSerializer):
