@@ -12,6 +12,7 @@ router.register(r'files', views.FileViewSet)
 router.register(r'uploads', views.UploadViewSet)
 router.register(r'messages', views.MessageViewSet)
 router.register(r'tags', views.TagViewSet)
+router.register(r'interactions', views.InteractionViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls))

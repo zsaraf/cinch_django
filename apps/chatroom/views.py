@@ -61,7 +61,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         for fp in request.FILES.getlist('file'):
             new_upload.upload_file(fp)
 
-        return Response(UploadSerializer(new_upload).data)
+        return Response(ChatroomActivitySerializer(activity).data)
+
+
+class InteractionViewSet(viewsets.ModelViewSet):
+    queryset = Interaction.objects.all()
+    serializer_class = InteractionSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -77,6 +82,34 @@ class ChatroomMemberViewSet(viewsets.ModelViewSet):
 class ChatroomActivityViewSet(viewsets.ModelViewSet):
     queryset = ChatroomActivity.objects.all()
     serializer_class = ChatroomActivitySerializer
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def record_view(self, request, pk=None):
+        user = request.user
+        activity = self.get_object()
+
+        try:
+            interaction = Interaction.objects.get(chatroom_activity=activity, user=user)
+            interaction.num_views = interaction.num_views + 1
+            interaction.save()
+        except Interaction.DoesNotExist:
+            Interaction.objects.create(chatroom_activity=chatroom_activity, user=user, num_views=1)
+
+        return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def record_like(self, request, pk=None):
+        user = request.user
+        activity = self.get_object()
+
+        try:
+            interaction = Interaction.objects.get(chatroom_activity=activity, user=user)
+            interaction.has_liked = True
+            interaction.save()
+        except Interaction.DoesNotExist:
+            Interaction.objects.create(chatroom_activity=activity, user=user, has_liked=True)
+
+        return Response()
 
 
 class ChatroomActivityTypeViewSet(viewsets.ModelViewSet):
