@@ -61,7 +61,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         for fp in request.FILES.getlist('file'):
             new_upload.upload_file(fp)
 
-        return Response(UploadSerializer(new_upload).data)
+        return Response(ChatroomActivitySerializer(activity).data)
 
 
 class InteractionViewSet(viewsets.ModelViewSet):
