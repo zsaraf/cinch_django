@@ -12,12 +12,31 @@ class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
         model = ChatroomActivityType
 
 
+class InteractionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Interaction
+        exclude = ['timestamp']
+
+
 class ChatroomActivitySerializer(serializers.ModelSerializer):
     activity = serializers.SerializerMethodField()
     chatroom_activity_type = ChatroomActivityTypeSerializer()
+    total_views = serializers.SerializerMethodField()
+    total_likes = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatroomActivity
+
+    def get_total_views(self, obj):
+        interactions = Interaction.objects.filter(chatroom_activity=obj)
+        total = 0
+        for i in interactions:
+            total += i.num_views
+        return total
+
+    def get_total_likes(self, obj):
+        return Interaction.objects.filter(chatroom_activity=obj, has_liked=True).count()
 
     def get_activity(self, obj):
         if obj.chatroom_activity_type.is_message():

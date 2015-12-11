@@ -132,6 +132,18 @@ class Upload(models.Model):
         db_table = 'upload'
 
 
+class Interaction(models.Model):
+    chatroom_activity = models.ForeignKey(ChatroomActivity)
+    user = models.ForeignKey('account.User')
+    num_views = models.IntegerField(default=0)
+    has_liked = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'interaction'
+
+
 class File(models.Model):
     upload = models.ForeignKey(Upload)
     src = models.CharField(max_length=250, blank=True, null=True)
