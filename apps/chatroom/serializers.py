@@ -45,12 +45,24 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
         return UserBasicInfoSerializer(obj.user).data
 
 
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+
+
 class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_activities = serializers.SerializerMethodField()
     chatroom_members = ChatroomMemberSerializer(many=True, source="chatroommember_set")
+    # in the future tags would likely be chatroom-specific so including tags here
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_tags(self, obj):
+        return TagSerializer(Tag.objects.all(), many=True).data
 
     def get_chatroom_activities(self, obj):
         '''
@@ -61,12 +73,13 @@ class ChatroomSerializer(serializers.ModelSerializer):
 
 class UploadSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
+    tag = TagSerializer()
 
     class Meta:
         model = Upload
 
     def get_files(self, obj):
-        return FileSerializer(File.objects.filter(upload=upload), many=True).data
+        return FileSerializer(File.objects.filter(upload=obj), many=True).data
 
 
 class FileSerializer(serializers.ModelSerializer):

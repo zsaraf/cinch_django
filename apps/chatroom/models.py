@@ -1,7 +1,5 @@
 from django.db import models
 from django.utils.crypto import get_random_string
-import os
-from django.conf import settings
 from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
 
@@ -104,24 +102,53 @@ class Upload(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
     name = models.CharField(max_length=100, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'upload'
+    timestamp = models.DateTimeField(auto_now_add=True)
+    tag = models.ForeignKey('Tag')
 
     def upload_file(self, fp):
         file_name = '%s.png' % get_random_string(20)
         url = upload_png_to_s3(fp, 'images/files', file_name)
         File.objects.create(src=url, upload=self)
 
+    def send_created_notification(self, chatroom_activity):
+        import serializers
+        '''
+        Sends a notification to the chatroom members
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
+        merge_vars = {
+            "CREATOR_NAME": self.chatroom_member.user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        data = {
+            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
+        }
+        notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD")
+        for cm in chatroom_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
+    class Meta:
+        managed = False
+        db_table = 'upload'
+
 
 class File(models.Model):
     upload = models.ForeignKey(Upload)
     src = models.CharField(max_length=250, blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
         db_table = 'file'
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tag'
 
 
 class Message(models.Model):
