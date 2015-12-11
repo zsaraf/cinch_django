@@ -48,13 +48,18 @@ class TutorTierSerializer(serializers.ModelSerializer):
 
 
 class TutorCourseGroupSerializer(serializers.ModelSerializer):
-    user_id = serializers.SerializerMethodField()
+    tiers = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Tutor
 
-    def get_user_id(self, obj):
-        return obj.user.id
+    def get_user(self, obj):
+        from apps.account.serializers import UserBasicInfoSerializer
+        return UserBasicInfoSerializer(obj.user).data
+
+    def get_tiers(self, obj):
+        return TutorTierSerializer(TutorTier.objects.all(), many=True).data
 
 
 class TutorSerializer(serializers.ModelSerializer):
