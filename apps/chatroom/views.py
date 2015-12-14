@@ -18,6 +18,18 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def mark_as_read(self, request, pk=None):
+        chatroom = self.get_object()
+        user = request.user
+        try:
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member.unread_activity_count = 0
+            chatroom_member.save()
+            return Response()
+        except ChatroomMember.DoesNotExist:
+            raise exceptions.NotFound("Chatroom member not found")
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
