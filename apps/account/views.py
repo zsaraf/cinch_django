@@ -140,6 +140,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
         user.save()
 
+        # Set the request.user to the user
+        request.user = user
+
         # Check pending tutor stuff
         user.tutor.check_if_pending()
         user.refresh_from_db()
