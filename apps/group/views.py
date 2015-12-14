@@ -219,10 +219,10 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         """
         user = request.user
         study_group = self.get_object()
-        if (study_group.is_past):
-            return Response("This study group has ended", 200)
+        if study_group.is_past:
+            return Response("This study group has ended")
 
-        if (user == study_group.user):
+        if user == study_group.user:
             # user is creator of group -> archive group and notify users
             study_group.is_past = True
             study_group.save()
@@ -235,8 +235,11 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+                if study_group.is_full:
+                    study_group.is_full = False
+                    study_group.save()
             except StudyGroupMember.DoesNotExist:
-                return Response("You are not a member of this group", 200)
+                return Response("You are not a member of this group")
 
         return Response()
 
@@ -248,14 +251,23 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         user = request.user
         study_group = self.get_object()
 
-        if (study_group.is_past):
-            return Response("This study group has ended", 200)
+        if study_group.is_past:
+            return Response("This study group has ended")
 
-        if (len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0):
+        if len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0:
             return Response()
+
+        if study_group.is_full:
+            return Response("This study group is full")
 
         # add user to both study group and chatroom
         new_group_member = StudyGroupMember.objects.create(study_group=study_group, user=user)
+
+        num_members = StudyGroupMember.objects.filter(study_group=study_group).count()
+        if num_members == study_group.num_people:
+            study_group.is_full = True
+            study_group.save()
+
         ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
 
         # announce to the group that a new member has joined
