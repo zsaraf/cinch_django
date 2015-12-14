@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import *
-from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer, OpenSeshRequestStudentSerializer
+from apps.tutoring.serializers import OpenSeshTutorSerializer, PastSeshStudentSerializer, OpenSeshRequestStudentSerializer
 from apps.group.serializers import CourseGroupSerializer
 from apps.group.models import CourseGroup, CourseGroupMember
+from apps.tutoring.models import OpenSesh
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -28,8 +29,8 @@ class StudentUserInfoSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    favorite_set = FavoriteSerializer(many=True)
-    open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
+    favorites = serializers.SerializerMethodField()
+    open_seshes = serializers.SerializerMethodField()
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     open_requests = serializers.SerializerMethodField()
     course_groups = serializers.SerializerMethodField()
@@ -38,9 +39,15 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
 
+    def get_favorites(self, obj):
+        return FavoriteSerializer(source='favorite_set', many=True).data
+
+    def get_open_seshes(self, obj):
+        return OpenSeshTutorSerializer(source='opensesh_set', many=True, context={'request': self.context['request']}).data
+
     def get_course_groups(self, obj):
         course_group_memberships = CourseGroupMember.objects.filter(student=obj)
-        return CourseGroupSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True).data
+        return CourseGroupSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
 
     def get_open_requests(self, obj):
         from apps.tutoring.models import SeshRequest
