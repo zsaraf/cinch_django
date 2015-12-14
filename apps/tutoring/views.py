@@ -3,7 +3,6 @@ from rest_framework import viewsets
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.http import require_POST
 from apps.chatroom.models import Announcement, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from rest_framework.response import Response
 
@@ -61,7 +60,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         from apps.chatroom.models import Chatroom
 
         sesh_request = self.get_object()
-        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor:
+        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
             return Response("Tutor cannot respond to this request")
         sesh_request.status = 1
         sesh_request.save()
@@ -72,6 +71,20 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request.send_tutor_accepted_notification(sesh)
 
         return Response(OpenSeshSerializer(sesh).data)
+
+    @detail_route(methods=['post'])
+    def reject(self, request, pk=None):
+        '''
+        Tutor rejects a direct request
+        '''
+        sesh_request = self.get_object()
+        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
+            return Response("Tutor cannot respond to this request")
+        sesh_request.status = 4
+        sesh_request.save()
+        sesh_request.send_tutor_rejected_notification()
+
+        return Response(SeshRequestSerializer(sesh_request).data)
 
 
 class OpenSeshViewSet(viewsets.ModelViewSet):

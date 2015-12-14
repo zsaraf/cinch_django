@@ -87,7 +87,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
         '''
         Limits the number of messages to [:5]
         '''
-        return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj)[:20], many=True).data
+        return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj).order_by('-id')[:50], many=True).data
 
 
 class UploadSerializer(serializers.ModelSerializer):
