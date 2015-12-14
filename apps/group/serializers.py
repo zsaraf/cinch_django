@@ -55,8 +55,14 @@ class CourseGroupSerializer(serializers.ModelSerializer):
     def get_tutors(self, obj):
         from apps.tutor.models import Tutor, TutorCourse
         from apps.tutor.serializers import TutorCourseGroupSerializer
+        from apps.tutoring.models import PastSesh
+
+        seshes = PastSesh.objects.filter(past_request__course=obj.course)
+        tutors = [item.tutor.id for item in seshes]
         courses = TutorCourse.objects.filter(course=obj.course)
-        return TutorCourseGroupSerializer(Tutor.objects.filter(id__in=courses.values('tutor_id')), many=True).data
+        tutors.extend([item.tutor.id for item in courses])
+
+        return TutorCourseGroupSerializer(Tutor.objects.filter(id__in=tutors), many=True).data
 
 
 class StudyGroupMemberSerializer(serializers.ModelSerializer):
