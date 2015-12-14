@@ -4,18 +4,19 @@ from apps.university.serializers import CourseSerializer
 from apps.chatroom.serializers import ChatroomSerializer
 
 
-class ConversationSerializer(serializers.ModelSerializer):
-    chatroom = ChatroomSerializer()
-
-    class Meta:
-        model = Conversation
-
-
 class ConversationParticipantSerializer(serializers.ModelSerializer):
-    conversation = ConversationSerializer()
+    # conversation = ConversationSerializer()
 
     class Meta:
         model = ConversationParticipant
+        
+
+class ConversationSerializer(serializers.ModelSerializer):
+    chatroom = ChatroomSerializer()
+    conversation_participants = ConversationParticipantSerializer(many=True, source="conversationparticipant_set")
+
+    class Meta:
+        model = Conversation
 
 
 class CourseGroupBasicSerializer(serializers.ModelSerializer):
