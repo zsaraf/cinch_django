@@ -18,6 +18,18 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def disable_notifications(self, request, pk=None):
+        chatroom = self.get_object()
+        user = request.user
+        try:
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member.notifications_enabled = False
+            chatroom_member.save()
+            return Response()
+        except ChatroomMember.DoesNotExist:
+            raise exceptions.NotFount("User does not belong to this chatroom")
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')

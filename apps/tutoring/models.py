@@ -130,7 +130,8 @@ class OpenSesh(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_set_location_notification(self, chatroom_activity):
         '''
@@ -149,7 +150,8 @@ class OpenSesh(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="LOCATION_NOTES_UPDATED")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False

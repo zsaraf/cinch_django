@@ -49,7 +49,8 @@ class CourseGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_study_group_notification(self, user, chatroom_activity):
         '''
@@ -67,7 +68,8 @@ class CourseGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
 
 class CourseGroupMember(models.Model):
@@ -107,7 +109,8 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_group_edited_notification(self, chatroom_activity):
         '''
@@ -125,7 +128,8 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_group_ended_notification(self):
         '''
@@ -140,7 +144,8 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_ENDED")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_new_member_notification(self, new_user, chatroom_activity):
         '''
@@ -159,7 +164,8 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if cm.notifications_enabled:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False

@@ -27,6 +27,7 @@ class Chatroom(models.Model):
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')
     chatroom = models.ForeignKey('Chatroom')
+    notifications_enabled = models.BooleanField(default=True)
     unread_activity_count = models.IntegerField(default=0)
 
     class Meta:
@@ -125,7 +126,8 @@ class Upload(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if (cm.notifications_enabled):
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False
@@ -183,7 +185,8 @@ class Message(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            if (cm.notifications_enabled):
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:
         managed = False
