@@ -105,9 +105,12 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
             interaction.num_views = interaction.num_views + 1
             interaction.save()
         except Interaction.DoesNotExist:
-            Interaction.objects.create(chatroom_activity=chatroom_activity, user=user, num_views=1)
+            Interaction.objects.create(chatroom_activity=activity, user=user, num_views=1)
 
-        return Response()
+        activity.total_views = activity.total_views + 1
+        activity.save()
+
+        return Response(ChatroomActivitySerializer(activity).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def record_like(self, request, pk=None):

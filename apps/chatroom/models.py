@@ -39,6 +39,7 @@ class ChatroomActivity(models.Model):
     chatroom_activity_type = models.ForeignKey('ChatroomActivityType')
     timestamp = models.DateTimeField(auto_now_add=True)
     activity_id = models.IntegerField(blank=True, null=True)
+    total_views = models.IntegerField(default=0)
 
     class Meta:
         managed = False
