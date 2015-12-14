@@ -168,7 +168,7 @@ class PastSesh(models.Model):
     rating_3 = models.IntegerField()
     charge_id = models.CharField(max_length=100)
     tutor_percentage = models.FloatField()
-    tutor_earnings = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    tutor_earnings = models.DecimalField(max_digits=19, decimal_places=4)
     student_cancelled = models.IntegerField()
     tutor_cancelled = models.IntegerField()
     was_cancelled = models.IntegerField()
