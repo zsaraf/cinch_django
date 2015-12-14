@@ -18,12 +18,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def disable_notifications(self, request, pk=None):
+    def toggle_notifications(self, request, pk=None):
         chatroom = self.get_object()
         user = request.user
         try:
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
-            chatroom_member.notifications_enabled = False
+            chatroom_member.notifications_enabled = not chatroom_member.notifications_enabled
             chatroom_member.save()
             return Response()
         except ChatroomMember.DoesNotExist:
