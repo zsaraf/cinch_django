@@ -132,7 +132,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group.send_new_member_notification(user, chatroom_activity)
 
         memberships = CourseGroupMember.objects.filter(student=user.student)
-        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.value('course_group_id')), many=True)
+        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True)
         return Response(serializer.data)
 
 
