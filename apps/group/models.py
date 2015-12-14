@@ -90,6 +90,7 @@ class StudyGroup(models.Model):
     location = models.CharField(max_length=250)
     num_people = models.IntegerField()
     time = models.DateTimeField()
+    is_full = models.BooleanField(default=False)
 
     def send_owner_changed_notification(self, chatroom_activity):
         '''
