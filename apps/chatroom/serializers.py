@@ -76,9 +76,20 @@ class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_members = ChatroomMemberSerializer(many=True, source="chatroommember_set")
     # in the future tags would likely be chatroom-specific so including tags here
     tags = serializers.SerializerMethodField()
+    unread_activity_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_unread_activity_count(self, obj):
+        request = self.context.get('request', None)
+        if request is not None:
+            try:
+                member = ChatroomMember.objects.get(user=request.user, chatroom=obj)
+                return member.unread_activity_count
+            except ChatroomMember.DoesNotExist:
+                return 0
+        return 0
 
     def get_tags(self, obj):
         return TagSerializer(Tag.objects.all(), many=True).data
