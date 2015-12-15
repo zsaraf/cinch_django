@@ -6,6 +6,8 @@ from apps.university.serializers import SchoolSerializer
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
 from apps.group.serializers import ConversationParticipantSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -55,8 +57,8 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
 
 
 class UserFullInfoSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()
-    tutor = TutorSerializer()
+    student = serializers.SerializerMethodField()
+    tutor = serializers.SerializerMethodField()
     school = SchoolSerializer()
     sesh_state = SeshStateSerializer()
     cards = serializers.SerializerMethodField()
@@ -66,6 +68,12 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
+    def get_student(self, obj):
+        return StudentSerializer(obj.student, context={'request': self.context['request']}).data
+
+    def get_tutor(self, obj):
+        return TutorSerializer(obj.tutor, context={'request': self.context['request']}).data
 
     def get_cards(self, obj):
         return obj.get_cards()

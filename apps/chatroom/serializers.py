@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework import exceptions
 from models import *
+import logging
+logger = logging.getLogger(__name__)
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
@@ -82,7 +84,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 return member.unread_activity_count
             except ChatroomMember.DoesNotExist:
                 raise exceptions.NotFound("Chatroom member not found")
-        raise exceptions.NotFound("User not found")
+        raise exceptions.NotFound("Request not found")
 
     def get_tags(self, obj):
         return TagSerializer(Tag.objects.all(), many=True).data
