@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework import exceptions
 from models import *
+import logging
+logger = logging.getLogger(__name__)
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):

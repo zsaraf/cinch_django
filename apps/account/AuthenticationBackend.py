@@ -32,6 +32,7 @@ class SeshAuthentication(authentication.BaseAuthentication):
         return (user, token)
 
     def authenticate_login(self, request):
+
         request_data = json.loads(request.body)
 
         email = request_data.get('email')

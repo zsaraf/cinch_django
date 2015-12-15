@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import *
 from apps.university.serializers import CourseSerializer
 from apps.chatroom.serializers import ChatroomSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ConversationSerializer(serializers.ModelSerializer):

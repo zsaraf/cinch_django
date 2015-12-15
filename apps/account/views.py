@@ -5,10 +5,8 @@ from rest_framework.response import Response
 from sesh.s3utils import upload_png_to_s3
 from .models import *
 from .serializers import *
-from .AuthenticationBackend import SeshAuthentication
 from apps.tutor.models import Tutor
 from apps.student.models import Student
-import json
 import logging
 logger = logging.getLogger(__name__)
 

@@ -22,10 +22,13 @@ class OpenSeshRequestStudentSerializer(SeshRequestSerializer):
 
 class OpenSeshSerializer(serializers.ModelSerializer):
     past_request = SeshRequestSerializer()
-    chatroom = ChatroomSerializer()
+    chatroom = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenSesh
+
+    def get_chatroom(self, obj):
+        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
 
 class OpenSeshStudentSerializer(OpenSeshSerializer):
