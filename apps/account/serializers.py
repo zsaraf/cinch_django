@@ -6,6 +6,7 @@ from apps.university.serializers import SchoolSerializer
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
 from apps.group.serializers import ConversationParticipantSerializer
+from apps.group.models import ConversationParticipant
 import logging
 logger = logging.getLogger(__name__)
 
@@ -64,10 +65,14 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
     cards = serializers.SerializerMethodField()
     outstanding_charges = serializers.SerializerMethodField()
     discounts = serializers.ReadOnlyField()
-    conversations = ConversationParticipantSerializer(many=True, source='conversationparticipant_set')
+    conversations = serializers.SerializerMethodField()
 
     class Meta:
         model = User
+
+    def get_conversations(self, obj):
+        logger.debug("asdfasdf")
+        return ConversationParticipantSerializer(ConversationParticipant.objects.filter(user=obj), many=True, context={'request': self.context['request']}).data
 
     def get_student(self, obj):
         return StudentSerializer(obj.student, context={'request': self.context['request']}).data
