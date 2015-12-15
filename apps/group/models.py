@@ -33,7 +33,7 @@ class CourseGroup(models.Model):
         managed = False
         db_table = 'course_group'
 
-    def send_new_member_notification(self, user, chatroom_activity):
+    def send_new_member_notification(self, user, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has a new member
         '''
@@ -45,13 +45,13 @@ class CourseGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
         for cm in chatroom_members:
             OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
-    def send_study_group_notification(self, user, chatroom_activity):
+    def send_study_group_notification(self, user, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has a new member
         '''
@@ -63,7 +63,7 @@ class CourseGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
         for cm in chatroom_members:
@@ -74,6 +74,7 @@ class CourseGroupMember(models.Model):
     student = models.ForeignKey('student.Student')
     course_group = models.ForeignKey('group.CourseGroup')
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_past = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -92,7 +93,7 @@ class StudyGroup(models.Model):
     time = models.DateTimeField()
     is_full = models.BooleanField(default=False)
 
-    def send_owner_changed_notification(self, chatroom_activity):
+    def send_owner_changed_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has a new leader
         '''
@@ -104,13 +105,13 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
         for cm in chatroom_members:
             OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
-    def send_group_edited_notification(self, chatroom_activity):
+    def send_group_edited_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has ended
         '''
@@ -122,7 +123,7 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, request).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
@@ -143,7 +144,7 @@ class StudyGroup(models.Model):
         for cm in chatroom_members:
             OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
-    def send_new_member_notification(self, new_user, chatroom_activity):
+    def send_new_member_notification(self, new_user, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that a new member joined
         '''
@@ -155,7 +156,7 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity).data,
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "new_user_id": new_user.id
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
@@ -171,6 +172,7 @@ class StudyGroupMember(models.Model):
     user = models.ForeignKey('account.User')
     study_group = models.ForeignKey('group.StudyGroup')
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_past = models.BooleanField(default=False)
 
     class Meta:
         managed = False

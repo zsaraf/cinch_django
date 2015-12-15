@@ -114,16 +114,15 @@ class UserViewSet(viewsets.ModelViewSet):
         user.refresh_from_db()
         user.tutor.refresh_from_db()
 
-        serializer = UserFullInfoSerializer(user)
+        serializer = UserFullInfoSerializer(user, context={'request': request})
         return Response(serializer.data)
 
     @list_route(methods=['POST'], url_path='login')
     def login(self, request):
 
-        authentication = SeshAuthentication()
-        user, token = authentication.authenticate_login(json.loads(request.body))
+        user = request.user
 
-        if not token:
+        if not request.auth:
             return Response({"status": "UNVERIFIED"})
 
         # See if the user has a tutor make one if not
@@ -147,5 +146,5 @@ class UserViewSet(viewsets.ModelViewSet):
         if not user.profile_picture and not user.chavatar_color:
             user.assign_chavatar()
 
-        serializer = UserFullInfoSerializer(user)
-        return Response({"status": "SUCCESS", "data": serializer.data, "session_id": token.session_id})
+        serializer = UserFullInfoSerializer(user, context={'request': request})
+        return Response({"status": "SUCCESS", "data": serializer.data, "session_id": request.auth.session_id})

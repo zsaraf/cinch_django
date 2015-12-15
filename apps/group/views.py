@@ -10,6 +10,7 @@ from apps.account.serializers import UserBasicInfoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
 from datetime import datetime
+import json
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 import logging
 logger = logging.getLogger(__name__)
@@ -58,9 +59,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.STUDY_GROUP)
         chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=new_study_group.pk)
 
-        course_group.send_study_group_notification(user, chatroom_activity)
+        course_group.send_study_group_notification(user, chatroom_activity, request)
 
-        obj = StudyGroupSerializer(new_study_group)
+        obj = StudyGroupSerializer(new_study_group, context={'request': request})
         return Response(obj.data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
@@ -69,7 +70,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         Get basic info for student members of a course_group
         """
         course_group = self.get_object()
-        all_members = CourseGroupMember.objects.filter(course_group=course_group)
+        all_members = CourseGroupMember.objects.filter(course_group=course_group, is_past=False)
         all_users = [m.student.user for m in all_members]
         obj = UserBasicInfoSerializer(all_users, many=True)
         return Response(obj.data)
@@ -79,29 +80,42 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Add or remove course_groups
         """
-        addJsonArr = request.data['course_group_additions']
-        deleteJsonArr = request.data['course_group_deletions']
+        addJsonArr = json.loads(request.data['course_group_additions'])
+        deleteJsonArr = json.loads(request.data['course_group_deletions'])
         user = request.user
+        student = Student.objects.get(user=user)
+
+        if not deleteJsonArr:
+            deleteJsonArr = []
+
+        if not addJsonArr:
+            addJsonArr = []
 
         for obj in deleteJsonArr:
             course_group_id = obj.get('course_group_id', '')
             try:
                 course_group = CourseGroup.objects.get(pk=course_group_id)
-                student = Student.objects.get(user=user)
-                CourseGroupMember.objects.get(student=student, course_group=course_group).delete()
+                course_member = CourseGroupMember.objects.get(student=student, course_group=course_group)
+                course_member.is_past = True
+                course_member.save()
+                chat_member = ChatroomMember.objects.get(user=user, chatroom=course_group.chatroom)
+                chat_member.is_past = True
+                chat_member.save()
             except CourseGroup.DoesNotExist:
                 raise exceptions.NotFound("Course Group could not be found")
             except Student.DoesNotExist:
                 raise exceptions.NotFound("Couldn't find a record of this student")
             except CourseGroupMember.DoesNotExist:
                 raise exceptions.NotFound("Couldn't find a member of the course group for this user")
+            except ChatroomMember.DoesNotExist:
+                raise exceptions.NotFound("Couldn't find a member of the chatroom for this user")
 
         for obj in addJsonArr:
 
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
             professor_name = obj.get('professor_name', '')
-            if course_group_id == -1:
+            if not course_group_id:
                 # must create a group to join
                 try:
                     course = Course.objects.get(pk=course_id)
@@ -111,11 +125,27 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
             else:
                 try:
-                    course_group = CourseGroup.objects.get(pk=course_group_id)
+                    course_group = CourseGroup.objects.get(pk=int(course_group_id))
+                    if course_group.is_past:
+                        return Response("Course group has ended")
+                    member = CourseGroupMember.objects.get(course_group=course_group, student=user.student)
+                    if not member.is_past:
+                        return Response("User is already a member of this group")
+                    else:
+                        member.is_past = False
+                        member.save()
+                        # should also be a member of the chatroom, make them not_past
+                        chat_member = ChatroomMember.objects.get(chatroom=course_group.chatroom, user=user)
+                        chat_member.is_past = False
+                        chat_member.save()
+                        continue
                 except CourseGroup.DoesNotExist:
                     raise exceptions.NotFound("Course Group could not be found")
-                if (len(CourseGroupMember.objects.filter(course_group=course_group, student=user.student)) > 0 | course_group.is_past):
-                    continue
+                except ChatroomMember.DoesNotExist:
+                    raise exceptions.NotFound("Chatroom member could not be found")
+                except CourseGroupMember.DoesNotExist:
+                    # pass on exception, this just means they hadn't been a member previously
+                    pass
 
             # now add them to the group
             CourseGroupMember.objects.create(course_group=course_group, student=user.student)
@@ -129,10 +159,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-            course_group.send_new_member_notification(user, chatroom_activity)
+            course_group.send_new_member_notification(user, chatroom_activity, request)
 
-        memberships = CourseGroupMember.objects.filter(student=user.student)
-        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True)
+        memberships = CourseGroupMember.objects.filter(student=student)
+        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -176,7 +206,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        study_group.send_group_edited_notification(activity)
+        study_group.send_group_edited_notification(activity, request)
 
         return Response()
 
@@ -195,14 +225,14 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         if (user == study_group.user):
             try:
                 new_user = User.objects.get(pk=new_owner_id)
-                StudyGroupMember.objects.get(user=new_user, study_group=study_group)
+                StudyGroupMember.objects.get(user=new_user, study_group=study_group, is_past=False)
                 study_group.user = new_user
                 study_group.save()
                 message = new_user.readable_name + " is now leading the group"
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-                study_group.send_owner_changed_notification(activity)
+                study_group.send_owner_changed_notification(activity, request)
                 return Response(StudyGroupSerializer(study_group).data)
             except User.DoesNotExist:
                 raise exceptions.NotFound("User not found")
@@ -229,7 +259,12 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             study_group.send_group_ended_notification()
         else:
             try:
-                StudyGroupMember.objects.get(user=user, study_group=study_group).delete()
+                member = StudyGroupMember.objects.get(user=user, study_group=study_group, is_past=False)
+                member.is_past = True
+                member.save()
+                chat_member = ChatroomMember.objects.get(user=user, chatroom=study_group.chatroom, is_past=False)
+                chat_member.is_past = True
+                chat_member.save()
                 # announce to the group that a member has left
                 message = user.readable_name + " has left the group"
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
@@ -239,7 +274,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                     study_group.is_full = False
                     study_group.save()
             except StudyGroupMember.DoesNotExist:
-                return Response("You are not a member of this group")
+                return Response("Study Group member not found")
+            except ChatroomMember.DoesNotExist:
+                return Response("Chatroom Member not found")
 
         return Response()
 
@@ -254,33 +291,46 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         if study_group.is_past:
             return Response("This study group has ended")
 
-        if len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0:
-            return Response()
-
         if study_group.is_full:
             return Response("This study group is full")
 
-        # add user to both study group and chatroom
-        new_group_member = StudyGroupMember.objects.create(study_group=study_group, user=user)
+        # check if there is an existing member for this user
+        try:
+            curr_member = StudyGroupMember.objects.get(study_group=study_group, user=user)
+            if not curr_member.is_past:
+                return Response("User is already a member of this group")
+            else:
+                curr_member.is_past = False
+                curr_member.save()
+                chat_member = ChatroomMember.objects.get(chatroom=study_group.chatroom, user=user)
+                chat_member.is_past = False
+                chat_member.save()
+                return Response(StudyGroupMemberSerializer(curr_member).data)
+        except ChatroomMember.DoesNotExist:
+            raise exceptions.NotFound("Chatroom member not found")
+        except StudyGroupMember.DoesNotExist:
 
-        num_members = StudyGroupMember.objects.filter(study_group=study_group).count()
-        if num_members == study_group.num_people:
-            study_group.is_full = True
-            study_group.save()
+            # add user to both study group and chatroom
+            new_group_member = StudyGroupMember.objects.create(study_group=study_group, user=user)
 
-        ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
+            num_members = StudyGroupMember.objects.filter(study_group=study_group).count()
+            if num_members == study_group.num_people:
+                study_group.is_full = True
+                study_group.save()
 
-        # announce to the group that a new member has joined
-        message = user.readable_name + " has joined"
-        announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+            ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
 
-        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+            # announce to the group that a new member has joined
+            message = user.readable_name + " has joined"
+            announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
 
-        study_group.send_new_member_notification(user, chatroom_activity)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+            chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        obj = StudyGroupMemberSerializer(new_group_member)
-        return Response(obj.data)
+            study_group.send_new_member_notification(user, chatroom_activity, request)
+
+            obj = StudyGroupMemberSerializer(new_group_member, context={'request': request})
+            return Response(obj.data)
 
 
 class StudyGroupMemberViewSet(viewsets.ModelViewSet):

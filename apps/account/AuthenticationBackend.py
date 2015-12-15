@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.contrib.auth.models import AnonymousUser
 from .models import User, Token, Device
 from apps.tutor.models import PendingTutor
+import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class SeshAuthentication(authentication.BaseAuthentication):
         token = request.META.get('HTTP_X_SESSION_ID')
         if not token:
             if os.path.basename(os.path.normpath(request.path)) == "login":
-                return (AnonymousUser(), None)
+                return self.authenticate_login(request)
             else:
                 return None
 
@@ -31,14 +32,16 @@ class SeshAuthentication(authentication.BaseAuthentication):
         return (user, token)
 
     def authenticate_login(self, request):
-        email = request.get('email')
-        password = request.get("password")
-        device_type = request.get("type")
-        device_model = request.get("device_model")
-        system_version = request.get("system_version")
-        app_version = request.get("app_version")
-        timezone_name = request.get("timezone_name")
-        is_web = request.get("is_web")
+        request_data = json.loads(request.body)
+
+        email = request_data.get('email')
+        password = request_data.get("password")
+        device_type = request_data.get("type")
+        device_model = request_data.get("device_model")
+        system_version = request_data.get("system_version")
+        app_version = request_data.get("app_version")
+        timezone_name = request_data.get("timezone_name")
+        is_web = request_data.get("is_web")
 
         # see if a user exists with the email
         try:

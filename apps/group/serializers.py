@@ -24,11 +24,24 @@ class CourseGroupBasicSerializer(serializers.ModelSerializer):
         model = CourseGroup
 
 
+class StudyGroupMemberSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StudyGroupMember
+
+
 class StudyGroupSerializer(serializers.ModelSerializer):
-    chatroom = ChatroomSerializer()
+    chatroom = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = StudyGroup
+
+    def get_members(self, obj):
+        return StudyGroupMemberSerializer(StudyGroupMember.objects.filter(study_group=obj, is_past=False), many=True).data
+
+    def get_chatroom(self, obj):
+        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
 
 class CourseGroupMemberSerializer(serializers.ModelSerializer):
@@ -44,13 +57,22 @@ class CourseGroupMemberSerializer(serializers.ModelSerializer):
 
 class CourseGroupSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
-    chatroom = ChatroomSerializer()
-    study_groups = StudyGroupSerializer(many=True, source="studygroup_set")
+    chatroom = serializers.SerializerMethodField()
+    study_groups = serializers.SerializerMethodField()
     tutors = serializers.SerializerMethodField()
-    members = CourseGroupMemberSerializer(many=True, source="coursegroupmember_set")
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = CourseGroup
+
+    def get_members(self, obj):
+        return CourseGroupMemberSerializer(CourseGroupMember.objects.filter(course_group=obj, is_past=False), many=True).data
+
+    def get_chatroom(self, obj):
+        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
+
+    def get_study_groups(self, obj):
+        return StudyGroupSerializer(many=True, source="studygroup_set", context={'request': self.context['request']}).data
 
     def get_tutors(self, obj):
         from apps.tutor.models import Tutor, TutorCourse
@@ -65,7 +87,3 @@ class CourseGroupSerializer(serializers.ModelSerializer):
         return TutorCourseGroupSerializer(Tutor.objects.filter(id__in=tutors), many=True).data
 
 
-class StudyGroupMemberSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = StudyGroupMember

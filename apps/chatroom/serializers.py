@@ -33,15 +33,15 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
 
     def get_activity(self, obj):
         if obj.chatroom_activity_type.is_message():
-            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
+            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         elif obj.chatroom_activity_type.is_announcement():
-            return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id)).data
+            return AnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         elif obj.chatroom_activity_type.is_upload():
-            return UploadSerializer(Upload.objects.get(pk=obj.activity_id)).data
+            return UploadSerializer(Upload.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         elif obj.chatroom_activity_type.is_study_group():
             from apps.group.serializers import StudyGroupSerializer
             from apps.group.models import StudyGroup
-            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id)).data
+            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         else:
             return []
 
@@ -66,13 +66,16 @@ class TagSerializer(serializers.ModelSerializer):
 
 class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_activities = serializers.SerializerMethodField()
-    chatroom_members = ChatroomMemberSerializer(many=True, source="chatroommember_set")
+    chatroom_members = serializers.SerializerMethodField()
     # in the future tags would likely be chatroom-specific so including tags here
     tags = serializers.SerializerMethodField()
     unread_activity_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_chatroom_members(self, obj):
+        return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj, is_past=False), many=True).data
 
     def get_unread_activity_count(self, obj):
         request = self.context.get('request', None)
@@ -82,7 +85,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 return member.unread_activity_count
             except ChatroomMember.DoesNotExist:
                 raise exceptions.NotFound("Chatroom member not found")
-        raise exceptions.NotFound("User not found")
+        raise exceptions.NotFound("Request not found")
 
     def get_tags(self, obj):
         return TagSerializer(Tag.objects.all(), many=True).data
@@ -91,7 +94,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
         '''
         Limits the number of messages to [:5]
         '''
-        return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj).order_by('-id')[:50], many=True).data
+        return ChatroomActivitySerializer(ChatroomActivity.objects.filter(chatroom=obj).order_by('-id')[:50], many=True, context={'request': self.context['request']}).data
 
 
 class UploadSerializer(serializers.ModelSerializer):

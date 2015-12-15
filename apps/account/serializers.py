@@ -55,8 +55,6 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
 
 
 class UserFullInfoSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()
-    tutor = TutorSerializer()
     school = SchoolSerializer()
     sesh_state = SeshStateSerializer()
     cards = serializers.SerializerMethodField()
@@ -66,6 +64,12 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
+    def get_student(self, obj):
+        return StudentSerializer(obj.student, context={'request': self.context['request']}).data
+
+    def get_tutor(self, obj):
+        return TutorSerializer(obj.tutor, context={'request': self.context['request']}).data
 
     def get_cards(self, obj):
         return obj.get_cards()
