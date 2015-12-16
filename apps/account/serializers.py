@@ -72,7 +72,6 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
         model = User
 
     def get_conversations(self, obj):
-        logger.debug("asdfasdf")
         return ConversationParticipantSerializer(ConversationParticipant.objects.filter(user=obj), many=True, context={'request': self.context['request']}).data
 
     def get_student(self, obj):
