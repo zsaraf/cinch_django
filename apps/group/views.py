@@ -19,6 +19,26 @@ class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
+    def create(self, request):
+        '''
+        Begin a conversation
+        '''
+        from apps.account.models import User
+
+        other_user = User.objects.get(pk=int(request.data.get('user_id')))
+        user = request.user
+
+        name = "Chat"
+        desc = "Private conversation between " + user.readable_name + " and " + other_user.readable_name
+        chatroom = Chatroom.objects.create(name=name, description=desc)
+        conversation = Conversation.objects.create(chatroom=chatroom)
+        ConversationParticipant.objects.create(user=user, conversation=conversation)
+        ConversationParticipant.objects.create(user=other_user, conversation=conversation)
+        ChatroomMember.objects.create(user=user, chatroom=chatroom)
+        ChatroomMember.objects.create(user=other_user, chatroom=chatroom)
+
+        return Response(ConversationSerializer(conversation).data)
+
 
 class ConversationParticipantViewSet(viewsets.ModelViewSet):
     queryset = ConversationParticipant.objects.all()
@@ -37,10 +57,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
         user = request.user
 
-        str_time = request.POST.get('time')
-        topic = request.POST.get('topic')
-        location = request.POST.get('location')
-        num_people = request.POST.get('num_people')
+        str_time = request.data.get('time')
+        topic = request.data.get('topic')
+        location = request.data.get('location')
+        num_people = request.data.get('num_people')
 
         time = datetime.strptime(str_time, "%Y-%m-%d %H:%M:%S")
 
