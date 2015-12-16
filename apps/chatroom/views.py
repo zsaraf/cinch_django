@@ -18,6 +18,18 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def mark_as_read(self, request, pk=None):
+        chatroom = self.get_object()
+        user = request.user
+        try:
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member.unread_activity_count = 0
+            chatroom_member.save()
+            return Response()
+        except ChatroomMember.DoesNotExist:
+            raise exceptions.NotFound("Chatroom member not found")
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def toggle_notifications(self, request, pk=None):
         chatroom = self.get_object()
         user = request.user
@@ -27,7 +39,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             chatroom_member.save()
             return Response()
         except ChatroomMember.DoesNotExist:
-            raise exceptions.NotFount("User does not belong to this chatroom")
+            raise exceptions.NotFount("Chatroom member not found")
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
@@ -105,9 +117,12 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
             interaction.num_views = interaction.num_views + 1
             interaction.save()
         except Interaction.DoesNotExist:
-            Interaction.objects.create(chatroom_activity=chatroom_activity, user=user, num_views=1)
+            Interaction.objects.create(chatroom_activity=activity, user=user, num_views=1)
 
-        return Response()
+        activity.total_views = activity.total_views + 1
+        activity.save()
+
+        return Response(ChatroomActivitySerializer(activity).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def record_like(self, request, pk=None):

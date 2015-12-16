@@ -2,10 +2,13 @@ from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass,
 from rest_framework import serializers
 from apps.university.serializers import CourseSerializer, DepartmentSerializer
 from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer
+from apps.tutoring.models import OpenSesh
 from django.conf import settings
 
 import json
 import os
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OpenTutorPromoSerializer(serializers.ModelSerializer):
@@ -65,7 +68,7 @@ class TutorCourseGroupSerializer(serializers.ModelSerializer):
 class TutorSerializer(serializers.ModelSerializer):
     courses = serializers.SerializerMethodField()
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
-    open_seshes = OpenSeshStudentSerializer(many=True, source='opensesh_set')
+    open_seshes = serializers.SerializerMethodField()
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     bonus_info = serializers.SerializerMethodField()
     tiers = serializers.SerializerMethodField()
@@ -73,6 +76,9 @@ class TutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tutor
+
+    def get_open_seshes(self, obj):
+        return OpenSeshStudentSerializer(source='opensesh_set', many=True, context={'request': self.context['request']}).data
 
     def get_courses(self, obj):
         return TutorCourseSerializer(TutorCourse.objects.filter(tutor=obj), many=True).data

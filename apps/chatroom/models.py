@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
+from PIL import Image
 
 
 class Announcement(models.Model):
@@ -40,6 +41,7 @@ class ChatroomActivity(models.Model):
     chatroom_activity_type = models.ForeignKey('ChatroomActivityType')
     timestamp = models.DateTimeField(auto_now_add=True)
     activity_id = models.IntegerField(blank=True, null=True)
+    total_views = models.IntegerField(default=0)
 
     class Meta:
         managed = False
@@ -107,9 +109,14 @@ class Upload(models.Model):
     tag = models.ForeignKey('Tag')
 
     def upload_file(self, fp):
+
+        image = Image.open(fp)
+        (width, height) = image.size
+        fp.seek(0)
+
         file_name = '%s.png' % get_random_string(20)
         url = upload_png_to_s3(fp, 'images/files', file_name)
-        File.objects.create(src=url, upload=self)
+        File.objects.create(src=url, upload=self, width=width, height=height)
 
     def send_created_notification(self, chatroom_activity):
         import serializers
@@ -150,6 +157,8 @@ class File(models.Model):
     upload = models.ForeignKey(Upload)
     src = models.CharField(max_length=250, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    width = models.IntegerField()
+    height = models.IntegerField()
 
     class Meta:
         managed = False

@@ -19,6 +19,26 @@ class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
+    def create(self, request):
+        '''
+        Begin a conversation
+        '''
+        from apps.account.models import User
+
+        other_user = User.objects.get(pk=int(request.data.get('user_id')))
+        user = request.user
+
+        name = "Chat"
+        desc = "Private conversation between " + user.readable_name + " and " + other_user.readable_name
+        chatroom = Chatroom.objects.create(name=name, description=desc)
+        conversation = Conversation.objects.create(chatroom=chatroom)
+        ConversationParticipant.objects.create(user=user, conversation=conversation)
+        ConversationParticipant.objects.create(user=other_user, conversation=conversation)
+        ChatroomMember.objects.create(user=user, chatroom=chatroom)
+        ChatroomMember.objects.create(user=other_user, chatroom=chatroom)
+
+        return Response(ConversationSerializer(conversation).data)
+
 
 class ConversationParticipantViewSet(viewsets.ModelViewSet):
     queryset = ConversationParticipant.objects.all()
@@ -37,10 +57,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
         user = request.user
 
-        str_time = request.POST.get('time')
-        topic = request.POST.get('topic')
-        location = request.POST.get('location')
-        num_people = request.POST.get('num_people')
+        str_time = request.data.get('time')
+        topic = request.data.get('topic')
+        location = request.data.get('location')
+        num_people = request.data.get('num_people')
 
         time = datetime.strptime(str_time, "%Y-%m-%d %H:%M:%S")
 
@@ -132,7 +152,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group.send_new_member_notification(user, chatroom_activity)
 
         memberships = CourseGroupMember.objects.filter(student=user.student)
-        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True)
+        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -219,10 +239,10 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         """
         user = request.user
         study_group = self.get_object()
-        if (study_group.is_past):
-            return Response("This study group has ended", 200)
+        if study_group.is_past:
+            return Response("This study group has ended")
 
-        if (user == study_group.user):
+        if user == study_group.user:
             # user is creator of group -> archive group and notify users
             study_group.is_past = True
             study_group.save()
@@ -235,8 +255,11 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+                if study_group.is_full:
+                    study_group.is_full = False
+                    study_group.save()
             except StudyGroupMember.DoesNotExist:
-                return Response("You are not a member of this group", 200)
+                return Response("You are not a member of this group")
 
         return Response()
 
@@ -248,14 +271,23 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         user = request.user
         study_group = self.get_object()
 
-        if (study_group.is_past):
-            return Response("This study group has ended", 200)
+        if study_group.is_past:
+            return Response("This study group has ended")
 
-        if (len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0):
+        if len(StudyGroupMember.objects.filter(study_group=study_group, user=user)) > 0:
             return Response()
+
+        if study_group.is_full:
+            return Response("This study group is full")
 
         # add user to both study group and chatroom
         new_group_member = StudyGroupMember.objects.create(study_group=study_group, user=user)
+
+        num_members = StudyGroupMember.objects.filter(study_group=study_group).count()
+        if num_members == study_group.num_people:
+            study_group.is_full = True
+            study_group.save()
+
         ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
 
         # announce to the group that a new member has joined

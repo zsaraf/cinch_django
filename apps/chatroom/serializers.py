@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework import exceptions
 from models import *
+import logging
+logger = logging.getLogger(__name__)
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
@@ -23,18 +25,10 @@ class InteractionSerializer(serializers.ModelSerializer):
 class ChatroomActivitySerializer(serializers.ModelSerializer):
     activity = serializers.SerializerMethodField()
     chatroom_activity_type = ChatroomActivityTypeSerializer()
-    total_views = serializers.SerializerMethodField()
     total_likes = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatroomActivity
-
-    def get_total_views(self, obj):
-        interactions = Interaction.objects.filter(chatroom_activity=obj)
-        total = 0
-        for i in interactions:
-            total += i.num_views
-        return total
 
     def get_total_likes(self, obj):
         return Interaction.objects.filter(chatroom_activity=obj, has_liked=True).count()
@@ -90,7 +84,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 return member.unread_activity_count
             except ChatroomMember.DoesNotExist:
                 raise exceptions.NotFound("Chatroom member not found")
-        raise exceptions.NotFound("User not found")
+        raise exceptions.NotFound("Request not found")
 
     def get_tags(self, obj):
         return TagSerializer(Tag.objects.all(), many=True).data

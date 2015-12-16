@@ -2,20 +2,23 @@ from rest_framework import serializers
 from .models import *
 from apps.university.serializers import CourseSerializer
 from apps.chatroom.serializers import ChatroomSerializer
-
-
-class ConversationSerializer(serializers.ModelSerializer):
-    chatroom = ChatroomSerializer()
-
-    class Meta:
-        model = Conversation
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ConversationParticipantSerializer(serializers.ModelSerializer):
-    conversation = ConversationSerializer()
+    # conversation = ConversationSerializer()
 
     class Meta:
         model = ConversationParticipant
+        
+
+class ConversationSerializer(serializers.ModelSerializer):
+    chatroom = ChatroomSerializer()
+    conversation_participants = ConversationParticipantSerializer(many=True, source="conversationparticipant_set")
+
+    class Meta:
+        model = Conversation
 
 
 class CourseGroupBasicSerializer(serializers.ModelSerializer):
@@ -44,13 +47,19 @@ class CourseGroupMemberSerializer(serializers.ModelSerializer):
 
 class CourseGroupSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
-    chatroom = ChatroomSerializer()
-    study_groups = StudyGroupSerializer(many=True, source="studygroup_set")
+    chatroom = serializers.SerializerMethodField()
+    study_groups = serializers.SerializerMethodField()
     tutors = serializers.SerializerMethodField()
     members = CourseGroupMemberSerializer(many=True, source="coursegroupmember_set")
 
     class Meta:
         model = CourseGroup
+
+    def get_chatroom(self, obj):
+        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
+
+    def get_study_groups(self, obj):
+        return StudyGroupSerializer(many=True, source="studygroup_set", context={'request': self.context['request']}).data
 
     def get_tutors(self, obj):
         from apps.tutor.models import Tutor, TutorCourse

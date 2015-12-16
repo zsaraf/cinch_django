@@ -5,7 +5,7 @@ from apps.notification.models import OpenNotification, NotificationType
 
 class Conversation(models.Model):
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -15,7 +15,7 @@ class Conversation(models.Model):
 class ConversationParticipant(models.Model):
     conversation = models.ForeignKey('Conversation')
     user = models.ForeignKey('account.User')
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -92,6 +92,7 @@ class StudyGroup(models.Model):
     location = models.CharField(max_length=250)
     num_people = models.IntegerField()
     time = models.DateTimeField()
+    is_full = models.BooleanField(default=False)
 
     def send_owner_changed_notification(self, chatroom_activity):
         '''
