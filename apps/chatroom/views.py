@@ -30,6 +30,18 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound("Chatroom member not found")
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def toggle_notifications(self, request, pk=None):
+        chatroom = self.get_object()
+        user = request.user
+        try:
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member.notifications_enabled = not chatroom_member.notifications_enabled
+            chatroom_member.save()
+            return Response()
+        except ChatroomMember.DoesNotExist:
+            raise exceptions.NotFount("Chatroom member not found")
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
