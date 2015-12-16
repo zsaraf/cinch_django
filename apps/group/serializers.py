@@ -11,7 +11,7 @@ class ConversationParticipantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConversationParticipant
-        
+
 
 class ConversationSerializer(serializers.ModelSerializer):
     chatroom = ChatroomSerializer()

@@ -30,9 +30,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             student = Student.objects.get(user=request.user)
             hourly_rate = request.data.get('hourly_rate')
             school = request.user.school
-            course = Course.objects.get(pk=int(request.data.get('course_id')))
+            course = Course.objects.get(pk=int(request.data.get('course')))
             num_people = request.data.get('num_people')
-            tutor = Tutor.objects.get(pk=int(request.data.get('tutor_id')))
+            tutor = Tutor.objects.get(pk=int(request.data.get('tutor')))
 
             sesh_request = SeshRequest.objects.create(student=student, hourly_rate=hourly_rate, school=school, course=course, num_people=num_people, tutor=tutor)
             sesh_request.send_new_request_notification()
@@ -41,7 +41,6 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound("Course not found")
         except Tutor.DoesNotExist:
             raise exceptions.NotFound("Tutor not found")
-            
 
     @detail_route(methods=['post'])
     def cancel(self, request, pk=None):
