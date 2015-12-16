@@ -136,7 +136,10 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
         except Interaction.DoesNotExist:
             Interaction.objects.create(chatroom_activity=activity, user=user, has_liked=True)
 
-        return Response()
+        activity.total_likes = activity.total_likes + 1
+        activity.save()
+
+        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
 
 class ChatroomActivityTypeViewSet(viewsets.ModelViewSet):
