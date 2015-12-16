@@ -1,5 +1,6 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
+from rest_framework import exceptions
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
@@ -22,20 +23,25 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         Create a request
         '''
         from apps.student.models import Student
-        from apps.university.models import Constant
+        from apps.university.models import Course
+        from apps.tutor.models import Tutor
 
-        data = request.data
-        data['student'] = Student.objects.get(user=request.user).pk
-        data['hourly_rate'] = Constant.objects.get(school_id=request.user.school.pk).hourly_rate
-        data['school'] = request.user.school.pk
-        serializer = SeshRequestSerializer(data=data)
-        if serializer.is_valid():
-            sesh_request = serializer.save()
-            if sesh_request.tutor:
-                sesh_request.send_new_request_notification()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+        try:
+            student = Student.objects.get(user=request.user)
+            hourly_rate = request.data.get('hourly_rate')
+            school = request.user.school
+            course = Course.objects.get(pk=int(request.data.get('course_id')))
+            num_people = request.data.get('num_people')
+            tutor = Tutor.objects.get(pk=int(request.data.get('tutor_id')))
+
+            sesh_request = SeshRequest.objects.create(student=student, hourly_rate=hourly_rate, school=school, course=course, num_people=num_people, tutor=tutor)
+            sesh_request.send_new_request_notification()
+            return Response(SeshRequestSerializer(sesh_request).data)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound("Course not found")
+        except Tutor.DoesNotExist:
+            raise exceptions.NotFound("Tutor not found")
+            
 
     @detail_route(methods=['post'])
     def cancel(self, request, pk=None):

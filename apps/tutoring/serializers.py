@@ -11,6 +11,8 @@ class OpenBidSerializer(serializers.ModelSerializer):
 
 
 class SeshRequestSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
+
     class Meta:
         model = SeshRequest
 
