@@ -113,7 +113,7 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
-    def send_set_time_notification(self, chatroom_activity):
+    def send_set_time_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members
         '''
@@ -125,7 +125,7 @@ class OpenSesh(models.Model):
             "SET_TIME": self.set_time
         }
         data = {
-            "chatroom_id": ChatroomActivitySerializer(chatroom_activity).data,
+            "chatroom_id": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "set_time": self.set_time
         }
         notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
@@ -133,7 +133,7 @@ class OpenSesh(models.Model):
             if cm.notifications_enabled:
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
-    def send_set_location_notification(self, chatroom_activity):
+    def send_set_location_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members
         '''
@@ -145,7 +145,7 @@ class OpenSesh(models.Model):
             "LOCATION_NOTES": self.location_notes
         }
         data = {
-            "chatroom_id": ChatroomActivitySerializer(chatroom_activity).data,
+            "chatroom_id": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "location_notes": self.location_notes
         }
         notification_type = NotificationType.objects.get(identifier="LOCATION_NOTES_UPDATED")

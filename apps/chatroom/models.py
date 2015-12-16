@@ -18,7 +18,7 @@ class Chatroom(models.Model):
     last_updated = models.DateTimeField(blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
-    timestamp = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -30,6 +30,8 @@ class ChatroomMember(models.Model):
     chatroom = models.ForeignKey('Chatroom')
     notifications_enabled = models.BooleanField(default=True)
     unread_activity_count = models.IntegerField(default=0)
+    is_past = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -118,7 +120,7 @@ class Upload(models.Model):
         url = upload_png_to_s3(fp, 'images/files', file_name)
         File.objects.create(src=url, upload=self, width=width, height=height)
 
-    def send_created_notification(self, chatroom_activity):
+    def send_created_notification(self, chatroom_activity, request):
         import serializers
         '''
         Sends a notification to the chatroom members
@@ -129,7 +131,7 @@ class Upload(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
+            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD")
         for cm in chatroom_members:
@@ -179,7 +181,7 @@ class Message(models.Model):
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
 
-    def send_notifications(self, chatroom_activity):
+    def send_notifications(self, chatroom_activity, request):
         import serializers
         '''
         Sends a notification to the chatroom members
@@ -190,7 +192,7 @@ class Message(models.Model):
             "MESSAGE": self.message
         }
         data = {
-            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity).data,
+            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         for cm in chatroom_members:

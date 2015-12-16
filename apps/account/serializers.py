@@ -58,6 +58,7 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
 
 
 class UserFullInfoSerializer(serializers.ModelSerializer):
+
     student = serializers.SerializerMethodField()
     tutor = serializers.SerializerMethodField()
     school = SchoolSerializer()
