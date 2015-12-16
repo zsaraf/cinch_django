@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 class ConversationParticipantSerializer(serializers.ModelSerializer):
-    # conversation = ConversationSerializer()
 
     class Meta:
         model = ConversationParticipant
@@ -15,7 +14,6 @@ class ConversationParticipantSerializer(serializers.ModelSerializer):
 
 class ConversationSerializer(serializers.ModelSerializer):
     chatroom = ChatroomSerializer()
-    conversation_participants = ConversationParticipantSerializer(many=True, source="conversationparticipant_set")
 
     class Meta:
         model = Conversation

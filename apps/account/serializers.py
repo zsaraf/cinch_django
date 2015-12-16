@@ -5,8 +5,8 @@ from apps.student.serializers import StudentSerializer
 from apps.university.serializers import SchoolSerializer
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
-from apps.group.serializers import ConversationParticipantSerializer
-from apps.group.models import ConversationParticipant
+from apps.group.serializers import ConversationSerializer
+from apps.group.models import ConversationParticipant, Conversation
 import logging
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,10 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
         model = User
 
     def get_conversations(self, obj):
-        return ConversationParticipantSerializer(ConversationParticipant.objects.filter(user=obj), many=True, context={'request': self.context['request']}).data
+        memberships = ConversationParticipant.objects.filter(user=obj)
+        return ConversationSerializer(Conversation.objects.filter(id__in=memberships.values('conversation_id')), many=True, context={'request': self.context['request']}).data
+
+        return ConversationSerializer(ConversationSerializer.objects.filter(user=obj), many=True, context={'request': self.context['request']}).data
 
     def get_student(self, obj):
         return StudentSerializer(obj.student, context={'request': self.context['request']}).data
