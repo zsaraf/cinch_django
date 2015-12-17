@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType
+from apps.university.models import Constant
+from decimal import *
 
 
 class OpenBid(models.Model):
@@ -42,13 +46,22 @@ class SeshRequest(models.Model):
         managed = False
         db_table = 'request'
 
+    def get_estimated_wage(self):
+        '''
+        Get estimated wage for a request
+        '''
+        constants = Constant.objects.get(school_id=self.school.pk)
+        additional_student_fee = (self.num_people - 1) * constants.additional_student_fee
+        tutor_rate = (self.hourly_rate + self.sesh_comp + additional_student_fee) * Decimal(1.0 - constants.administrative_percentage)
+        return tutor_rate * Decimal(self.est_time / 60.0)
+
     def send_tutor_rejected_notification(self):
         '''
-        Sends a notification to the stuent that the tutor rejected the request
+        Sends a notification to the student that the tutor rejected the request
         '''
         from serializers import SeshRequestSerializer
-        data = {}
-        merge_vars = {
+        merge_vars = {}
+        data = {
             "request": SeshRequestSerializer(self).data
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_REJECTED")
@@ -59,23 +72,47 @@ class SeshRequest(models.Model):
         Sends a notification to the tutor that the student cancelled their direct request
         '''
         from serializers import SeshRequestSerializer
-        data = {}
-        merge_vars = {
+        merge_vars = {}
+        data = {
             "request": SeshRequestSerializer(self).data
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_CANCELLED")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
 
-    def send_new_request_notification(self):
+    def send_request_notification(self):
+        '''
+        Sends a notification to all eligible tutos that job is available
+        '''
+        from serializers import SeshRequestSerializer
+        from apps.tutor.models import TutorCourse
+
+        merge_vars = {
+            "CLOCK_SAYING": "🕒",
+            "RATE_SAYING": "💵",
+            "EST_TIME": self.est_time,
+            "HOURLY_RATE": float(self.hourly_rate),
+            "ESTIMATED_WAGE": float(self.get_estimated_wage()),
+            "COURSE_NAME": self.course.get_readable_name()
+        }
+        data = {
+            "request": SeshRequestSerializer(self).data
+        }
+        tutor_courses = TutorCourse.objects.filter(course=self.course)
+        notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+
+        for tc in tutor_courses:
+            OpenNotification.objects.create(tc.tutor.user, notification_type, data, merge_vars, None)
+
+    def send_direct_request_notification(self):
         '''
         Sends a notification to the tutor that job is available
         '''
         from serializers import SeshRequestSerializer
-        data = {
+        merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name,
             "COURSE_NAME": self.course.get_readable_name()
         }
-        merge_vars = {
+        data = {
             "request": SeshRequestSerializer(self).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
@@ -86,11 +123,11 @@ class SeshRequest(models.Model):
         Sends a notification to the student that the request was accepted
         '''
         from serializers import OpenSeshSerializer
-        data = {
+        merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name,
             "COURSE_NAME": self.course.get_readable_name()
         }
-        merge_vars = {
+        data = {
             "sesh": OpenSeshSerializer(sesh).data
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_ACCEPTED")
