@@ -25,13 +25,18 @@ class InteractionSerializer(serializers.ModelSerializer):
 class ChatroomActivitySerializer(serializers.ModelSerializer):
     activity = serializers.SerializerMethodField()
     chatroom_activity_type = ChatroomActivityTypeSerializer()
-    total_likes = serializers.SerializerMethodField()
+    user_has_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatroomActivity
 
-    def get_total_likes(self, obj):
-        return Interaction.objects.filter(chatroom_activity=obj, has_liked=True).count()
+    def get_user_has_liked(self, obj):
+        request = self.context.get('request', None)
+        try:
+            interaction = Interaction.objects.get(user=request.user, chatroom_activity=obj)
+            return interaction.has_liked
+        except Interaction.DoesNotExist:
+            return False
 
     def get_activity(self, obj):
         if obj.chatroom_activity_type.is_message():
@@ -72,9 +77,16 @@ class ChatroomSerializer(serializers.ModelSerializer):
     # in the future tags would likely be chatroom-specific so including tags here
     tags = serializers.SerializerMethodField()
     unread_activity_count = serializers.SerializerMethodField()
+    last_activity_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_last_activity_id(self, obj):
+        l = list(ChatroomActivity.objects.filter(chatroom=obj)[:1])
+        if l:
+            return l[0].pk
+        return None
 
     def get_chatroom_members(self, obj):
         return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj, is_past=False), many=True).data
