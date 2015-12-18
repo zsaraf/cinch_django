@@ -6,6 +6,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 from apps.chatroom.models import Announcement, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from rest_framework.response import Response
+from datetime import datetime
 
 
 class OpenBidViewSet(viewsets.ModelViewSet):
@@ -33,8 +34,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             course = Course.objects.get(pk=int(request.data.get('course')))
             num_people = request.data.get('num_people')
             tutor = Tutor.objects.get(pk=int(request.data.get('tutor')))
+            expiration_time = datetime.strptime(request.data.get('expiration_time'), '%Y-%m-%d %H:%M:%S')
 
-            sesh_request = SeshRequest.objects.create(student=student, hourly_rate=hourly_rate, school=school, course=course, num_people=num_people, tutor=tutor)
+            sesh_request = SeshRequest.objects.create(student=student, hourly_rate=hourly_rate, school=school, course=course, num_people=num_people, tutor=tutor, expiration_time=expiration_time)
             sesh_request.send_new_request_notification()
             return Response(SeshRequestSerializer(sesh_request).data)
         except Course.DoesNotExist:
