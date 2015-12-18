@@ -100,8 +100,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Add or remove course_groups
         """
-        addJsonArr = json.loads(request.data['course_group_additions'])
-        deleteJsonArr = json.loads(request.data['course_group_deletions'])
+        addJsonArr = request.data['course_group_additions']
+        deleteJsonArr = request.data['course_group_deletions']
         user = request.user
         student = Student.objects.get(user=user)
 
