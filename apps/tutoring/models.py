@@ -25,8 +25,6 @@ class SeshRequest(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     est_time = models.IntegerField(blank=True, null=True)
     num_people = models.IntegerField()
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
     hourly_rate = models.DecimalField(max_digits=19, decimal_places=4)
     expiration_time = models.DateTimeField(blank=True, null=True)
     is_instant = models.IntegerField(default=0)
