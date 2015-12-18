@@ -145,7 +145,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'read_default_file': '%s/sesh_db.cnf' % ROOT_DIR
+            'read_default_file': '%s/sesh_db.cnf' % ROOT_DIR,
+            'charset': 'utf8mb4'
         },
     }
 }
