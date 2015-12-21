@@ -46,7 +46,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return OpenSeshTutorSerializer(source='opensesh_set', many=True, context={'request': self.context['request']}).data
 
     def get_course_groups(self, obj):
-        course_group_memberships = CourseGroupMember.objects.filter(student=obj)
+        course_group_memberships = CourseGroupMember.objects.filter(student=obj, is_past=False)
         return CourseGroupSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
 
     def get_open_requests(self, obj):
