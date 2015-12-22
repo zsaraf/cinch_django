@@ -133,7 +133,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
             professor_name = obj.get('professor_name', '')
-            if not course_group_id:
+            if not course_group_id or course_group_id == -1:
                 # must create a group to join
                 try:
                     course = Course.objects.get(pk=course_id)
