@@ -1,6 +1,8 @@
 from django.db import models
 from apps.chatroom.models import ChatroomMember
-from apps.notification.models import OpenNotification, NotificationType
+from apps.notification.models import OpenNotification, NotificationType, PastNotification
+import json
+from rest_framework.response import Response
 
 
 class ConversationParticipant(models.Model):
@@ -110,6 +112,23 @@ class StudyGroup(models.Model):
     time = models.DateTimeField()
     is_full = models.BooleanField(default=False)
 
+    def clear_notifications(self, request):
+        '''
+        After a group has ended, clear old notifications for all users
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
+        refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
+        types = NotificationType.objects.filter(identifier__in=["NEW_GROUP_MEMBER", "STUDY_GROUP_EDITED", "NEW_GROUP_OWNER", "NEW_UPLOAD", "NEW_MESSAGE"])
+        for cm in chatroom_members:
+            notifications = OpenNotification.objects.filter(user=cm.user, notification_type__in=types)
+            for n in notifications:
+                json_arr = json.loads(n.data)
+                chatroom_id = json_arr.get('chatroom_activity').get('chatroom')
+                if chatroom_id == self.chatroom.pk:
+                    PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                    OpenNotification.objects.get(pk=n.pk).delete()
+            OpenNotification.objects.create(cm.user, refresh_type, None, None, None)
+
     def send_owner_changed_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has a new leader
@@ -141,7 +160,7 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, request).data
+            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
