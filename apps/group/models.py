@@ -3,15 +3,6 @@ from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType
 
 
-class Conversation(models.Model):
-    chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        managed = False
-        db_table = 'conversation'
-
-
 class ConversationParticipant(models.Model):
     conversation = models.ForeignKey('Conversation')
     user = models.ForeignKey('account.User')
@@ -20,6 +11,30 @@ class ConversationParticipant(models.Model):
     class Meta:
         managed = False
         db_table = 'conversation_participant'
+
+
+class Conversation(models.Model):
+    chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'conversation'
+
+    def send_new_conversation_notification(self, user, request):
+        '''
+        Sends a notification to the other member that a new convo has STUDY_GROUP_CREATED
+        '''
+        from serializers import ConversationSerializer
+
+        convo_members = ConversationParticipant.objects.filter(conversation=self).exclude(user=user)
+        merge_vars = {}
+        data = {
+            "conversation": ConversationSerializer(self, context={'request': request}).data
+        }
+        notification_type = NotificationType.objects.get(identifier="CONVERSATION_CREATED")
+        for cm in convo_members:
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
 
 class CourseGroup(models.Model):

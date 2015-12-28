@@ -39,6 +39,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
         ChatroomMember.objects.create(user=user, chatroom=chatroom)
         ChatroomMember.objects.create(user=other_user, chatroom=chatroom)
 
+        conversation.send_new_conversation_notification(user, request)
+
         return Response(ConversationSerializer(conversation, context={'request': request}).data)
 
 
