@@ -6,7 +6,8 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 from apps.chatroom.models import Announcement, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from rest_framework.response import Response
-from datetime import datetime
+from decimal import *
+from django.utils import dateparse
 
 
 class OpenBidViewSet(viewsets.ModelViewSet):
@@ -21,26 +22,62 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         '''
-        Create a request
+        create a request
         '''
         from apps.student.models import Student
-        from apps.university.models import Course
         from apps.tutor.models import Tutor
+        from apps.university.models import Course, Discount, Constant
+
+        student = Student.objects.get(user=request.user)
+
+        if request.data['is_instant'] and SeshRequest.objects.filter(student=student, is_instant=True, status=0).count() > 0:
+            return Response("You cannot have more than one pending instant request and/or sesh")
+        elif request.data['is_instant'] and OpenSesh.objects.filter(student=student, is_instant=True).count() > 0:
+            return Response("You cannot have more than one pending instant request and/or sesh")
 
         try:
-            student = Student.objects.get(user=request.user)
-            hourly_rate = request.data.get('hourly_rate')
+            course = Course.objects.get(pk=request.data['class_id'])
+            discount = None
+            if request.POST.get('discount_id', False):
+                discount = Discount.objects.get(pk=request.data['discount_id'])
+            expiration_time = None
+            if request.POST.get('expiration_time', None):
+                dateparse.parse_datetime(request.data['expiration_time'])
             school = request.user.school
-            course = Course.objects.get(pk=int(request.data.get('course')))
-            num_people = request.data.get('num_people')
-            tutor = Tutor.objects.get(pk=int(request.data.get('tutor')))
-            expiration_time = datetime.strptime(request.data.get('expiration_time'), '%Y-%m-%d %H:%M:%S')
+            sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
 
-            sesh_request = SeshRequest.objects.create(student=student, hourly_rate=hourly_rate, school=school, course=course, num_people=num_people, tutor=tutor, expiration_time=expiration_time)
-            sesh_request.send_new_request_notification()
-            return Response(SeshRequestSerializer(sesh_request).data)
+            sesh_request = SeshRequest.objects.create(student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))
+            sesh_request.is_instant = request.data.get('is_instant', None)
+            sesh_request.expiration_time = expiration_time
+            sesh_request.available_blocks = request.data.get('available_blocks', None)
+            sesh_request.description = request.data.get('description', None)
+            sesh_request.est_time = int(request.data.get('est_time'))
+            sesh_request.discount = discount
+            sesh_request.sesh_comp = sesh_comp
+
+            if request.POST.get('tutor_id', False):
+                sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor_id'])
+                sesh_request.save()
+                # notify the selected tutor
+                sesh_request.send_direct_request_notification()
+            else:
+                sesh_request.save()
+                # notify all eligible tutors
+                sesh_request.send_request_notification()
+
+            # remove pending timeout emails
+
+            # eventually: post to slack
+
+            # return Response(SeshRequestSerializer(sesh_request).data)
+            return Response()
+
+        except Discount.DoesNotExist:
+            raise exceptions.NotFound("Discount not found")
         except Course.DoesNotExist:
             raise exceptions.NotFound("Course not found")
+        except Student.DoesNotExist:
+            raise exceptions.NotFound("Student not found")
         except Tutor.DoesNotExist:
             raise exceptions.NotFound("Tutor not found")
 
