@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from sesh.s3utils import upload_png_to_s3
+from sesh.s3utils import upload_png_to_s3, get_file_from_s3, get_resized_image
 from .models import *
 from .serializers import *
 from apps.tutor.models import Tutor
@@ -55,10 +55,46 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserBasicInfoSerializer
 
-    @list_route(methods=['POST'], permission_classes=[IsAuthenticated], url_path='upload_profile_picture')
+    @list_route(methods=['POST'])
+    def resize_existing_pictures(self, request):
+        path = 'images/profile_pictures'
+        users = []
+
+        for user in User.objects.all():
+            if user.profile_picture:
+                if get_file_from_s3(path, '%s_small.jpeg' % user.profile_picture):
+                    # this user has sized images already
+                    continue
+
+                fp = get_file_from_s3(path, '%s.jpeg' % user.profile_picture)
+
+                if not fp:
+                    # there was an error retrieving their image, get rid of it
+                    user.profile_picture = None
+                    user.save()
+                    continue
+
+                size = 100, 100
+                new_fp = get_resized_image(self, fp, size)
+                file_name = '%s_small.jpeg' % user.profile_picture
+                upload_png_to_s3(new_fp, path, file_name)
+
+                size = 300, 300
+                new_fp = get_resized_image(self, fp, size)
+                file_name = '%s_medium.jpeg' % user.profile_picture
+                upload_png_to_s3(new_fp, path, file_name)
+
+                size = 600, 600
+                new_fp = get_resized_image(self, fp, size)
+                file_name = '%s_large.jpeg' % user.profile_picture
+                upload_png_to_s3(new_fp, path, file_name)
+
+                users.append(user.pk)
+
+        return Response(users)
+
+    @list_route(methods=['POST'], permission_classes=[IsAuthenticated])
     def upload_profile_picture(self, request):
-        from PIL import Image
-        from StringIO import StringIO
         from django.utils.crypto import get_random_string
 
         user = request.user
@@ -66,40 +102,25 @@ class UserViewSet(viewsets.ModelViewSet):
         base_name = get_random_string(20)
         path = 'images/profile_pictures'
 
-        file_name = '%s.png' % base_name
+        file_name = '%s.jpeg' % base_name
         url = upload_png_to_s3(fp, path, file_name)
-        user.profile_picture = url
+        user.profile_picture = base_name
         user.save()
 
-        fp.seek(0)
         size = 100, 100
-        image = Image.open(fp)
-        image.thumbnail(size, Image.ANTIALIAS)
-        small_fp = StringIO()
-        image.save(small_fp, 'png')
-        file_name = '%s_small.png' % base_name
-        small_fp.seek(0)
-        upload_png_to_s3(small_fp, path, file_name)
+        new_fp = get_resized_image(self, fp, size)
+        file_name = '%s_small.jpeg' % base_name
+        upload_png_to_s3(new_fp, path, file_name)
 
-        fp.seek(0)
         size = 300, 300
-        image = Image.open(fp)
-        image.thumbnail(size, Image.ANTIALIAS)
-        med_fp = StringIO()
-        image.save(med_fp, 'png')
-        file_name = '%s_medium.png' % base_name
-        med_fp.seek(0)
-        upload_png_to_s3(med_fp, path, file_name)
+        new_fp = get_resized_image(self, fp, size)
+        file_name = '%s_medium.jpeg' % base_name
+        upload_png_to_s3(new_fp, path, file_name)
 
-        fp.seek(0)
         size = 600, 600
-        image = Image.open(fp)
-        image.thumbnail(size, Image.ANTIALIAS)
-        large_fp = StringIO()
-        image.save(large_fp, 'png')
-        file_name = '%s_large.png' % base_name
-        large_fp.seek(0)
-        upload_png_to_s3(large_fp, path, file_name)
+        new_fp = get_resized_image(self, fp, size)
+        file_name = '%s_large.jpeg' % base_name
+        upload_png_to_s3(new_fp, path, file_name)
 
         return Response(UserBasicInfoSerializer(user).data)
 

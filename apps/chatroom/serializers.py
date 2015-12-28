@@ -77,12 +77,12 @@ class ChatroomSerializer(serializers.ModelSerializer):
     # in the future tags would likely be chatroom-specific so including tags here
     tags = serializers.SerializerMethodField()
     unread_activity_count = serializers.SerializerMethodField()
-    last_activity_id = serializers.SerializerMethodField()
+    first_activity_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
 
-    def get_last_activity_id(self, obj):
+    def get_first_activity_id(self, obj):
         l = list(ChatroomActivity.objects.filter(chatroom=obj)[:1])
         if l:
             return l[0].pk

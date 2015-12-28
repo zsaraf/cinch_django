@@ -1,8 +1,7 @@
 from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorCourse, TutorDepartment, Tutor, TutorSignup, TutorTier
 from rest_framework import serializers
 from apps.university.serializers import CourseSerializer, DepartmentSerializer
-from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer
-from apps.tutoring.models import OpenSesh
+from apps.tutoring.serializers import PastSeshStudentSerializer
 from django.conf import settings
 
 import json
@@ -50,7 +49,7 @@ class TutorTierSerializer(serializers.ModelSerializer):
         model = TutorTier
 
 
-class TutorCourseGroupSerializer(serializers.ModelSerializer):
+class PeerTutorSerializer(serializers.ModelSerializer):
     tiers = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
 
@@ -78,6 +77,7 @@ class TutorSerializer(serializers.ModelSerializer):
         model = Tutor
 
     def get_open_seshes(self, obj):
+        from apps.tutoring.serializers import OpenSeshStudentSerializer
         return OpenSeshStudentSerializer(source='opensesh_set', many=True, context={'request': self.context['request']}).data
 
     def get_courses(self, obj):

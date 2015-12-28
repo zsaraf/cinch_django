@@ -1,8 +1,6 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from apps.university.serializers import CourseSerializer
-from apps.chatroom.serializers import ChatroomSerializer
 from rest_framework import serializers
-import json
 
 
 class OpenBidSerializer(serializers.ModelSerializer):
@@ -12,9 +10,14 @@ class OpenBidSerializer(serializers.ModelSerializer):
 
 class SeshRequestSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
+    tutor = serializers.SerializerMethodField()
 
     class Meta:
         model = SeshRequest
+
+    def get_tutor(self, obj):
+        from apps.tutor.serializers import PeerTutorSerializer
+        return PeerTutorSerializer(obj.tutor).data
 
 
 class OpenSeshRequestStudentSerializer(SeshRequestSerializer):
@@ -30,6 +33,7 @@ class OpenSeshSerializer(serializers.ModelSerializer):
         model = OpenSesh
 
     def get_chatroom(self, obj):
+        from apps.chatroom.serializers import ChatroomSerializer
         return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
 

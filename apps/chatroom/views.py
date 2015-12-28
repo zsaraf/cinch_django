@@ -125,18 +125,22 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def record_like(self, request, pk=None):
+    def toggle_like(self, request, pk=None):
         user = request.user
         activity = self.get_object()
 
         try:
             interaction = Interaction.objects.get(chatroom_activity=activity, user=user)
-            interaction.has_liked = True
+            if interaction.has_liked:
+                activity.total_likes = activity.total_likes - 1
+            else:
+                activity.total_likes = activity.total_likes + 1
+            interaction.has_liked = not interaction.has_liked
             interaction.save()
         except Interaction.DoesNotExist:
             Interaction.objects.create(chatroom_activity=activity, user=user, has_liked=True)
+            activity.total_likes = activity.total_likes + 1
 
-        activity.total_likes = activity.total_likes + 1
         activity.save()
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
