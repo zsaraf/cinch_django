@@ -11,8 +11,6 @@ class OpenBid(models.Model):
     request_id = models.IntegerField()
     tutor = models.ForeignKey('tutor.Tutor')
     timestamp = models.DateTimeField()
-    tutor_latitude = models.FloatField(blank=True, null=True)
-    tutor_longitude = models.FloatField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -139,8 +137,6 @@ class OpenSesh(models.Model):
     start_time = models.DateTimeField(blank=True, null=True)
     has_started = models.IntegerField(default=0)
     student = models.ForeignKey('student.Student')
-    tutor_longitude = models.FloatField(blank=True, null=True)
-    tutor_latitude = models.FloatField(blank=True, null=True)
     set_time = models.DateTimeField(blank=True, null=True)
     is_instant = models.IntegerField(default=0)
     location_notes = models.CharField(max_length=32)

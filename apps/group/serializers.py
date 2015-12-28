@@ -13,10 +13,13 @@ class ConversationParticipantSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    chatroom = ChatroomSerializer()
+    chatroom = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
+
+    def get_chatroom(self, obj):
+        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
 
 class CourseGroupBasicSerializer(serializers.ModelSerializer):

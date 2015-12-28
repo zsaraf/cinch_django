@@ -27,6 +27,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
         other_user = User.objects.get(pk=int(request.data.get('user_id')))
         user = request.user
+        if other_user == user:
+            return Response("Cannot start a conversation with yourself.")
 
         name = "Chat"
         desc = "Private conversation between " + user.readable_name + " and " + other_user.readable_name
@@ -37,7 +39,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         ChatroomMember.objects.create(user=user, chatroom=chatroom)
         ChatroomMember.objects.create(user=other_user, chatroom=chatroom)
 
-        return Response(ConversationSerializer(conversation).data)
+        return Response(ConversationSerializer(conversation, context={'request': request}).data)
 
 
 class ConversationParticipantViewSet(viewsets.ModelViewSet):

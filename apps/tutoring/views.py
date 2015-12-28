@@ -55,7 +55,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             sesh_request.discount = discount
             sesh_request.sesh_comp = sesh_comp
 
-            if request.POST.get('tutor_id', False):
+            if request.data.get('tutor_id', False):
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor_id'])
                 sesh_request.save()
                 # notify the selected tutor
