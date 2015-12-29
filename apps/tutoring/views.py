@@ -30,33 +30,25 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         student = Student.objects.get(user=request.user)
 
-        if request.data['is_instant'] and SeshRequest.objects.filter(student=student, is_instant=True, status=0).count() > 0:
-            return Response("You cannot have more than one pending instant request and/or sesh")
-        elif request.data['is_instant'] and OpenSesh.objects.filter(student=student, is_instant=True).count() > 0:
-            return Response("You cannot have more than one pending instant request and/or sesh")
-
         try:
-            course = Course.objects.get(pk=request.data['class_id'])
+            course = Course.objects.get(pk=request.data['course'])
             discount = None
-            if request.POST.get('discount_id', False):
-                discount = Discount.objects.get(pk=request.data['discount_id'])
-            expiration_time = None
-            if request.POST.get('expiration_time', None):
-                dateparse.parse_datetime(request.data['expiration_time'])
+            if request.data.get('discount', False):
+                discount = Discount.objects.get(pk=request.data['discount'])
+            expiration_time = dateparse.parse_datetime(request.data['expiration_time'])
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
 
             sesh_request = SeshRequest.objects.create(student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))
-            sesh_request.is_instant = request.data.get('is_instant', None)
             sesh_request.expiration_time = expiration_time
             sesh_request.available_blocks = request.data.get('available_blocks', None)
             sesh_request.description = request.data.get('description', None)
-            sesh_request.est_time = int(request.data.get('est_time'))
+            sesh_request.est_time = request.data.get('est_time', None)
             sesh_request.discount = discount
             sesh_request.sesh_comp = sesh_comp
 
-            if request.data.get('tutor_id', False):
-                sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor_id'])
+            if request.data.get('tutor', False):
+                sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
                 sesh_request.save()
                 # notify the selected tutor
                 sesh_request.send_direct_request_notification()
@@ -69,8 +61,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
             # eventually: post to slack
 
-            # return Response(SeshRequestSerializer(sesh_request).data)
-            return Response()
+            return Response(SeshRequestSerializer(sesh_request).data)
 
         except Discount.DoesNotExist:
             raise exceptions.NotFound("Discount not found")
