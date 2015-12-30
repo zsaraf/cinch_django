@@ -136,7 +136,7 @@ class Upload(models.Model):
     def send_created_notification(self, chatroom_activity, request):
         import serializers
         from apps.group.models import CourseGroup, StudyGroup, Conversation
-        from tutoring import OpenSesh
+        from apps.tutoring.models import OpenSesh
         '''
         Sends a notification to the chatroom members
         '''
