@@ -54,19 +54,20 @@ class CourseGroup(models.Model):
         '''
         Sends a notification to the chatroom members that the group has a new member
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=user)
         merge_vars = {
             "NEW_USER_NAME": user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
-        }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_COURSE_GROUP")
         for cm in chatroom_members:
             if cm.notifications_enabled:
+                data = {
+                    "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data
+                }
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_study_group_notification(self, user, chatroom_activity, request):
@@ -133,26 +134,27 @@ class StudyGroup(models.Model):
         '''
         Sends a notification to the chatroom members that the group has a new leader
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
         merge_vars = {
             "NEW_CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
-        }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
         for cm in chatroom_members:
             if cm.notifications_enabled:
+                data = {
+                    "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data
+                }
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     def send_group_edited_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members that the group has ended
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
         merge_vars = {
@@ -160,7 +162,7 @@ class StudyGroup(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
+            "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
@@ -187,20 +189,20 @@ class StudyGroup(models.Model):
         '''
         Sends a notification to the chatroom members that a new member joined
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
         merge_vars = {
             "NEW_USER_NAME": new_user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-            "new_user_id": new_user.id
-        }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_STUDY_GROUP")
         for cm in chatroom_members:
             if cm.notifications_enabled:
+                data = {
+                    "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data
+                }
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
     class Meta:

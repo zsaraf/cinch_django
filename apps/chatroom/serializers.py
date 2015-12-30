@@ -10,6 +10,19 @@ class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
         model = ChatroomActivityType
 
 
+class PNAnnouncementSerializer(serializers.ModelSerializer):
+
+    message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Announcement
+
+    def get_message(self, obj):
+        # No second-person in push notifications
+        text = obj.announcement_type.third_person_text
+        return text.replace("|*NAME*|", obj.user.readable_name)
+
+
 class AnnouncementSerializer(serializers.ModelSerializer):
 
     message = serializers.SerializerMethodField()
@@ -32,6 +45,37 @@ class InteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interaction
         exclude = ['timestamp']
+
+
+class PNChatroomActivitySerializer(serializers.ModelSerializer):
+    activity = serializers.SerializerMethodField()
+    chatroom_activity_type = ChatroomActivityTypeSerializer()
+    user_has_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChatroomActivity
+
+    def get_user_has_liked(self, obj):
+        request = self.context.get('request', None)
+        try:
+            interaction = Interaction.objects.get(user=request.user, chatroom_activity=obj)
+            return interaction.has_liked
+        except Interaction.DoesNotExist:
+            return False
+
+    def get_activity(self, obj):
+        if obj.chatroom_activity_type.is_message():
+            return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
+        elif obj.chatroom_activity_type.is_announcement():
+            return PNAnnouncementSerializer(Announcement.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
+        elif obj.chatroom_activity_type.is_upload():
+            return UploadSerializer(Upload.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
+        elif obj.chatroom_activity_type.is_study_group():
+            from apps.group.serializers import StudyGroupBasicSerializer
+            from apps.group.models import StudyGroup
+            return StudyGroupBasicSerializer(StudyGroup.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
+        else:
+            return []
 
 
 class ChatroomActivitySerializer(serializers.ModelSerializer):

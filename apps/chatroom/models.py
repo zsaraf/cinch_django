@@ -146,7 +146,7 @@ class Upload(models.Model):
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {
-            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = None
         if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
