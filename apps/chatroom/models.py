@@ -135,7 +135,7 @@ class Upload(models.Model):
 
     def send_created_notification(self, chatroom_activity, request):
         import serializers
-        from groups import CourseGroup, StudyGroup, Conversation
+        from apps.group.models import CourseGroup, StudyGroup, Conversation
         from tutoring import OpenSesh
         '''
         Sends a notification to the chatroom members
@@ -208,7 +208,7 @@ class Message(models.Model):
 
     def send_notifications(self, chatroom_activity, request):
         import serializers
-        from group import CourseGroup, StudyGroup
+        from apps.group.models import CourseGroup, StudyGroup
         '''
         Sends a notification to the chatroom members
         '''
