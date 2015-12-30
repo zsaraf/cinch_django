@@ -3,6 +3,7 @@ from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_png_to_s3
 from apps.notification.models import NotificationType, OpenNotification
 from PIL import Image
+from rest_framework.response import Response
 
 
 class Announcement(models.Model):
@@ -134,6 +135,8 @@ class Upload(models.Model):
 
     def send_created_notification(self, chatroom_activity, request):
         import serializers
+        from groups import CourseGroup, StudyGroup, Conversation
+        from tutoring import OpenSesh
         '''
         Sends a notification to the chatroom members
         '''
@@ -145,7 +148,17 @@ class Upload(models.Model):
         data = {
             "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
-        notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD")
+        notification_type = None
+        if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_COURSE_GROUP")
+        elif StudyGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_STUDY_GROUP")
+        elif OpenSesh.objects.filter(chatroom=self.chatroom).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_SESH")
+        elif Conversation.objects.filter(chatroom=self.chatroom).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_CONVERSATION")
+        else:
+            return Response("Group not found")
         for cm in chatroom_members:
             if (cm.notifications_enabled):
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
@@ -195,6 +208,7 @@ class Message(models.Model):
 
     def send_notifications(self, chatroom_activity, request):
         import serializers
+        from group import CourseGroup, StudyGroup
         '''
         Sends a notification to the chatroom members
         '''
@@ -207,6 +221,11 @@ class Message(models.Model):
             "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+        if CourseGroup.objects.filter(chatroom=self.chatroom).count > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_COURSE_GROUP")
+        elif StudyGroup.objects.filter(chatroom=self.chatroom).count > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_STUDY_GROUP")
+
         for cm in chatroom_members:
             if (cm.notifications_enabled):
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)

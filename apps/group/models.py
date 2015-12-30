@@ -64,7 +64,7 @@ class CourseGroup(models.Model):
         data = {
             "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
         }
-        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
+        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_COURSE_GROUP")
         for cm in chatroom_members:
             if cm.notifications_enabled:
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
@@ -118,7 +118,7 @@ class StudyGroup(models.Model):
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
         refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
-        types = NotificationType.objects.filter(identifier__in=["NEW_GROUP_MEMBER", "STUDY_GROUP_EDITED", "NEW_GROUP_OWNER", "NEW_UPLOAD", "NEW_MESSAGE"])
+        types = NotificationType.objects.filter(identifier__in=["NEW_GROUP_MEMBER_COURSE_GROUP", "NEW_GROUP_MEMBER_STUDY_GROUP", "STUDY_GROUP_EDITED", "NEW_GROUP_OWNER", "NEW_UPLOAD", "NEW_MESSAGE", "NEW_MESSAGE_COURSE_GROUP", "NEW_MESSAGE_STUDY_GROUP"])
         for cm in chatroom_members:
             notifications = OpenNotification.objects.filter(user=cm.user, notification_type__in=types)
             for n in notifications:
@@ -198,7 +198,7 @@ class StudyGroup(models.Model):
             "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "new_user_id": new_user.id
         }
-        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER")
+        notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_STUDY_GROUP")
         for cm in chatroom_members:
             if cm.notifications_enabled:
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
