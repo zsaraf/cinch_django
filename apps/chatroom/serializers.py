@@ -5,14 +5,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AnnouncementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Announcement
-
-
 class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatroomActivityType
+
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+
+    message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Announcement
+
+    def get_message(self, obj):
+        request = self.context.get('request', None)
+        if request.user == obj.user:
+            # user second person text
+            return obj.announcement_type.second_person_text
+        else:
+            text = obj.announcement_type.third_person_text
+            return text.replace("|*NAME*|", obj.user.readable_name)
 
 
 class InteractionSerializer(serializers.ModelSerializer):

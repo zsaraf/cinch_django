@@ -4,7 +4,7 @@ from rest_framework import exceptions
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
-from apps.chatroom.models import Announcement, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
+from apps.chatroom.models import Announcement, AnnouncementType, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
@@ -137,8 +137,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.location_notes = location_notes
         open_sesh.save()
 
-        message = user.readable_name + " set the location to " + location_notes
-        announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
+        announcement_type = AnnouncementType.objects.get(identifier="USER_SET_LOCATION")
+        announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, user=user, announcement_type=announcement_type)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
@@ -158,8 +158,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.set_time = set_time
         open_sesh.save()
 
-        message = user.readable_name + " set the start time for " + set_time
-        announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, message=message)
+        announcement_type = AnnouncementType.objects.get(identifier="USER_SET_TIME")
+        announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, user=user, announcement_type=announcement_type)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)

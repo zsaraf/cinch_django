@@ -6,12 +6,23 @@ from PIL import Image
 
 
 class Announcement(models.Model):
-    message = models.CharField(max_length=500)
+    user = models.ForeignKey('account.User')
     chatroom = models.ForeignKey('Chatroom')
+    announcement_type = models.ForeignKey('AnnouncementType')
 
     class Meta:
         managed = False
         db_table = 'announcement'
+
+
+class AnnouncementType(models.Model):
+    identifier = models.CharField(max_length=250)
+    third_person_text = models.CharField(max_length=250)
+    second_person_text = models.CharField(max_length=250)
+
+    class Meta:
+        managed = False
+        db_table = 'announcement_type'
 
 
 class Chatroom(models.Model):

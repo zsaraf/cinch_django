@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from apps.university.models import Course
 from apps.student.models import Student
-from apps.chatroom.models import Chatroom, Announcement
+from apps.chatroom.models import Chatroom, Announcement, AnnouncementType
 from apps.account.serializers import UserBasicInfoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
@@ -176,8 +176,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             ChatroomMember.objects.create(chatroom=course_group.chatroom, user=user)
 
             # announce to the group that a new member has joined
-            message = user.readable_name + " has joined"
-            announcement = Announcement.objects.create(chatroom=course_group.chatroom, message=message)
+            announcement_type = AnnouncementType.objects.get(identifier="USER_JOINED_GROUP")
+            announcement = Announcement.objects.create(chatroom=course_group.chatroom, announcement_type=announcement_type, user=user)
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
@@ -224,8 +224,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         study_group.save()
 
         # notify other members of change
-        message = user.readable_name + " has edited the group details"
-        announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+        announcement_type = AnnouncementType.objects.get(identifier="USER_EDITED_GROUP")
+        announcement = Announcement.objects.create(chatroom=study_group.chatroom, user=user, announcement_type=announcement_type)
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
@@ -251,8 +251,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 StudyGroupMember.objects.get(user=new_user, study_group=study_group, is_past=False)
                 study_group.user = new_user
                 study_group.save()
-                message = new_user.readable_name + " is now leading the group"
-                announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+                announcement_type = AnnouncementType.objects.get(identifier="NEW_GROUP_LEADER")
+                announcement = Announcement.objects.create(chatroom=study_group.chatroom, user=new_user, announcement_type=announcement_type)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
                 study_group.send_owner_changed_notification(activity, request)
@@ -290,8 +290,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 chat_member.is_past = True
                 chat_member.save()
                 # announce to the group that a member has left
-                message = user.readable_name + " has left the group"
-                announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+                announcement_type = AnnouncementType.objects.get(identifier="USER_LEFT_GROUP")
+                announcement = Announcement.objects.create(chatroom=study_group.chatroom, announcement_type=announcement_type, user=user)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
                 if study_group.is_full:
@@ -345,8 +345,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             ChatroomMember.objects.create(chatroom=study_group.chatroom, user=user)
 
             # announce to the group that a new member has joined
-            message = user.readable_name + " has joined"
-            announcement = Announcement.objects.create(chatroom=study_group.chatroom, message=message)
+            announcement_type = AnnouncementType.objects.get(identifier="USER_JOINED_GROUP")
+            announcement = Announcement.objects.create(chatroom=study_group.chatroom, announcement_type=announcement_type, user=user)
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
