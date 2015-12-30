@@ -58,9 +58,9 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
         elif obj.chatroom_activity_type.is_upload():
             return UploadSerializer(Upload.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         elif obj.chatroom_activity_type.is_study_group():
-            from apps.group.serializers import StudyGroupSerializer
+            from apps.group.serializers import StudyGroupBasicSerializer
             from apps.group.models import StudyGroup
-            return StudyGroupSerializer(StudyGroup.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
+            return StudyGroupBasicSerializer(StudyGroup.objects.get(pk=obj.activity_id), context={'request': self.context['request']}).data
         else:
             return []
 

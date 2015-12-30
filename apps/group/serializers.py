@@ -34,6 +34,11 @@ class StudyGroupMemberSerializer(serializers.ModelSerializer):
         model = StudyGroupMember
 
 
+class StudyGroupBasicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StudyGroup
+
 class StudyGroupSerializer(serializers.ModelSerializer):
     chatroom = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
@@ -76,7 +81,7 @@ class CourseGroupSerializer(serializers.ModelSerializer):
         return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
     def get_study_groups(self, obj):
-        return StudyGroupSerializer(many=True, source="studygroup_set", context={'request': self.context['request']}).data
+        return StudyGroupBasicSerializer(many=True, source="studygroup_set", context={'request': self.context['request']}).data
 
     def get_tutors(self, obj):
         from apps.tutor.models import Tutor, TutorCourse
