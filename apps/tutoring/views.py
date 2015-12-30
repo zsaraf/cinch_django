@@ -85,7 +85,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request.status = 2
         sesh_request.save()
         sesh_request.send_cancelled_request_notification()
-        return Response("Request cancelled")
+        return Response({"message": "Request cancelled"})
 
     @detail_route(methods=['post'])
     def accept(self, request, pk=None):

@@ -110,7 +110,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 member = ChatroomMember.objects.get(user=request.user, chatroom=obj)
                 return member.unread_activity_count
             except ChatroomMember.DoesNotExist:
-                raise exceptions.NotFound("Chatroom member not found")
+                raise exceptions.NotFound("Chatroom " + str(obj.pk) + " member " + str(request.user.pk) + " not found")
         raise exceptions.NotFound("Request not found")
 
     def get_tags(self, obj):
