@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
 from datetime import datetime
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
+from apps.chatroom.serializers import ChatroomActivitySerializer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
 
         study_group.send_group_edited_notification(activity, request)
 
-        return Response()
+        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def transfer_ownership(self, request, pk=None):
@@ -268,7 +269,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
                 study_group.send_owner_changed_notification(activity, request)
-                return Response(StudyGroupSerializer(study_group).data)
+                return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
             except User.DoesNotExist:
                 raise exceptions.NotFound("User not found")
             except StudyGroupMember.DoesNotExist:

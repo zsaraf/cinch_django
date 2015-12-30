@@ -5,6 +5,7 @@ from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 from apps.chatroom.models import Announcement, AnnouncementType, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
+from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
@@ -145,7 +146,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
         open_sesh.send_set_location_notification(activity)
 
-        return Response()
+        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_start_time(self, request, pk=None):
@@ -166,7 +167,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
         open_sesh.send_set_time_notification(activity)
 
-        return Response()
+        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
 
 class PastBidViewSet(viewsets.ModelViewSet):
