@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import Q
 import re
+from rest_framework import exceptions
+import json
 
 
 class BonusPointAllocation(models.Model):
@@ -35,15 +37,16 @@ class CourseManager(models.Manager):
         all_courses = []
         matches = re.search(r'([a-zA-Z]+)', search_term)
         if (matches):
-            dept_name = matches.group()
+            dept_name = matches.group(0)
+
         num_matches = re.search(r'([0-9]+[a-zA-z]*)', search_term)
         if (num_matches):
-            class_num = num_matches.group()
+            class_num = num_matches.group(0)
 
         depts = Department.objects.filter(school__id=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
         for dept in depts:
             dept_id = dept.pk
-            courses = Course.objects.filter(department__id=dept_id, number__startswith=class_num).order_by('number')[:10]
+            courses = Course.objects.filter(department__id=dept_id, number__istartswith=class_num).order_by('number')[:10]
             all_courses.extend(courses)
 
         return all_courses
