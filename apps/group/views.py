@@ -136,15 +136,20 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
-            professor_name = obj.get('professor_name', '')
+            professor_name = obj.get('professor_name', '').title()
             if not course_group_id or course_group_id == -1:
                 # must create a group to join
                 try:
                     course = Course.objects.get(pk=course_id)
                 except Course.DoesNotExist:
                     raise exceptions.NotFound("Course could not be found")
-                chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
-                course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
+                # first search to see if there's another group with same professor name
+                try:
+                    course_group = CourseGroup.objects.get(course=course, professor_name=professor_name)
+                except CourseGroup.DoesNotExist:
+                    # no such group, create a new one
+                    chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
+                    course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
             else:
                 try:
                     course_group = CourseGroup.objects.get(pk=int(course_group_id))
