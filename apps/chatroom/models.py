@@ -221,9 +221,9 @@ class Message(models.Model):
             "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
-        if CourseGroup.objects.filter(chatroom=self.chatroom).count > 0:
+        if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_COURSE_GROUP")
-        elif StudyGroup.objects.filter(chatroom=self.chatroom).count > 0:
+        elif StudyGroup.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_STUDY_GROUP")
 
         for cm in chatroom_members:
