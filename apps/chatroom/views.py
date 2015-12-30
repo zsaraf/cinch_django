@@ -20,10 +20,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def mark_as_read(self, request, pk=None):
         chatroom = self.get_object()
+        last_activity_id = request.data['last_activity_id']
         user = request.user
         try:
+            num_unread = ChatroomActivity.objects.filter(pk__gt=last_activity_id).count()
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
-            chatroom_member.unread_activity_count = 0
+            chatroom_member.unread_activity_count = num_unread
             chatroom_member.save()
             return Response()
         except ChatroomMember.DoesNotExist:
