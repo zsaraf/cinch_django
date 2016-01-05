@@ -11,6 +11,7 @@ class OpenBidSerializer(serializers.ModelSerializer):
 class NotificationSeshRequestSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     student_data = serializers.SerializerMethodField()
+    estimated_wage = serializers.SerializerMethodField()
 
     class Meta:
         model = SeshRequest
@@ -18,6 +19,9 @@ class NotificationSeshRequestSerializer(serializers.ModelSerializer):
     def get_student_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
         return UserBasicInfoSerializer(obj.student.user).data
+
+    def get_estimated_wage(self, obj):
+        return float(obj.get_estimated_wage())
 
 
 class SeshRequestSerializer(serializers.ModelSerializer):
