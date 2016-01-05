@@ -18,7 +18,7 @@ class OpenBid(models.Model):
 
 
 class SeshRequest(models.Model):
-    tutor = models.ForeignKey('tutor.Tutor')
+    tutor = models.ForeignKey('tutor.Tutor', blank=True, null=True)
     student = models.ForeignKey('student.Student')
     school = models.ForeignKey('university.School')
     course = models.ForeignKey('university.Course', db_column='class_id')

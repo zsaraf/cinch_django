@@ -17,7 +17,10 @@ class SeshRequestSerializer(serializers.ModelSerializer):
 
     def get_tutor(self, obj):
         from apps.tutor.serializers import PeerTutorSerializer
-        return PeerTutorSerializer(obj.tutor).data
+        if obj.tutor is not None:
+            return PeerTutorSerializer(obj.tutor).data
+        else:
+            return None
 
 
 class OpenSeshRequestStudentSerializer(SeshRequestSerializer):

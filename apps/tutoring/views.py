@@ -41,14 +41,12 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
 
             available_blocks = request.data.get('available_blocks', None)
-            description = request.data.get('description', None)
-            est_time = request.data.get('est_time', None)
-            discount = discount
-            sesh_comp = sesh_comp
+            description = request.data.get('description', 0)
+            est_time = int(request.data.get('est_time', 0))
 
             sesh_request = SeshRequest.objects.create(expiration_time=expiration_time, available_blocks=available_blocks, description=description, est_time=est_time, discount=discount, sesh_comp=sesh_comp, student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))        
 
-            if request.data.get('tutor', False):
+            if 'tutor' in request.data:
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
                 sesh_request.save()
                 # notify the selected tutor
