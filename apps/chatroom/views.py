@@ -80,12 +80,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
 
+        for fp in request.FILES.getlist('file'):
+            new_upload.upload_file(fp)
+
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
         activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
         new_upload.send_created_notification(activity, request)
-
-        for fp in request.FILES.getlist('file'):
-            new_upload.upload_file(fp)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 

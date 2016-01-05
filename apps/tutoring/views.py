@@ -83,7 +83,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response("Student cannot cancel this request")
         if sesh_request.status > 0:
             return Response("It's too late to cancel this request")
-        sesh_request.status = 2
+        sesh_request.status = 3
         sesh_request.save()
         sesh_request.send_cancelled_request_notification()
         return Response({"message": "Request cancelled"})
