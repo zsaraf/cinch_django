@@ -9,6 +9,7 @@ from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
+import json
 
 
 class OpenBidViewSet(viewsets.ModelViewSet):
@@ -44,11 +45,23 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
 
-            available_blocks = request.data.get('available_blocks', None)
-            description = request.data.get('description', 0)
+            available_blocks = json.dumps(request.data.get('available_blocks', None))
             est_time = int(request.data.get('est_time', 0))
 
-            sesh_request = SeshRequest.objects.create(expiration_time=expiration_time, available_blocks=available_blocks, description=description, est_time=est_time, discount=discount, sesh_comp=sesh_comp, student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))        
+            sesh_request = SeshRequest.objects.create(
+                expiration_time=expiration_time,
+                available_blocks=available_blocks,
+                description=request.data.get('description', None),
+                est_time=est_time,
+                discount=discount,
+                sesh_comp=sesh_comp,
+                student=student,
+                course=course,
+                location_notes=request.data.get('location_notes', None),
+                num_people=int(request.data['num_people']),
+                school=school,
+                hourly_rate=Decimal(request.data['hourly_rate'])
+            )
 
             if 'tutor' in request.data:
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
