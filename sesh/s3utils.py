@@ -7,18 +7,33 @@ from StringIO import StringIO
 import urllib2
 
 
+def get_true_image_size(fp):
+    from PIL import Image
+
+    image = Image.open(fp)
+
+    exifdict = image._getexif()
+    if exifdict:
+        orientation = exifdict['Orientation']
+        if orientation > 4:
+            # flip if should be horizontal
+            return (image.height, image.width)
+
+    return (image.width, image.height)
+
+
 def get_resized_image(self, fp, size):
-        from PIL import Image
-        from StringIO import StringIO
+    from PIL import Image
+    from StringIO import StringIO
 
-        fp.seek(0)
-        image = Image.open(fp)
-        image.thumbnail(size, Image.ANTIALIAS)
-        new_fp = StringIO()
-        image.save(new_fp, 'JPEG')
-        new_fp.seek(0)
+    fp.seek(0)
+    image = Image.open(fp)
+    image.thumbnail(size, Image.ANTIALIAS)
+    new_fp = StringIO()
+    image.save(new_fp, 'JPEG')
+    new_fp.seek(0)
 
-        return new_fp
+    return new_fp
 
 
 def get_file_from_s3(path, file_name):

@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.crypto import get_random_string
-from sesh.s3utils import upload_png_to_s3
+from sesh.s3utils import upload_png_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
 from PIL import Image
 from rest_framework.response import Response
@@ -126,12 +126,13 @@ class Upload(models.Model):
     def upload_file(self, fp):
 
         image = Image.open(fp)
-        (width, height) = image.size
+        fp.seek(0)
+        (width, height) = get_true_image_size(fp)
         fp.seek(0)
 
         file_name = '%s.png' % get_random_string(20)
         url = upload_png_to_s3(fp, 'images/files', file_name)
-        File.objects.create(src=url, upload=self, width=image.width, height=image.height)
+        File.objects.create(src=url, upload=self, width=width, height=height)
 
     def send_created_notification(self, chatroom_activity, request):
         import serializers
