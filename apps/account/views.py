@@ -56,6 +56,36 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserBasicInfoSerializer
 
     @list_route(methods=['POST'])
+    def update_user_info(self, request):
+        user = request.user
+        bio = request.data.get('bio', None)
+        major = request.data.get('major', None)
+        class_year = request.data.get('class_year', None)
+        graduation_type = request.data.get('graduation_type', None)
+
+        if bio is not None:
+            if len(bio) > 256:
+                return Response("Your bio must be less than 256 characters. Shorten it up!")
+            elif bio == "Tell us a bit about yourself! What are you passionte about and what do you love to learn? This will be public.":
+                bio = ""
+            user.bio = bio
+
+        if major is not None:
+            if len(major) > 100:
+                return Response("Your major must be less than 100 characters. Abbreviate!")
+            user.major = major
+
+        if class_year is not None:
+            user.class_year = class_year
+
+        if graduation_type is not None:
+            user.graduation_type = graduation_type.upper()
+
+        user.save()
+
+        return Response(UserBasicInfoSerializer(user).data)
+
+    @list_route(methods=['POST'])
     def resize_existing_pictures(self, request):
         path = 'images/profile_pictures'
         users = []

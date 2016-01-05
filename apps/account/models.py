@@ -103,6 +103,7 @@ class User(models.Model):
     is_test = models.IntegerField()
     timestamp = models.DateTimeField()
     is_disabled = models.IntegerField()
+    graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
 
     def assign_chavatar(self):
