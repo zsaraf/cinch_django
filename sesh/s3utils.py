@@ -9,15 +9,18 @@ import urllib2
 
 def get_true_image_size(fp):
     from PIL import Image
+    from PIL.ExifTags import TAGS
 
     image = Image.open(fp)
 
     exifdict = image._getexif()
-    if exifdict:
-        orientation = exifdict['Orientation']
-        if orientation > 4:
-            # flip if should be horizontal
-            return (image.height, image.width)
+    if len(exifdict):
+        for k in exifdict.keys():
+            if k in TAGS.keys() and TAGS[k] == 'Orientation':
+                orientation = exifdict[k]
+                if orientation > 4:
+                    # flip if should be horizontal
+                    return (image.height, image.width)
 
     return (image.width, image.height)
 
