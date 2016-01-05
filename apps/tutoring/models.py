@@ -103,13 +103,13 @@ class SeshRequest(models.Model):
         '''
         Sends a notification to the tutor that job is available
         '''
-        from serializers import SeshRequestSerializer
+        from serializers import NotificationSeshRequestSerializer
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name,
             "COURSE_NAME": self.course.get_readable_name()
         }
         data = {
-            "request": SeshRequestSerializer(self).data
+            "request": NotificationSeshRequestSerializer(self).data
         }
         notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)

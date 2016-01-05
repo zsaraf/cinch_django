@@ -8,6 +8,18 @@ class OpenBidSerializer(serializers.ModelSerializer):
         model = OpenBid
 
 
+class NotificationSeshRequestSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
+    student_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SeshRequest
+
+    def get_student_data(self, obj):
+        from apps.account.serializers import UserBasicInfoSerializer
+        return UserBasicInfoSerializer(obj.student.user).data
+
+
 class SeshRequestSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     tutor = serializers.SerializerMethodField()
