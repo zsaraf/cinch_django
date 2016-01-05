@@ -40,13 +40,13 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
 
-            sesh_request = SeshRequest.objects.create(student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))
-            sesh_request.expiration_time = expiration_time
-            sesh_request.available_blocks = request.data.get('available_blocks', None)
-            sesh_request.description = request.data.get('description', None)
-            sesh_request.est_time = request.data.get('est_time', None)
-            sesh_request.discount = discount
-            sesh_request.sesh_comp = sesh_comp
+            available_blocks = request.data.get('available_blocks', None)
+            description = request.data.get('description', None)
+            est_time = request.data.get('est_time', None)
+            discount = discount
+            sesh_comp = sesh_comp
+
+            sesh_request = SeshRequest.objects.create(expiration_time=expiration_time, available_blocks=available_blocks, description=description, est_time=est_time, discount=discount, sesh_comp=sesh_comp, student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))        
 
             if request.data.get('tutor', False):
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
