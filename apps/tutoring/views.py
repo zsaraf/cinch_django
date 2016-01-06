@@ -104,9 +104,12 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         Tutor accepts a direct request
         '''
         from apps.chatroom.models import Chatroom
+        from apps.tutor.models import Tutor
+
+        current_tutor = Tutor.objects.get(user=request.user)
 
         sesh_request = self.get_object()
-        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
+        if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
             return Response("Tutor cannot respond to this request")
         sesh_request.status = 1
         sesh_request.save()
@@ -123,8 +126,11 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         Tutor rejects a direct request
         '''
+        from apps.tutor.models import Tutor
+
+        current_tutor = Tutor.objects.get(user=request.user)
         sesh_request = self.get_object()
-        if not sesh_request.tutor or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
+        if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
             return Response("Tutor cannot respond to this request")
         sesh_request.status = 4
         sesh_request.save()
