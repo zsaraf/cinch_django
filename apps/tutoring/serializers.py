@@ -34,7 +34,10 @@ class SeshRequestSerializer(serializers.ModelSerializer):
         model = SeshRequest
 
     def get_available_blocks(self, obj):
-        return json.loads(obj.available_blocks)
+        if obj.available_blocks:
+            return json.loads(obj.available_blocks)
+        else:
+            return None
 
     def get_tutor(self, obj):
         from apps.tutor.serializers import PeerTutorSerializer

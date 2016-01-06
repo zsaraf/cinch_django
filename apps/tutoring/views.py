@@ -10,6 +10,8 @@ from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OpenBidViewSet(viewsets.ModelViewSet):
@@ -141,11 +143,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         Tutor rejects a direct request
         '''
-        from apps.tutor.models import Tutor
-
-        current_tutor = Tutor.objects.get(user=request.user)
         sesh_request = self.get_object()
-        if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
+
+        if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
             return Response({"detail": "Tutor cannot respond to this request"}, 405)
         sesh_request.status = 4
         sesh_request.save()
