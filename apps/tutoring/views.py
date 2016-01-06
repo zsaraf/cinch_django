@@ -44,8 +44,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             expiration_time = dateparse.parse_datetime(request.data['expiration_time'])
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
+            available_blocks = None
+            if request.data.get('available_blocks', False):
+                available_blocks = json.dumps(request.data['available_blocks'])
 
-            available_blocks = json.dumps(request.data.get('available_blocks', None))
             est_time = int(request.data.get('est_time', 0))
 
             sesh_request = SeshRequest.objects.create(
@@ -138,7 +140,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         sesh_request = self.get_object()
         if not sesh_request.tutor or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
-            return Response("Tutor cannot respond to this request")
+            return Response({"detail": "Tutor cannot respond to this request"}, 405)
         sesh_request.status = 4
         sesh_request.save()
         sesh_request.send_tutor_rejected_notification()
