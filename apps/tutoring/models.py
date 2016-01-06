@@ -142,17 +142,16 @@ class SeshRequest(models.Model):
         notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
 
-    def send_tutor_accepted_notification(self, sesh, request):
+    def send_tutor_accepted_notification(self, sesh):
         '''
         Sends a notification to the student that the request was accepted
         '''
-        from serializers import OpenSeshSerializer
         merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name,
             "COURSE_NAME": self.course.get_readable_name()
         }
         data = {
-            "sesh": OpenSeshSerializer(sesh, context={'request': request}).data
+            "sesh_id": sesh.pk
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_ACCEPTED")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)

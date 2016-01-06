@@ -2,8 +2,7 @@ from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSe
 from apps.university.serializers import CourseSerializer
 from rest_framework import serializers
 import json
-import logging
-logger = logging.getLogger(__name__)
+
 
 class OpenBidSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,17 +47,20 @@ class SeshRequestSerializer(serializers.ModelSerializer):
             return None
 
 
-class OpenSeshRequestStudentSerializer(SeshRequestSerializer):
+class SeshBasicRequestSerializer(SeshRequestSerializer):
+    tutor = None
+
     class Meta:
         model = SeshRequest
 
 
 class OpenSeshSerializer(serializers.ModelSerializer):
-    past_request = SeshRequestSerializer()
+    past_request = SeshBasicRequestSerializer()
     chatroom = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenSesh
+        exclude = ('student', 'tutor', 'is_instant', 'has_received_set_start_time_initial_reminder', 'has_received_start_time_approaching_reminder')
 
     def get_chatroom(self, obj):
         from apps.chatroom.serializers import ChatroomSerializer
@@ -68,9 +70,6 @@ class OpenSeshSerializer(serializers.ModelSerializer):
 class OpenSeshStudentSerializer(OpenSeshSerializer):
     tutor_data = serializers.SerializerMethodField()
 
-    class Meta:
-        model = OpenSesh
-
     def get_tutor_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
         return UserBasicInfoSerializer(obj.tutor.user).data
@@ -78,9 +77,6 @@ class OpenSeshStudentSerializer(OpenSeshSerializer):
 
 class OpenSeshTutorSerializer(OpenSeshSerializer):
     student_data = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OpenSesh
 
     def get_student_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer

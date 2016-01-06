@@ -138,8 +138,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             user=sesh_request.student.user
         )
         sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
-        sesh_request.send_tutor_accepted_notification(sesh, request)
-        return Response(OpenSeshSerializer(sesh, context={'request': request}).data)
+        sesh_request.send_tutor_accepted_notification(sesh)
+        return Response(OpenSeshTutorSerializer(sesh, context={'request': request}).data)
 
     @detail_route(methods=['post'])
     def reject(self, request, pk=None):

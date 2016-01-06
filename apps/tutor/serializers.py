@@ -2,6 +2,7 @@ from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass,
 from rest_framework import serializers
 from apps.university.serializers import CourseSerializer, DepartmentSerializer
 from apps.tutoring.serializers import PastSeshStudentSerializer
+from apps.tutoring.models import OpenSesh
 from django.conf import settings
 
 import json
@@ -77,8 +78,8 @@ class TutorSerializer(serializers.ModelSerializer):
         model = Tutor
 
     def get_open_seshes(self, obj):
-        from apps.tutoring.serializers import OpenSeshStudentSerializer
-        return OpenSeshStudentSerializer(source='opensesh_set', many=True, context={'request': self.context['request']}).data
+        from apps.tutoring.serializers import OpenSeshTutorSerializer
+        return OpenSeshTutorSerializer(OpenSesh.objects.filter(tutor=obj), many=True, context={'request': self.context['request']}).data
 
     def get_courses(self, obj):
         return TutorCourseSerializer(TutorCourse.objects.filter(tutor=obj), many=True).data
