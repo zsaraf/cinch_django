@@ -95,18 +95,6 @@ class SeshRequest(models.Model):
                     OpenNotification.objects.get(pk=n.pk).delete()
             OpenNotification.objects.create(tc.tutor.user, refresh_type, None, None, None)
 
-    def send_cancelled_direct_request_notification(self):
-        '''
-        Sends a notification to the tutor that the student cancelled their direct request
-        '''
-        from serializers import SeshRequestSerializer
-        merge_vars = {}
-        data = {
-            "request": SeshRequestSerializer(self).data
-        }
-        notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_CANCELLED")
-        OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
-
     def send_request_notification(self):
         '''
         Sends a notification to all eligible tutos that job is available
@@ -154,7 +142,7 @@ class SeshRequest(models.Model):
         notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
 
-    def send_tutor_accepted_notification(self, sesh):
+    def send_tutor_accepted_notification(self, sesh, request):
         '''
         Sends a notification to the student that the request was accepted
         '''
@@ -164,7 +152,7 @@ class SeshRequest(models.Model):
             "COURSE_NAME": self.course.get_readable_name()
         }
         data = {
-            "sesh": OpenSeshSerializer(sesh).data
+            "sesh": OpenSeshSerializer(sesh, context={'request': request}).data
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_ACCEPTED")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)

@@ -115,14 +115,11 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         Tutor accepts a direct request
         '''
-        from apps.chatroom.models import Chatroom
-        from apps.tutor.models import Tutor
-
-        current_tutor = Tutor.objects.get(user=request.user)
+        from apps.chatroom.models import Chatroom, ChatroomMember
 
         sesh_request = self.get_object()
-        if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
-            return Response({"detail": "Tutor cannot respond to this request"})
+        if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor:
+            return Response({"detail": "Tutor cannot respond to this request"}, 405)
 
         if sesh_request.status != 0:
             return Response({"detail": "The student cancelled the request."})
@@ -132,10 +129,17 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         name = sesh_request.course.get_readable_name() + " Sesh"
         desc = sesh_request.tutor.user.readable_name + " tutoring " + sesh_request.student.user.readable_name + " in " + sesh_request.course.get_readable_name()
         chatroom = Chatroom.objects.create(name=name, description=desc)
+        ChatroomMember.objects.create(
+            chatroom=chatroom,
+            user=request.user
+        )
+        ChatroomMember.objects.create(
+            chatroom=chatroom,
+            user=sesh_request.student.user
+        )
         sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
-        sesh_request.send_tutor_accepted_notification(sesh)
-
-        return Response(OpenSeshSerializer(sesh).data)
+        sesh_request.send_tutor_accepted_notification(sesh, request)
+        return Response(OpenSeshSerializer(sesh, context={'request': request}).data)
 
     @detail_route(methods=['post'])
     def reject(self, request, pk=None):

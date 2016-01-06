@@ -2,7 +2,8 @@ from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSe
 from apps.university.serializers import CourseSerializer
 from rest_framework import serializers
 import json
-
+import logging
+logger = logging.getLogger(__name__)
 
 class OpenBidSerializer(serializers.ModelSerializer):
     class Meta:
