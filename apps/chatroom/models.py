@@ -122,10 +122,10 @@ class Upload(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     tag = models.ForeignKey('Tag')
+    is_anonymous = models.BooleanField(default=False)
 
     def upload_file(self, fp):
 
-        image = Image.open(fp)
         fp.seek(0)
         (width, height) = get_true_image_size(fp)
         fp.seek(0)
@@ -142,8 +142,11 @@ class Upload(models.Model):
         Sends a notification to the chatroom members
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
+        creator_name = self.chatroom_member.user.readable_name
+        if self.is_anonymous:
+            creator_name = "Someone"
         merge_vars = {
-            "CREATOR_NAME": self.chatroom_member.user.readable_name,
+            "CREATOR_NAME": creator_name,
             "CHATROOM_NAME": self.chatroom.name
         }
         data = {

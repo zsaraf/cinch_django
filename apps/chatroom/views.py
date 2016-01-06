@@ -75,10 +75,11 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         chatroom = self.get_object()
         chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
-        name = request.POST.get('name')
+        name = request.data.get('name')
+        is_anonymous = request.data.get('is_anonymous', False)
         tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
-        new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
+        new_upload = Upload.objects.create(is_anonymous=is_anonymous, chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag)
 
         for fp in request.FILES.getlist('file'):
             new_upload.upload_file(fp)
