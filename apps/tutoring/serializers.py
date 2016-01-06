@@ -1,6 +1,7 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from apps.university.serializers import CourseSerializer
 from rest_framework import serializers
+import json
 
 
 class OpenBidSerializer(serializers.ModelSerializer):
@@ -27,9 +28,13 @@ class NotificationSeshRequestSerializer(serializers.ModelSerializer):
 class SeshRequestSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     tutor = serializers.SerializerMethodField()
+    available_blocks = serializers.SerializerMethodField()
 
     class Meta:
         model = SeshRequest
+
+    def get_available_blocks(self, obj):
+        return json.loads(obj.available_blocks)
 
     def get_tutor(self, obj):
         from apps.tutor.serializers import PeerTutorSerializer

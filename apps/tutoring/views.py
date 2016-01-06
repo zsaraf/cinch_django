@@ -96,9 +96,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request = self.get_object()
         cancellation_reason = request.data.get("cancellation_reason")
         if request.user.student != sesh_request.student:
-            return Response("Student cannot cancel this request")
+            return Response({"detail": "Student cannot cancel this request"}, 405)
         if sesh_request.status > 0:
-            return Response("It's too late to cancel this request")
+            return Response({"detail": "It's too late to cancel this request"}, 405)
         sesh_request.status = 3
         sesh_request.cancellation_reason = cancellation_reason
         sesh_request.save()
