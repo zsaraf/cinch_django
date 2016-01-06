@@ -81,14 +81,22 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         Cancel a request
         '''
         sesh_request = self.get_object()
-        if not sesh_request.tutor or request.user.student != sesh_request.student:
+        cancellation_reason = request.data.get("cancellation_reason")
+        if request.user.student != sesh_request.student:
             return Response("Student cannot cancel this request")
         if sesh_request.status > 0:
             return Response("It's too late to cancel this request")
         sesh_request.status = 3
+        sesh_request.cancellation_reason = cancellation_reason
         sesh_request.save()
-        sesh_request.send_cancelled_request_notification()
-        return Response({"message": "Request cancelled"})
+        if sesh_request.tutor is not None:
+            # direct request
+            sesh_request.send_cancelled_direct_request_notification()
+        else:
+            # regular request
+            sesh_request.clear_notifications()
+
+        return Response()
 
     @detail_route(methods=['post'])
     def accept(self, request, pk=None):

@@ -2,7 +2,7 @@
 
 from django.db import models
 from apps.chatroom.models import ChatroomMember
-from apps.notification.models import OpenNotification, NotificationType
+from apps.notification.models import OpenNotification, NotificationType, PastNotification
 from apps.university.models import Constant
 from decimal import *
 
@@ -69,7 +69,28 @@ class SeshRequest(models.Model):
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_REJECTED")
         OpenNotification.objects.create(self.student.user, notification_type, data, merge_vars, None)
 
-    def send_cancelled_request_notification(self):
+    def clear_notifications(self):
+        '''
+        After a group has ended, clear old notifications for all users
+        '''
+        from apps.tutor.models import TutorCourse
+        import json
+
+        tutor_classes = TutorCourse.objects.filter(course=self.course)
+        refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
+        notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+
+        for tc in tutor_classes:
+            notifications = OpenNotification.objects.filter(user=tc.tutor.user, notification_type=notification_type)
+            for n in notifications:
+                json_arr = json.loads(n.data)
+                request_id = json_arr.get('request').get('id')
+                if request_id == self.pk:
+                    PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                    OpenNotification.objects.get(pk=n.pk).delete()
+            OpenNotification.objects.create(tc.tutor.user, refresh_type, None, None, None)
+
+    def send_cancelled_direct_request_notification(self):
         '''
         Sends a notification to the tutor that the student cancelled their direct request
         '''
