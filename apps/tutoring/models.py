@@ -5,6 +5,7 @@ from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
 from apps.university.models import Constant
 from decimal import *
+from django.db.models import Q
 
 
 class OpenBid(models.Model):
@@ -71,17 +72,21 @@ class SeshRequest(models.Model):
 
     def clear_notifications(self):
         '''
-        After a group has ended, clear old notifications for all users
+        After a request has ended, clear old notifications for all users
         '''
         from apps.tutor.models import TutorCourse
         import json
 
         tutor_classes = TutorCourse.objects.filter(course=self.course)
         refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
-        notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+        new_request_notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+        new_direct_request_notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
 
         for tc in tutor_classes:
-            notifications = OpenNotification.objects.filter(user=tc.tutor.user, notification_type=notification_type)
+            notifications = OpenNotification.objects.filter(
+                user=tc.tutor.user,
+                notification_type__in=[new_request_notification_type, new_direct_request_notification_type]
+            )
             for n in notifications:
                 json_arr = json.loads(n.data)
                 request_id = json_arr.get('request').get('id')

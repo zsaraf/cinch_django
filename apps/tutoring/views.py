@@ -106,12 +106,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request.status = 3
         sesh_request.cancellation_reason = cancellation_reason
         sesh_request.save()
-        if sesh_request.tutor is not None:
-            # direct request
-            sesh_request.send_cancelled_direct_request_notification()
-        else:
-            # regular request
-            sesh_request.clear_notifications()
+        sesh_request.clear_notifications()
 
         return Response()
 
@@ -127,7 +122,11 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         sesh_request = self.get_object()
         if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
-            return Response("Tutor cannot respond to this request")
+            return Response({"detail": "Tutor cannot respond to this request"})
+
+        if sesh_request.status != 0:
+            return Response({"detail": "The student cancelled the request."})
+
         sesh_request.status = 1
         sesh_request.save()
         name = sesh_request.course.get_readable_name() + " Sesh"
@@ -145,13 +144,17 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         sesh_request = self.get_object()
 
-        if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor or sesh_request.status != 0:
+        if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor:
             return Response({"detail": "Tutor cannot respond to this request"}, 405)
+
+        if sesh_request.status != 0:
+            return Response({"detail": "The student cancelled the request."})
+
         sesh_request.status = 4
         sesh_request.save()
         sesh_request.send_tutor_rejected_notification()
 
-        return Response(SeshRequestSerializer(sesh_request).data)
+        return Response()
 
 
 class OpenSeshViewSet(viewsets.ModelViewSet):
