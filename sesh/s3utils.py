@@ -49,6 +49,20 @@ def get_file_from_s3(path, file_name):
         return False
 
 
+def delete_image_from_s3(path, file_name):
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    # connect to the bucket
+    conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
+    bucket = conn.get_bucket(bucket_name)
+
+    full_key_name = os.path.join(path, file_name)
+
+    # create a key to keep track of our file in the storage
+    k = Key(bucket)
+    k.key = full_key_name
+    bucket.delete_key(k)
+
+
 def upload_image_to_s3(fp, path, file_name):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     # connect to the bucket

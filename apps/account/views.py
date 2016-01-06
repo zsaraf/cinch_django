@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image
+from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
 from .models import *
 from .serializers import *
 from apps.tutor.models import Tutor
@@ -127,10 +127,18 @@ class UserViewSet(viewsets.ModelViewSet):
     def upload_profile_picture(self, request):
         from django.utils.crypto import get_random_string
 
+        path = 'images/profile_pictures'
         user = request.user
+
+        current_photo = user.profile_picture
+        if current_photo is not None:
+            delete_image_from_s3(path, '%s.jpeg' % current_photo)
+            delete_image_from_s3(path, '%s_small.jpeg' % current_photo)
+            delete_image_from_s3(path, '%s_medium.jpeg' % current_photo)
+            delete_image_from_s3(path, '%s_large.jpeg' % current_photo)
+
         fp = request.FILES['profile_picture']
         base_name = get_random_string(20)
-        path = 'images/profile_pictures'
 
         file_name = '%s.jpeg' % base_name
         upload_image_to_s3(fp, path, file_name)
