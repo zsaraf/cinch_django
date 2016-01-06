@@ -57,7 +57,7 @@ class SeshBasicRequestSerializer(SeshRequestSerializer):
 
 
 class OpenSeshSerializer(serializers.ModelSerializer):
-    past_request = SeshBasicRequestSerializer()
+    request = SeshBasicRequestSerializer()
     chatroom = serializers.SerializerMethodField()
 
     class Meta:
