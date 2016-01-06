@@ -2,6 +2,8 @@ from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSe
 from apps.university.serializers import CourseSerializer
 from rest_framework import serializers
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OpenBidSerializer(serializers.ModelSerializer):
@@ -40,6 +42,7 @@ class SeshRequestSerializer(serializers.ModelSerializer):
             return None
 
     def get_tutor(self, obj):
+        logger.debug("here 2")
         from apps.tutor.serializers import PeerTutorSerializer
         if obj.tutor is not None:
             return PeerTutorSerializer(obj.tutor).data
@@ -48,10 +51,9 @@ class SeshRequestSerializer(serializers.ModelSerializer):
 
 
 class SeshBasicRequestSerializer(SeshRequestSerializer):
-    tutor = None
 
-    class Meta:
-        model = SeshRequest
+    def get_tutor(self, obj):
+        return None
 
 
 class OpenSeshSerializer(serializers.ModelSerializer):
