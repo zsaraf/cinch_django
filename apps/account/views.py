@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from sesh.s3utils import upload_png_to_s3, get_file_from_s3, get_resized_image
+from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image
 from .models import *
 from .serializers import *
 from apps.tutor.models import Tutor
@@ -107,17 +107,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 size = 100, 100
                 new_fp = get_resized_image(self, fp, size)
                 file_name = '%s_small.jpeg' % user.profile_picture
-                upload_png_to_s3(new_fp, path, file_name)
+                upload_image_to_s3(new_fp, path, file_name)
 
                 size = 300, 300
                 new_fp = get_resized_image(self, fp, size)
                 file_name = '%s_medium.jpeg' % user.profile_picture
-                upload_png_to_s3(new_fp, path, file_name)
+                upload_image_to_s3(new_fp, path, file_name)
 
                 size = 600, 600
                 new_fp = get_resized_image(self, fp, size)
                 file_name = '%s_large.jpeg' % user.profile_picture
-                upload_png_to_s3(new_fp, path, file_name)
+                upload_image_to_s3(new_fp, path, file_name)
 
                 users.append(user.pk)
 
@@ -133,24 +133,24 @@ class UserViewSet(viewsets.ModelViewSet):
         path = 'images/profile_pictures'
 
         file_name = '%s.jpeg' % base_name
-        url = upload_png_to_s3(fp, path, file_name)
+        upload_image_to_s3(fp, path, file_name)
         user.profile_picture = base_name
         user.save()
 
         size = 100, 100
         new_fp = get_resized_image(self, fp, size)
         file_name = '%s_small.jpeg' % base_name
-        upload_png_to_s3(new_fp, path, file_name)
+        upload_image_to_s3(new_fp, path, file_name)
 
         size = 300, 300
         new_fp = get_resized_image(self, fp, size)
         file_name = '%s_medium.jpeg' % base_name
-        upload_png_to_s3(new_fp, path, file_name)
+        upload_image_to_s3(new_fp, path, file_name)
 
         size = 600, 600
         new_fp = get_resized_image(self, fp, size)
         file_name = '%s_large.jpeg' % base_name
-        upload_png_to_s3(new_fp, path, file_name)
+        upload_image_to_s3(new_fp, path, file_name)
 
         return Response(UserBasicInfoSerializer(user).data)
 

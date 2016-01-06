@@ -46,10 +46,14 @@ class SeshRequest(models.Model):
         '''
         Get estimated wage for a request
         '''
+        tutor_rate = self.adjusted_hourly_rate()
+        return tutor_rate * Decimal(self.est_time / 60.0)
+
+    def adjusted_hourly_rate(self):
         constants = Constant.objects.get(school_id=self.school.pk)
         additional_student_fee = (self.num_people - 1) * constants.additional_student_fee
         tutor_rate = (self.hourly_rate + self.sesh_comp + additional_student_fee) * Decimal(1.0 - constants.administrative_percentage)
-        return tutor_rate * Decimal(self.est_time / 60.0)
+        return tutor_rate
 
     def send_tutor_rejected_notification(self):
         '''
@@ -81,13 +85,16 @@ class SeshRequest(models.Model):
         '''
         from serializers import SeshRequestSerializer
         from apps.tutor.models import TutorCourse
+        import locale
+
+        locale.setlocale(locale.LC_ALL, '')
 
         merge_vars = {
             "CLOCK_SAYING": "🕒",
             "RATE_SAYING": "💵",
             "EST_TIME": self.est_time,
-            "HOURLY_RATE": float(self.hourly_rate),
-            "ESTIMATED_WAGE": float(self.get_estimated_wage()),
+            "HOURLY_RATE": locale.currency(self.hourly_rate),
+            "ESTIMATED_WAGE": locale.currency(self.get_estimated_wage()),
             "COURSE_NAME": self.course.get_readable_name()
         }
         data = {
@@ -104,9 +111,14 @@ class SeshRequest(models.Model):
         Sends a notification to the tutor that job is available
         '''
         from serializers import NotificationSeshRequestSerializer
+        import locale
+
+        locale.setlocale(locale.LC_ALL, '')
+
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name,
-            "COURSE_NAME": self.course.get_readable_name()
+            "COURSE_NAME": self.course.get_readable_name(),
+            "HOURLY_RATE": locale.currency(self.adjusted_hourly_rate())
         }
         data = {
             "request": NotificationSeshRequestSerializer(self).data

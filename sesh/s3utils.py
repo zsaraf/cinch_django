@@ -49,7 +49,7 @@ def get_file_from_s3(path, file_name):
         return False
 
 
-def upload_png_to_s3(fp, path, file_name):
+def upload_image_to_s3(fp, path, file_name):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     # connect to the bucket
     conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
