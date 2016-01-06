@@ -60,7 +60,8 @@ class SeshRequest(models.Model):
         Sends a notification to the student that the tutor rejected the request
         '''
         merge_vars = {
-            "TUTOR_NAME": self.tutor.user.readable_name
+            "TUTOR_NAME": self.tutor.user.readable_name,
+            "COURSE_NAME": self.course.get_readable_name()
         }
         data = {
             "request_id": self.pk
