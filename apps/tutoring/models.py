@@ -59,10 +59,11 @@ class SeshRequest(models.Model):
         '''
         Sends a notification to the student that the tutor rejected the request
         '''
-        from serializers import SeshRequestSerializer
-        merge_vars = {}
+        merge_vars = {
+            "TUTOR_NAME": self.tutor.user.readable_name
+        }
         data = {
-            "request": SeshRequestSerializer(self).data
+            "request_id": self.pk
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_REJECTED")
         OpenNotification.objects.create(self.student.user, notification_type, data, merge_vars, None)
