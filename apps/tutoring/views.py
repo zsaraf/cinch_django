@@ -9,6 +9,7 @@ from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
+import json
 
 
 class OpenBidViewSet(viewsets.ModelViewSet):
@@ -43,12 +44,26 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             expiration_time = dateparse.parse_datetime(request.data['expiration_time'])
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
+            available_blocks = None
+            if request.data.get('available_blocks', False):
+                available_blocks = json.dumps(request.data['available_blocks'])
 
-            available_blocks = request.data.get('available_blocks', None)
-            description = request.data.get('description', 0)
             est_time = int(request.data.get('est_time', 0))
 
-            sesh_request = SeshRequest.objects.create(expiration_time=expiration_time, available_blocks=available_blocks, description=description, est_time=est_time, discount=discount, sesh_comp=sesh_comp, student=student, course=course, num_people=int(request.data['num_people']), school=school, hourly_rate=Decimal(request.data['hourly_rate']))        
+            sesh_request = SeshRequest.objects.create(
+                expiration_time=expiration_time,
+                available_blocks=available_blocks,
+                description=request.data.get('description', None),
+                est_time=est_time,
+                discount=discount,
+                sesh_comp=sesh_comp,
+                student=student,
+                course=course,
+                location_notes=request.data.get('location_notes', None),
+                num_people=int(request.data['num_people']),
+                school=school,
+                hourly_rate=Decimal(request.data['hourly_rate'])
+            )
 
             if 'tutor' in request.data:
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
@@ -83,9 +98,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request = self.get_object()
         cancellation_reason = request.data.get("cancellation_reason")
         if request.user.student != sesh_request.student:
-            return Response("Student cannot cancel this request")
+            return Response({"detail": "Student cannot cancel this request"}, 405)
         if sesh_request.status > 0:
-            return Response("It's too late to cancel this request")
+            return Response({"detail": "It's too late to cancel this request"}, 405)
         sesh_request.status = 3
         sesh_request.cancellation_reason = cancellation_reason
         sesh_request.save()
@@ -131,7 +146,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         current_tutor = Tutor.objects.get(user=request.user)
         sesh_request = self.get_object()
         if sesh_request.tutor is None or sesh_request.tutor != current_tutor or sesh_request.status != 0:
-            return Response("Tutor cannot respond to this request")
+            return Response({"detail": "Tutor cannot respond to this request"}, 405)
         sesh_request.status = 4
         sesh_request.save()
         sesh_request.send_tutor_rejected_notification()
