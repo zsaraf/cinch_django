@@ -33,6 +33,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         try:
             course = Course.objects.get(pk=request.data['course'])
+
+            if SeshRequest.objects.filter(student=student, status=0, course=course).count() > 0:
+                return Response("You cannot have more than one open request per class")
+
             discount = None
             if request.data.get('discount', False):
                 discount = Discount.objects.get(pk=request.data['discount'])
