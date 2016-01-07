@@ -216,7 +216,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             # notify student of cancellation
             open_sesh.send_tutor_cancelled_notification()
             tutor_percentage = 1.0 - constants.administrative_percentage
-            PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+            PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=False, tutor_cancelled=True, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
 
         else:
             return Response({"detail": "User is not part of this Sesh"}, 405)
@@ -227,6 +227,14 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.delete()
 
         return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def start_sesh(self, request, pk=None):
+        '''
+        Start the sesh, can only be called by the tutor
+        '''
+        user = request.user
+        open_sesh = self.get_object
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_location_notes(self, request, pk=None):
