@@ -42,7 +42,6 @@ class SeshRequestSerializer(serializers.ModelSerializer):
             return None
 
     def get_tutor(self, obj):
-        logger.debug("here 2")
         from apps.tutor.serializers import PeerTutorSerializer
         if obj.tutor is not None:
             return PeerTutorSerializer(obj.tutor).data
@@ -59,6 +58,8 @@ class SeshBasicRequestSerializer(SeshRequestSerializer):
 class OpenSeshSerializer(serializers.ModelSerializer):
     past_request = SeshBasicRequestSerializer()
     chatroom = serializers.SerializerMethodField()
+    user_data = serializers.SerializerMethodField()
+    is_student = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenSesh
@@ -68,21 +69,20 @@ class OpenSeshSerializer(serializers.ModelSerializer):
         from apps.chatroom.serializers import ChatroomSerializer
         return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
-
-class OpenSeshStudentSerializer(OpenSeshSerializer):
-    tutor_data = serializers.SerializerMethodField()
-
-    def get_tutor_data(self, obj):
+    def get_user_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user).data
+        request = self.context['request']
+        if request.user == obj.tutor.user:
+            return UserBasicInfoSerializer(obj.student.user).data
+        else:
+            return UserBasicInfoSerializer(obj.tutor.user).data
 
-
-class OpenSeshTutorSerializer(OpenSeshSerializer):
-    student_data = serializers.SerializerMethodField()
-
-    def get_student_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user).data
+    def get_is_student(self, obj):
+        request = self.context['request']
+        if request.user == obj.student.user:
+            return True
+        else:
+            return False
 
 
 class PastBidSerializer(serializers.ModelSerializer):

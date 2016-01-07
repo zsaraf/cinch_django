@@ -154,7 +154,7 @@ class SeshRequest(models.Model):
             "sesh_id": sesh.pk
         }
         notification_type = NotificationType.objects.get(identifier="DIRECT_REQUEST_ACCEPTED")
-        OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
+        OpenNotification.objects.create(self.student.user, notification_type, data, merge_vars, None)
 
 
 class OpenSesh(models.Model):

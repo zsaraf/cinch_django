@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from apps.tutoring.serializers import OpenSeshStudentSerializer, PastSeshStudentSerializer, SeshRequestSerializer
+from apps.tutoring.serializers import OpenSeshSerializer, PastSeshStudentSerializer, SeshRequestSerializer
 from apps.tutoring.models import OpenSesh
 from apps.group.serializers import CourseGroupSerializer
 from apps.group.models import CourseGroup, CourseGroupMember
@@ -45,7 +45,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return FavoriteSerializer(source='favorite_set', many=True).data
 
     def get_open_seshes(self, obj):
-        return OpenSeshStudentSerializer(OpenSesh.objects.filter(student=obj), many=True, context={'request': self.context['request']}).data
+        return OpenSeshSerializer(OpenSesh.objects.filter(student=obj), many=True, context={'request': self.context['request']}).data
 
     def get_course_groups(self, obj):
         course_group_memberships = CourseGroupMember.objects.filter(student=obj, is_past=False)
