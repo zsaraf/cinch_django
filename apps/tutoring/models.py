@@ -172,6 +172,16 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
+    def send_has_started_notification(self):
+        '''
+        Sends a notification to student that the sesh has has_started
+        '''
+        merge_vars = {
+            "TUTOR_NAME": self.tutor.user.readable_name
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_STARTED_STUDENT")
+        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
+
     def send_tutor_cancelled_notification(self):
         '''
         Sends a notification to student that tutor has cancelled

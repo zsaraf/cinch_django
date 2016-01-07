@@ -229,12 +229,31 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         return Response()
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def start_sesh(self, request, pk=None):
+    def start(self, request, pk=None):
         '''
         Start the sesh, can only be called by the tutor
         '''
+        from apps.account.models import SeshState
         user = request.user
-        open_sesh = self.get_object
+        open_sesh = self.get_object()
+
+        if user.tutor != open_sesh.tutor:
+            return Response({"detail": "User does not own this Sesh"}, 405)
+
+        if open_sesh.has_started:
+            return Response({"detail": "This Sesh has already started"}, 405)
+
+        open_sesh.has_started = True
+        open_sesh.start_time = datetime.now()
+        open_sesh.save()
+
+        in_sesh = SeshState.objects.get(identifier="SeshStateInSesh")
+        open_sesh.student.user.sesh_state = in_sesh
+        open_sesh.tutor.user.sesh_state = in_sesh
+
+        open_sesh.send_has_started_notification()
+
+        return Response()
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_location_notes(self, request, pk=None):
