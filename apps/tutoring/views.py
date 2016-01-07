@@ -2,7 +2,7 @@ from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSe
 from rest_framework import viewsets
 from rest_framework import exceptions
 from apps.tutoring.serializers import *
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAuthenticated
 from apps.chatroom.models import Announcement, AnnouncementType, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from apps.chatroom.serializers import ChatroomActivitySerializer
@@ -23,6 +23,20 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
     queryset = SeshRequest.objects.all()
     serializer_class = SeshRequestSerializer
     permission_classes = [IsAuthenticated]
+
+    @list_route(methods=['post'])
+    def get_available_jobs(self, request):
+        '''
+        get available jobs for the requesting tutor
+        '''
+        from apps.tutor.models import TutorCourse
+
+        user = request.user
+
+        courses = TutorCourse.objects.filter(tutor=user.tutor)
+        requests = SeshRequest.objects.filter(status=0, tutor=None, course__in=courses.values('course_id'))
+
+        return Response(SeshRequestSerializer(requests, many=True).data)
 
     def create(self, request):
         '''
@@ -67,7 +81,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 hourly_rate=Decimal(request.data['hourly_rate'])
             )
 
-            if 'tutor' in request.data:
+            if 'tutor' in request.data and request.data['tutor']:
                 sesh_request.tutor = Tutor.objects.get(pk=request.data['tutor'])
                 sesh_request.save()
                 # notify the selected tutor
