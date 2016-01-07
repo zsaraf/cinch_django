@@ -5,6 +5,7 @@ from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
 from apps.university.models import Constant
 from decimal import *
+from rest_framework import exceptions
 from django.db.models import Q
 
 
@@ -171,11 +172,43 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
+    def send_tutor_cancelled_notification(self):
+        '''
+        Sends a notification to student that tutor has cancelled
+        '''
+        search_str = "\"chatroom\": " + str(self.chatroom_id)
+        existing_notifications = OpenNotification.objects.filter(user=self.student.user, data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
+        merge_vars = {
+            "TUTOR_NAME": self.tutor.user.readable_name
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_STUDENT")
+        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
+
+    def send_student_cancelled_notification(self):
+        '''
+        Sends a notification to tutor that student has cancelled
+        '''
+        search_str = "\"chatroom\": " + str(self.chatroom.pk)
+        existing_notifications = OpenNotification.objects.filter(user=self.tutor.user, data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
+        merge_vars = {
+            "STUDENT_NAME": self.student.user.readable_name
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_TUTOR")
+        OpenNotification.objects.create(self.tutor.user, notification_type, None, merge_vars, None)
+
     def send_set_time_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.tutor.user)
         merge_vars = {
@@ -183,7 +216,7 @@ class OpenSesh(models.Model):
             "SET_TIME": self.set_time
         }
         data = {
-            "chatroom_id": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+            "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "set_time": self.set_time
         }
         notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
@@ -195,7 +228,7 @@ class OpenSesh(models.Model):
         '''
         Sends a notification to the chatroom members
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
+        from apps.chatroom.serializers import PNChatroomActivitySerializer
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
         merge_vars = {
@@ -203,7 +236,7 @@ class OpenSesh(models.Model):
             "LOCATION_NOTES": self.location_notes
         }
         data = {
-            "chatroom_id": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+            "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "location_notes": self.location_notes
         }
         notification_type = NotificationType.objects.get(identifier="LOCATION_NOTES_UPDATED")
@@ -232,20 +265,20 @@ class PastSesh(models.Model):
     student = models.ForeignKey('student.Student', blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField()
-    student_credits_applied = models.DecimalField(max_digits=19, decimal_places=4)
-    tutor_credits_applied = models.DecimalField(max_digits=19, decimal_places=4)
-    sesh_credits_applied = models.DecimalField(max_digits=19, decimal_places=4)
-    rating_1 = models.IntegerField()
-    rating_2 = models.IntegerField()
-    rating_3 = models.IntegerField()
+    student_credits_applied = models.DecimalField(default=0, max_digits=19, decimal_places=4)
+    tutor_credits_applied = models.DecimalField(default=0, max_digits=19, decimal_places=4)
+    sesh_credits_applied = models.DecimalField(default=0, max_digits=19, decimal_places=4)
+    rating_1 = models.IntegerField(default=5)
+    rating_2 = models.IntegerField(default=5)
+    rating_3 = models.IntegerField(default=5)
     charge_id = models.CharField(max_length=100)
-    tutor_percentage = models.FloatField()
-    tutor_earnings = models.DecimalField(max_digits=19, decimal_places=4)
-    student_cancelled = models.IntegerField()
-    tutor_cancelled = models.IntegerField()
-    was_cancelled = models.IntegerField()
-    cancellation_reason = models.CharField(max_length=30, blank=True, null=True)
-    cancellation_charge = models.IntegerField()
+    tutor_percentage = models.FloatField(default=1.0)
+    tutor_earnings = models.DecimalField(default=0, max_digits=19, decimal_places=4)
+    student_cancelled = models.BooleanField(default=False)
+    tutor_cancelled = models.BooleanField(default=False)
+    was_cancelled = models.BooleanField(default=False)
+    cancellation_reason = models.CharField(default=None, max_length=30, blank=True, null=True)
+    cancellation_charge = models.BooleanField(default=False)
     set_time = models.DateTimeField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 

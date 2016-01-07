@@ -1,5 +1,6 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
+from datetime import datetime
 from rest_framework import exceptions
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route, list_route
@@ -180,6 +181,54 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
     serializer_class = OpenSeshSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def cancel(self, request, pk=None):
+        '''
+        Cancel an open sesh
+        '''
+        from apps.university.models import Constant
+        from apps.account.models import Device
+        from apps.notification.models import NotificationType, OpenNotification
+
+        user = request.user
+        open_sesh = self.get_object()
+        cancellation_reason = request.data.get('cancellation_reason', None)
+        constants = Constant.objects.get(school_id=user.school.pk)
+
+        if open_sesh.has_started:
+            return Response({"detail": "Sesh cannot be cancelled once it has started"}, 405)
+
+        if open_sesh.student == user.student:
+            fee_enabled = user.device is not None and user.device.type == 'ios' and user.device.app_version >= 11
+            has_activity = ChatroomActivity.objects.filter(chatroom=open_sesh.chatroom).count() > 0
+
+            if fee_enabled and has_activity and open_sesh.set_time is not None:
+                timeout = constants.sesh_cancellation_timeout_minutes
+                date_diff = open_sesh.set_time - datetime.now()
+
+                # if date_diff.total_minutes() < timeout:
+                #     # charge cancellation fee
+            open_sesh.send_student_cancelled_notification()
+            tutor_percentage = 1.0 - constants.administrative_percentage
+            PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+
+
+        elif open_sesh.tutor == user.tutor:
+            # notify student of cancellation
+            open_sesh.send_tutor_cancelled_notification()
+            tutor_percentage = 1.0 - constants.administrative_percentage
+            PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+
+        else:
+            return Response({"detail": "User is not part of this Sesh"}, 405)
+
+        # archive the chatroom
+        open_sesh.chatroom.is_past = True
+        open_sesh.chatroom.save()
+        open_sesh.delete()
+
+        return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_location_notes(self, request, pk=None):
         """
         Set location notes for an open sesh
@@ -196,7 +245,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        open_sesh.send_set_location_notification(activity)
+        open_sesh.send_set_location_notification(activity, request)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
@@ -217,7 +266,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        open_sesh.send_set_time_notification(activity)
+        open_sesh.send_set_time_notification(activity, request)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
