@@ -36,6 +36,9 @@ class Chatroom(models.Model):
         managed = False
         db_table = 'chatroom'
 
+    def get_chatroom_activities(self):
+        return ChatroomActivity.objects.filter(chatroom=self).order_by('-id')[:50]
+
 
 class ChatroomMember(models.Model):
     user = models.ForeignKey('account.User')

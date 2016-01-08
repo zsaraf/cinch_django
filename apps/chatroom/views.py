@@ -44,6 +44,14 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFount("Chatroom member not found")
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def get_uploads_with_offset(self, request, pk=None):
+        chatroom = self.get_object()
+        max_id = request.data.get('max_id')
+        upload_type = ChatroomActivityType.objects.get(identifier='upload')
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
+        return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
