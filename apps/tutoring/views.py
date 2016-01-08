@@ -249,8 +249,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.save()
         
         # update states
-        past_sesh.student.user.update_sesh_state('SeshStateInSesh')
-        past_sesh.tutor.user.update_sesh_state('SeshStateInSesh')
+        open_sesh.student.user.update_sesh_state('SeshStateInSesh')
+        open_sesh.tutor.user.update_sesh_state('SeshStateInSesh')
 
         open_sesh.send_has_started_notification()
 
@@ -395,7 +395,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         past_sesh.tutor.user.update_sesh_state('SeshStateNone')
 
         # clear old notifications, send REVIEW and REFRESH
-        # past_sesh.send_has_ended_notifications()
+        past_sesh.send_has_ended_notifications()
 
         # TODO: post to slack
 

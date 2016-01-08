@@ -172,24 +172,6 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
-    def send_has_ended_notifications(self, past_sesh):
-        '''
-        Clear existing notifications, sends a notifications to review sesh and refresh
-        '''
-        search_str = "\"chatroom\": " + str(self.chatroom_id)
-        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
-
-        data = {
-            "past_sesh_id": past_sesh.pk
-        }
-        notification_type = NotificationType.objects.get(identifier="SESH_REVIEW_STUDENT")
-        OpenNotification.objects.create(self.student.user, notification_type, data, None, None)
-        notification_type = NotificationType.objects.get(identifier="SESH_REVIEW_TUTOR")
-        OpenNotification.objects.create(self.tutor.user, notification_type, data, None, None)
-
     def send_has_started_notification(self):
         '''
         Sends a notification to student that the sesh has started
@@ -313,6 +295,24 @@ class PastSesh(models.Model):
     class Meta:
         managed = False
         db_table = 'past_seshes'
+
+    def send_has_ended_notifications(self):
+        '''
+        Clear existing notifications, sends a notifications to review sesh and refresh
+        '''
+        search_str = "\"chatroom\": " + str(self.chatroom_id)
+        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
+        data = {
+            "past_sesh_id": self.pk
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_REVIEW_STUDENT")
+        OpenNotification.objects.create(self.student.user, notification_type, data, None, None)
+        notification_type = NotificationType.objects.get(identifier="SESH_REVIEW_TUTOR")
+        OpenNotification.objects.create(self.tutor.user, notification_type, data, None, None)
 
     def duration(self):
         return (self.end_time - self.start_time).total_seconds()/3600
