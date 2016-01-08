@@ -106,6 +106,22 @@ class User(models.Model):
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
 
+    def update_sesh_state(self, state_identifier):
+        from apps.notification.models import OpenNotification, NotificationType
+
+        in_sesh = SeshState.objects.get(identifier=state_identifier)
+
+        self.sesh_state = in_sesh
+        self.save()
+
+        data = {
+            "state": state_identifier
+        }
+
+        notification_type = NotificationType.objects.get(identifier="UPDATE_STATE")
+        OpenNotification.objects.filter(user=self, notification_type=notification_type).delete()
+        OpenNotification.objects.create(self, notification_type, data, None, None)
+
     def assign_chavatar(self):
         colors = ["PURPLE", "DEEPPURPLE", "BLACK", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]
         index = randint(0, 7)

@@ -12,6 +12,9 @@ from decimal import *
 from django.utils import dateparse
 import json
 import logging
+import stripe
+from sesh import settings
+stripe.api_key = settings.STRIPE_API_KEY
 logger = logging.getLogger(__name__)
 
 
@@ -186,8 +189,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         Cancel an open sesh
         '''
         from apps.university.models import Constant
-        from apps.account.models import Device
-        from apps.notification.models import NotificationType, OpenNotification
 
         user = request.user
         open_sesh = self.get_object()
@@ -246,12 +247,157 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.has_started = True
         open_sesh.start_time = datetime.now()
         open_sesh.save()
-
-        in_sesh = SeshState.objects.get(identifier="SeshStateInSesh")
-        open_sesh.student.user.sesh_state = in_sesh
-        open_sesh.tutor.user.sesh_state = in_sesh
+        
+        # update states
+        past_sesh.student.user.update_sesh_state('SeshStateInSesh')
+        past_sesh.tutor.user.update_sesh_state('SeshStateInSesh')
 
         open_sesh.send_has_started_notification()
+
+        return Response()
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def end(self, request, pk=None):
+        '''
+        End an ongoing Sesh
+        '''
+        from apps.university.models import Constant, DiscountUse
+        from apps.transaction.models import OutstandingCharge
+
+        user = request.user
+        open_sesh = self.get_object()
+        constants = Constant.objects.get(school_id=user.school.pk)
+
+        if user.tutor != open_sesh.tutor:
+            return Response({"detail": "User does not own this Sesh"}, 405)
+
+        if not open_sesh.has_started:
+            return Response({"detail": "This Sesh has not started"}, 405)
+
+        # TODO: check for promo completion
+
+        # move sesh to past
+        past_sesh = PastSesh.objects.create(
+            past_request=open_sesh.past_request,
+            tutor=open_sesh.tutor,
+            student=open_sesh.student,
+            start_time=open_sesh.start_time,
+            end_time=datetime.now(),
+            set_time=open_sesh.set_time,
+            chatroom=open_sesh.chatroom
+            )
+        open_sesh.delete()
+
+        # calculate price and charge
+        past_request = past_sesh.past_request
+        tutor_percentage = 1.0 - constants.administrative_percentage
+        duration = max(past_sesh.duration() * 60, constants.minimum_sesh_duration)/60.0
+        num_guests = past_request.num_people - 1
+        rate = past_request.hourly_rate + (num_guests * constants.additional_student_fee)
+        price = float(rate) * float(duration)
+
+        comp = duration * float(past_request.sesh_comp)
+
+        remainder = price
+        # apply sesh credits
+        if past_request.discount is not None:
+            remainder = max(price - past_request.discount.credit_amount, 0)
+            DiscountUse.objects.create(user=past_sesh.student.user, discount=past_request.discount)
+
+        sesh_credits_applied = price - remainder
+        past_sesh.sesh_credits_applied = sesh_credits_applied
+
+        # apply student credits
+        curr_credits = float(past_sesh.student.credits)
+        new_credits = curr_credits - remainder
+        if curr_credits < remainder:
+            new_credits = 0
+            remainder = remainder - curr_credits
+        past_sesh.student.credits = new_credits
+        past_sesh.student.save()
+
+        # TODO if student credits depleted, email past credit purchasers
+
+        student_credits_applied = price - sesh_credits_applied - remainder
+        past_sesh.student_credits_applied = student_credits_applied
+
+        # if necessary, pull from tutor credits
+        if remainder > 0:
+            student_tutor = past_sesh.student.user.tutor
+            curr_credits = float(student_tutor.credits)
+            new_credits = curr_credits - remainder
+            final_remainder = 0
+            if curr_credits < remainder:
+                new_credits = 0
+                final_remainder = remainder - curr_credits
+            student_tutor.credits = new_credits
+            student_tutor.save()
+
+            past_sesh.tutor_credits_applied = price - sesh_credits_applied - student_credits_applied - final_remainder
+            past_sesh.save()
+
+            # if more that 50 cents remaining after all credits, charge their card
+            if final_remainder > 0.5:
+                charge_amount = final_remainder * 100
+                # TODO charge card with stripe here - and deal with failure properly (i.e. outstanding charge)
+                # past_sesh.charge_id = charge_id
+
+        #     else:
+        #         # TODO got what we needed from credits, email them receipt
+        #         # past_sesh.send_student_review_email()
+        # else:
+        #     # TODO got what we needed from credits, email them receipt
+        #     # past_sesh.send_student_review_email()
+
+        # handle tutor payment
+        tutor_payment = (price + comp) * tutor_percentage
+        if past_sesh.tutor.num_seshes == 0 and tutor_payment < constants.first_tutor_rate:
+            tutor_payment = constants.first_tutor_rate
+            past_sesh.tutor_percentage = 1.0
+        elif tutor_payment < constants.tutor_min:
+            tutor_payment = constants.tutor_min
+            past_sesh.tutor_percentage = 1.0
+
+        # make sure tutor doesn't have outstanding charges
+        charges = OutstandingCharge.objects.filter(user=past_sesh.tutor.user, resolved=False)
+        for c in charges:
+            amount = float(c.amount_owed) - float(c.amount_payed)
+            if tutor_payment >= amount:
+                tutor_payment = tutor_payment - amount
+                c.resolved = True
+                c.save()
+            else:
+                c.amount_payed = c.amount_payed + tutor_payment
+                c.save()
+                tutor_payment = 0.0
+                break
+
+        past_sesh.tutor.credits = float(past_sesh.tutor.credits) + tutor_payment
+        past_sesh.tutor.save()
+        past_sesh.tutor_earnings = tutor_payment
+
+        # TODO send tutor review email
+
+        past_sesh.save()
+
+        # archive chatroom
+        past_sesh.chatroom.is_past = True
+        past_sesh.chatroom.save()
+
+        # increment num_seshes for tutor
+        past_sesh.tutor.num_seshes = past_sesh.tutor.num_seshes + 1
+        past_sesh.tutor.save()
+
+        # TODO award bonus points if applicable
+
+        # update states
+        past_sesh.student.user.update_sesh_state('SeshStateNone')
+        past_sesh.tutor.user.update_sesh_state('SeshStateNone')
+
+        # clear old notifications, send REVIEW and REFRESH
+        # past_sesh.send_has_ended_notifications()
+
+        # TODO: post to slack
 
         return Response()
 
