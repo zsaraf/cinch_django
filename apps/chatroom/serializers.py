@@ -170,17 +170,9 @@ class ChatroomSerializer(serializers.ModelSerializer):
 class UploadSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     tag = TagSerializer()
-    chatroom_member = serializers.SerializerMethodField()
 
     class Meta:
         model = Upload
-        exclude = ('chatroom_member',)
-
-    def get_chatroom_member(self, obj):
-        if obj.is_anonymous:
-            return None
-        else:
-            return obj.chatroom_member_id
 
     def get_files(self, obj):
         return FileSerializer(File.objects.filter(upload=obj), many=True).data
