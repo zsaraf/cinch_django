@@ -31,6 +31,8 @@ class SeshRequestSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     tutor = serializers.SerializerMethodField()
     available_blocks = serializers.SerializerMethodField()
+    student_data = serializers.SerializerMethodField()
+    estimated_wage = serializers.SerializerMethodField()
 
     class Meta:
         model = SeshRequest
@@ -40,6 +42,13 @@ class SeshRequestSerializer(serializers.ModelSerializer):
             return json.loads(obj.available_blocks)
         else:
             return None
+
+    def get_estimated_wage(self, obj):
+        return float(obj.get_estimated_wage())
+
+    def get_student_data(self, obj):
+        from apps.account.serializers import UserBasicInfoSerializer
+        return UserBasicInfoSerializer(obj.student.user).data
 
     def get_tutor(self, obj):
         from apps.tutor.serializers import PeerTutorSerializer
