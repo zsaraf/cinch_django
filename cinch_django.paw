@@ -169,7 +169,7 @@
     </object>
     <object type="LMREQUEST" id="z116">
         <attribute name="uuid" type="string">8E74D7F7-28A2-4AEA-93B8-948339800563</attribute>
-        <attribute name="url" type="string">http://localhost:8000/django/accounts/users/get_full_info/</attribute>
+        <attribute name="url" type="string">http://localhost:8000/django/tutoring/past_seshes/91/</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
