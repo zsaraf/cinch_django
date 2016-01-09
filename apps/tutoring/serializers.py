@@ -118,7 +118,7 @@ class PastSeshSerializer(serializers.ModelSerializer):
         return obj.get_cost()
 
     def get_payment_used(self, obj):
-        return obj.get_cost() - float(obj.student_credits_applied) - float(obj.tutor_credits_applied)
+        return float(obj.get_cost()) - float(obj.student_credits_applied) - float(obj.tutor_credits_applied)
 
 
 class PastSeshStudentSerializer(serializers.ModelSerializer):
