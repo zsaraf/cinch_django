@@ -470,13 +470,6 @@ class PastSeshViewSet(viewsets.ModelViewSet):
     queryset = PastSesh.objects.all()
     serializer_class = PastSeshSerializer
 
-    @detail_route(methods=['get'], permission_classes=[IsAuthenticated])
-    def get_past_sesh(self, request, pk=None):
-        '''
-        Get info for a past sesh, not using default to take advantage of request context
-        '''
-        return Response(PastSeshSerializer(self.get_object(), context={'request': request}).data)
-
 
 class ReportedProblemViewSet(viewsets.ModelViewSet):
     queryset = ReportedProblem.objects.all()

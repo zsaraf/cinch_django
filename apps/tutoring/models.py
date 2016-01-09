@@ -376,7 +376,10 @@ class PastSesh(models.Model):
         OpenNotification.objects.create(self.tutor.user, notification_type, data, None, None)
 
     def duration(self):
-        return (self.end_time - self.start_time).total_seconds()/3600
+        if not self.was_cancelled:
+            return (self.end_time - self.start_time).total_seconds()/3600
+        else:
+            return 0
 
 
 class ReportedProblem(models.Model):

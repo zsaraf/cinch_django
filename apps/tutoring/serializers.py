@@ -100,8 +100,14 @@ class PastBidSerializer(serializers.ModelSerializer):
 
 
 class PastSeshSerializer(serializers.ModelSerializer):
+    course = serializers.SerializerMethodField()
+    credits_used = serializers.SerializerMethodField()
+
     class Meta:
         model = PastSesh
+
+    def get_course(self, obj):
+        return CourseSerializer(obj.past_request.course).data
 
 
 class PastSeshStudentSerializer(serializers.ModelSerializer):
