@@ -263,7 +263,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         '''
         Start the sesh, can only be called by the tutor
         '''
-        from apps.account.models import SeshState
         user = request.user
         open_sesh = self.get_object()
 
@@ -278,8 +277,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.save()
 
         # update states
-        open_sesh.student.user.update_sesh_state('SeshStateInSesh')
-        open_sesh.tutor.user.update_sesh_state('SeshStateInSesh')
+        open_sesh.student.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": str(open_sesh.start_time)})
+        open_sesh.tutor.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": str(open_sesh.start_time)})
 
         open_sesh.send_has_started_notification()
 
