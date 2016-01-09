@@ -102,12 +102,23 @@ class PastBidSerializer(serializers.ModelSerializer):
 class PastSeshSerializer(serializers.ModelSerializer):
     course = serializers.SerializerMethodField()
     credits_used = serializers.SerializerMethodField()
+    cost = serializers.SerializerMethodField()
+    payment_used = serializers.SerializerMethodField()
 
     class Meta:
         model = PastSesh
 
     def get_course(self, obj):
         return CourseSerializer(obj.past_request.course).data
+
+    def get_credits_used(self, obj):
+        return obj.student_credits_applied + obj.tutor_credits_applied
+
+    def get_cost(self, obj):
+        return obj.get_cost()
+
+    def get_payment_used(self, obj):
+        return obj.get_cost() - float(obj.student_credits_applied) - float(obj.tutor_credits_applied)
 
 
 class PastSeshStudentSerializer(serializers.ModelSerializer):

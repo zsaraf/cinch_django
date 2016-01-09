@@ -269,6 +269,19 @@ class PastSesh(models.Model):
         managed = False
         db_table = 'past_seshes'
 
+    def get_cost(self):
+        from apps.university.models import Constant
+        if self.was_cancelled:
+            return self.cancellation_charge
+
+        constants = Constant.objects.get(school_id=self.student.user.school.id)
+        past_request = self.past_request
+        duration = max(self.duration() * 60, constants.minimum_sesh_duration)/60.0
+        num_guests = past_request.num_people - 1
+        rate = past_request.hourly_rate + (num_guests * constants.additional_student_fee)
+        price = float(rate) * float(duration)
+        return price
+
     def charge_student(self, amount):
         from apps.transaction.models import OutstandingCharge
 
