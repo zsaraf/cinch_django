@@ -147,9 +147,11 @@ class ChatroomSerializer(serializers.ModelSerializer):
 
     def get_additional_uploads(self, obj):
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
-        first_activity = list(reversed(obj.get_chatroom_activities()))[0]
-        uploads = ChatroomActivity.objects.filter(id__lt=first_activity.pk, chatroom=obj, chatroom_activity_type=upload_type).order_by('-id')[:20]
-        return ChatroomActivitySerializer(uploads, many=True, context={'request': self.context['request']}).data
+        activities = list(reversed(obj.get_chatroom_activities()))
+        if len(activities) > 0:
+            uploads = ChatroomActivity.objects.filter(id__lt=activities[0].pk, chatroom=obj, chatroom_activity_type=upload_type).order_by('-id')[:20]
+            return ChatroomActivitySerializer(uploads, many=True, context={'request': self.context['request']}).data
+        return []
 
     def get_chatroom_members(self, obj):
         return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj, is_past=False), many=True).data
