@@ -282,7 +282,66 @@ class PastSesh(models.Model):
         price = float(rate) * float(duration)
         return price
 
-    def charge_student(self, amount):
+    def charge_student(self, price):
+        remainder = price
+        past_request = self.past_request
+        # apply sesh credits
+        if past_request.discount is not None:
+            remainder = max(price - past_request.discount.credit_amount, 0)
+            DiscountUse.objects.create(user=self.student.user, discount=self.discount)
+
+        sesh_credits_applied = price - remainder
+        self.sesh_credits_applied = sesh_credits_applied
+
+        # apply student credits
+        curr_credits = float(self.student.credits)
+        new_credits = curr_credits - remainder
+        if curr_credits < remainder:
+            new_credits = 0.0
+            remainder = remainder - curr_credits
+        else:
+            remainder = 0.0
+        self.student.credits = new_credits
+        self.student.save()
+
+        # TODO if student credits depleted, email past credit purchasers
+
+        student_credits_applied = price - sesh_credits_applied - remainder
+        self.student_credits_applied = student_credits_applied
+        self.save()
+
+        # if necessary, pull from tutor credits
+        if remainder > 0:
+            student_tutor = self.student.user.tutor
+            curr_credits = float(student_tutor.credits)
+            new_credits = curr_credits - remainder
+            final_remainder = 0.0
+            if curr_credits < remainder:
+                new_credits = 0.0
+                final_remainder = remainder - curr_credits
+            student_tutor.credits = new_credits
+            student_tutor.save()
+
+            self.tutor_credits_applied = price - sesh_credits_applied - student_credits_applied - final_remainder
+            self.save()
+
+            # if more that 50 cents remaining after all credits, charge their card
+            if final_remainder > 0.5:
+                charge_amount = int(final_remainder * 100)
+                charge_object = self.stripe_charge_student(charge_amount)
+                if charge_object is not None:
+                    # TODO send receipt email
+                    self.charge_id = charge_object[0]
+                    self.save()
+
+        #     else:
+        #         # TODO got what we needed from credits, email them receipt
+        #         # past_sesh.send_student_review_email()
+        # else:
+        #     # TODO got what we needed from credits, email them receipt
+        #     # past_sesh.send_student_review_email()
+
+    def stripe_charge_student(self, amount):
         from apps.transaction.models import OutstandingCharge
 
         # TODO send email with new outstanding charge
@@ -297,46 +356,46 @@ class PastSesh(models.Model):
                 code='no_payment_card'
             )
 
-        # try:
-        cards = stripe.Customer.retrieve(user.stripe_customer_id).sources.all(limit=5, object='card')
-        if len(cards) == 0:
+        try:
+            cards = stripe.Customer.retrieve(user.stripe_customer_id).sources.all(limit=5, object='card')
+            if len(cards) == 0:
+                OutstandingCharge.objects.create(
+                    user=self.student.user,
+                    past_sesh=self,
+                    amount_owed=amount/100.0,
+                    code='no_payment_card'
+                )
+
+            charge = stripe.Charge.create(
+                amount=amount,
+                currency='usd',
+                customer=user.stripe_customer_id,
+                statement_descriptor='Sesh Tutoring',
+                description='Thank you for choosing Sesh!'
+            )
+
+            brand = charge.source.brand
+            last_four = charge.source.last4
+
+            return (charge.id, brand, last_four)
+
+        except stripe.error.CardError, e:
+            body = e.json_body
+            err = body['error']
+            code = err['code']
+
             OutstandingCharge.objects.create(
                 user=self.student.user,
                 past_sesh=self,
                 amount_owed=amount/100.0,
-                code='no_payment_card'
+                code=code
             )
-
-        charge = stripe.Charge.create(
-            amount=amount,
-            currency='usd',
-            customer=user.stripe_customer_id,
-            statement_descriptor='Sesh Tutoring',
-            description='Thank you for choosing Sesh!'
-        )
-
-        brand = charge.source.brand
-        last_four = charge.source.last4
-
-        return (charge.id, brand, last_four)
-
-        # except stripe.error.CardError, e:
-        #     body = e.json_body
-        #     err = body['error']
-        #     code = err['code']
-
-        #     OutstandingCharge.objects.create(
-        #         user=self.student.user,
-        #         past_sesh=self,
-        #         amount_owed=amount/100.0,
-        #         code=code
-        #     )
-        # except stripe.error.StripeError, e:
-        #     # TODO handle exception
-        #     return None
-        # except Exception, e:
-        #     # TODO handle exception
-        #     return None
+        except stripe.error.StripeError, e:
+            # TODO handle exception
+            return None
+        except Exception, e:
+            # TODO handle exception
+            return None
 
     def send_tutor_cancelled_notification(self):
         '''

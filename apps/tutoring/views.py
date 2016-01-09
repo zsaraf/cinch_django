@@ -218,11 +218,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                 if date_diff.total_seconds()/60.0 < timeout:
                     cancellation_fee = float(constants.late_cancellation_fee)
                     # TODO charge function should be more like end_sesh and pull from credits
-                    charge_obj = past_sesh.charge_student(int(cancellation_fee * 100))
-                    # if charge is not None:
-                    #     # TODO send email receipt using charge_obj[1] = brand, last4
+                    past_sesh.charge_student(cancellation_fee)
 
-                    past_sesh.charge_id = charge_obj[0]
                     past_sesh.cancellation_charge = cancellation_fee
                     past_sesh.tutor.credits = float(past_sesh.tutor.credits) + (cancellation_fee * tutor_percentage)
                     past_sesh.tutor.save()
@@ -317,56 +314,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
         comp = duration * float(past_request.sesh_comp)
 
-        remainder = price
-        # apply sesh credits
-        if past_request.discount is not None:
-            remainder = max(price - past_request.discount.credit_amount, 0)
-            DiscountUse.objects.create(user=past_sesh.student.user, discount=past_request.discount)
-
-        sesh_credits_applied = price - remainder
-        past_sesh.sesh_credits_applied = sesh_credits_applied
-
-        # apply student credits
-        curr_credits = float(past_sesh.student.credits)
-        new_credits = curr_credits - remainder
-        if curr_credits < remainder:
-            new_credits = 0
-            remainder = remainder - curr_credits
-        past_sesh.student.credits = new_credits
-        past_sesh.student.save()
-
-        # TODO if student credits depleted, email past credit purchasers
-
-        student_credits_applied = price - sesh_credits_applied - remainder
-        past_sesh.student_credits_applied = student_credits_applied
-
-        # if necessary, pull from tutor credits
-        if remainder > 0:
-            student_tutor = past_sesh.student.user.tutor
-            curr_credits = float(student_tutor.credits)
-            new_credits = curr_credits - remainder
-            final_remainder = 0
-            if curr_credits < remainder:
-                new_credits = 0
-                final_remainder = remainder - curr_credits
-            student_tutor.credits = new_credits
-            student_tutor.save()
-
-            past_sesh.tutor_credits_applied = price - sesh_credits_applied - student_credits_applied - final_remainder
-            past_sesh.save()
-
-            # if more that 50 cents remaining after all credits, charge their card
-            if final_remainder > 0.5:
-                charge_amount = final_remainder * 100
-                # TODO charge card with stripe here - and deal with failure properly (i.e. outstanding charge)
-                # past_sesh.charge_id = charge_id
-
-        #     else:
-        #         # TODO got what we needed from credits, email them receipt
-        #         # past_sesh.send_student_review_email()
-        # else:
-        #     # TODO got what we needed from credits, email them receipt
-        #     # past_sesh.send_student_review_email()
+        past_sesh.charge_student(price)
 
         # handle tutor payment
         tutor_payment = (price + comp) * tutor_percentage
