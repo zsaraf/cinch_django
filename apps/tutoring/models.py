@@ -407,11 +407,15 @@ class PastSesh(models.Model):
             PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
             OpenNotification.objects.get(pk=n.pk).delete()
 
+        data = {
+            "past_sesh_id": self.pk
+        }
+
         merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name
         }
         notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_STUDENT")
-        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
+        OpenNotification.objects.create(self.student.user, notification_type, data, merge_vars, None)
 
     def send_student_cancelled_notification(self):
         '''
@@ -423,11 +427,15 @@ class PastSesh(models.Model):
             PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
             OpenNotification.objects.get(pk=n.pk).delete()
 
+        data = {
+            "past_sesh_id": self.pk
+        }
+
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name
         }
         notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_TUTOR")
-        OpenNotification.objects.create(self.tutor.user, notification_type, None, merge_vars, None)
+        OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
 
     def send_has_ended_notifications(self):
         '''
