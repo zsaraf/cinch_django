@@ -23,7 +23,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         last_activity_id = request.data['last_activity_id']
         user = request.user
         try:
-            num_unread = ChatroomActivity.objects.filter(pk__gt=last_activity_id).count()
+            num_unread = ChatroomActivity.objects.filter(pk__gt=last_activity_id, chatroom=chatroom).count()
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
             chatroom_member.unread_activity_count = num_unread
             chatroom_member.save()
