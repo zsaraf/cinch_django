@@ -264,7 +264,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.has_started = True
         open_sesh.start_time = datetime.now()
         open_sesh.save()
-        
+
         # update states
         open_sesh.student.user.update_sesh_state('SeshStateInSesh')
         open_sesh.tutor.user.update_sesh_state('SeshStateInSesh')
