@@ -199,19 +199,36 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Sesh cannot be cancelled once it has started"}, 405)
 
         if open_sesh.student == user.student:
-            fee_enabled = user.device is not None and user.device.type == 'ios' and user.device.app_version >= 11
+            # fee_enabled = user.device is not None and user.device.type == 'ios' and user.device.app_version >= 11
+            fee_enabled = True
             has_activity = ChatroomActivity.objects.filter(chatroom=open_sesh.chatroom).count() > 0
+
+            tutor_percentage = 1.0 - float(constants.administrative_percentage)
+            past_sesh = PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+
+            # archive the chatroom and delete open_sesh
+            open_sesh.chatroom.is_past = True
+            open_sesh.chatroom.save()
+            open_sesh.delete()
 
             if fee_enabled and has_activity and open_sesh.set_time is not None:
                 timeout = constants.sesh_cancellation_timeout_minutes
                 date_diff = open_sesh.set_time - datetime.now()
 
-                # if date_diff.total_minutes() < timeout:
-                #     # charge cancellation fee
-            open_sesh.send_student_cancelled_notification()
-            tutor_percentage = 1.0 - constants.administrative_percentage
-            PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+                if date_diff.total_seconds()/60.0 < timeout:
+                    cancellation_fee = float(constants.late_cancellation_fee)
+                    # TODO charge function should be more like end_sesh and pull from credits
+                    charge_obj = past_sesh.charge_student(int(cancellation_fee * 100))
+                    # if charge is not None:
+                    #     # TODO send email receipt using charge_obj[1] = brand, last4
 
+                    past_sesh.charge_id = charge_obj[0]
+                    past_sesh.cancellation_charge = cancellation_fee
+                    past_sesh.tutor.credits = float(past_sesh.tutor.credits) + (cancellation_fee * tutor_percentage)
+                    past_sesh.tutor.save()
+
+            past_sesh.send_student_cancelled_notification()
+            past_sesh.save()
 
         elif open_sesh.tutor == user.tutor:
             # notify student of cancellation
@@ -219,13 +236,13 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             tutor_percentage = 1.0 - constants.administrative_percentage
             PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=False, tutor_cancelled=True, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
 
+            # archive the chatroom and delete open_sesh
+            open_sesh.chatroom.is_past = True
+            open_sesh.chatroom.save()
+            open_sesh.delete()
+
         else:
             return Response({"detail": "User is not part of this Sesh"}, 405)
-
-        # archive the chatroom
-        open_sesh.chatroom.is_past = True
-        open_sesh.chatroom.save()
-        open_sesh.delete()
 
         return Response()
 
@@ -452,6 +469,13 @@ class PastBidViewSet(viewsets.ModelViewSet):
 class PastSeshViewSet(viewsets.ModelViewSet):
     queryset = PastSesh.objects.all()
     serializer_class = PastSeshSerializer
+
+    @detail_route(methods=['get'], permission_classes=[IsAuthenticated])
+    def get_past_sesh(self, request, pk=None):
+        '''
+        Get info for a past sesh, not using default to take advantage of request context
+        '''
+        return Response(PastSeshSerializer(self.get_object(), context={'request': request}).data)
 
 
 class ReportedProblemViewSet(viewsets.ModelViewSet):

@@ -27,8 +27,8 @@ class OutstandingCharge(models.Model):
     past_sesh = models.ForeignKey('tutoring.PastSesh')
     user = models.ForeignKey('account.User')
     amount_owed = models.DecimalField(max_digits=19, decimal_places=4)
-    amount_payed = models.DecimalField(max_digits=19, decimal_places=4)
-    resolved = models.IntegerField()
+    amount_payed = models.DecimalField(default=0, max_digits=19, decimal_places=4)
+    resolved = models.BooleanField(default=False)
     code = models.CharField(max_length=100)
     timestamp = models.DateTimeField()
 

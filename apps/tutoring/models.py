@@ -7,6 +7,11 @@ from apps.university.models import Constant
 from decimal import *
 from rest_framework import exceptions
 from django.db.models import Q
+from sesh import settings
+
+import stripe
+
+stripe.api_key = settings.STRIPE_API_KEY
 
 
 class OpenBid(models.Model):
@@ -182,38 +187,6 @@ class OpenSesh(models.Model):
         notification_type = NotificationType.objects.get(identifier="SESH_STARTED_STUDENT")
         OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
 
-    def send_tutor_cancelled_notification(self):
-        '''
-        Sends a notification to student that tutor has cancelled
-        '''
-        search_str = "\"chatroom\": " + str(self.chatroom_id)
-        existing_notifications = OpenNotification.objects.filter(user=self.student.user, data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
-
-        merge_vars = {
-            "TUTOR_NAME": self.tutor.user.readable_name
-        }
-        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_STUDENT")
-        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
-
-    def send_student_cancelled_notification(self):
-        '''
-        Sends a notification to tutor that student has cancelled
-        '''
-        search_str = "\"chatroom\": " + str(self.chatroom.pk)
-        existing_notifications = OpenNotification.objects.filter(user=self.tutor.user, data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
-
-        merge_vars = {
-            "STUDENT_NAME": self.student.user.readable_name
-        }
-        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_TUTOR")
-        OpenNotification.objects.create(self.tutor.user, notification_type, None, merge_vars, None)
-
     def send_set_time_notification(self, chatroom_activity, request):
         '''
         Sends a notification to the chatroom members
@@ -288,13 +261,101 @@ class PastSesh(models.Model):
     tutor_cancelled = models.BooleanField(default=False)
     was_cancelled = models.BooleanField(default=False)
     cancellation_reason = models.CharField(default=None, max_length=30, blank=True, null=True)
-    cancellation_charge = models.BooleanField(default=False)
+    cancellation_charge = models.DecimalField(default=0, max_digits=19, decimal_places=4)
     set_time = models.DateTimeField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'past_seshes'
+
+    def charge_student(self, amount):
+        from apps.transaction.models import OutstandingCharge
+
+        # TODO send email with new outstanding charge
+
+        user = self.student.user
+
+        if user.stripe_customer_id is None:
+            OutstandingCharge.objects.create(
+                user=self.student.user,
+                past_sesh=self,
+                amount_owed=amount/100.0,
+                code='no_payment_card'
+            )
+
+        # try:
+        cards = stripe.Customer.retrieve(user.stripe_customer_id).sources.all(limit=5, object='card')
+        if len(cards) == 0:
+            OutstandingCharge.objects.create(
+                user=self.student.user,
+                past_sesh=self,
+                amount_owed=amount/100.0,
+                code='no_payment_card'
+            )
+
+        charge = stripe.Charge.create(
+            amount=amount,
+            currency='usd',
+            customer=user.stripe_customer_id,
+            statement_descriptor='Sesh Tutoring',
+            description='Thank you for choosing Sesh!'
+        )
+
+        brand = charge.source.brand
+        last_four = charge.source.last4
+
+        return (charge.id, brand, last_four)
+
+        # except stripe.error.CardError, e:
+        #     body = e.json_body
+        #     err = body['error']
+        #     code = err['code']
+
+        #     OutstandingCharge.objects.create(
+        #         user=self.student.user,
+        #         past_sesh=self,
+        #         amount_owed=amount/100.0,
+        #         code=code
+        #     )
+        # except stripe.error.StripeError, e:
+        #     # TODO handle exception
+        #     return None
+        # except Exception, e:
+        #     # TODO handle exception
+        #     return None
+
+    def send_tutor_cancelled_notification(self):
+        '''
+        Sends a notification to student that tutor has cancelled
+        '''
+        search_str = "\"chatroom\": " + str(self.chatroom_id)
+        existing_notifications = OpenNotification.objects.filter(user=self.student.user, data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
+        merge_vars = {
+            "TUTOR_NAME": self.tutor.user.readable_name
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_STUDENT")
+        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
+
+    def send_student_cancelled_notification(self):
+        '''
+        Sends a notification to tutor that student has cancelled
+        '''
+        search_str = "\"chatroom\": " + str(self.chatroom.pk)
+        existing_notifications = OpenNotification.objects.filter(user=self.tutor.user, data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
+        merge_vars = {
+            "STUDENT_NAME": self.student.user.readable_name
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_TUTOR")
+        OpenNotification.objects.create(self.tutor.user, notification_type, None, merge_vars, None)
 
     def send_has_ended_notifications(self):
         '''
