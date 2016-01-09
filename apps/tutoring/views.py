@@ -231,10 +231,12 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             past_sesh.save()
 
         elif open_sesh.tutor == user.tutor:
-            # notify student of cancellation
-            open_sesh.send_tutor_cancelled_notification()
+
             tutor_percentage = 1.0 - constants.administrative_percentage
             PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=False, tutor_cancelled=True, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
+
+            # notify student of cancellation
+            past_sesh.send_tutor_cancelled_notification()
 
             # archive the chatroom and delete open_sesh
             open_sesh.chatroom.is_past = True
