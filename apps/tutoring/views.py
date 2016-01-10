@@ -14,9 +14,12 @@ import json
 import logging
 import stripe
 from sesh import settings
+from sesh.mandrill_utils import EmailManager
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
 stripe.api_key = settings.STRIPE_API_KEY
 logger = logging.getLogger(__name__)
-
 
 class OpenBidViewSet(viewsets.ModelViewSet):
     queryset = OpenBid.objects.all()
@@ -95,9 +98,9 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 # notify all eligible tutors
                 sesh_request.send_request_notification()
 
-            # remove pending timeout emails
+            # TODO remove pending timeout emails
 
-            # eventually: post to slack
+            # TODO post to slack
 
             return Response(SeshRequestSerializer(sesh_request).data)
 
@@ -315,15 +318,17 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             set_time=open_sesh.set_time,
             chatroom=open_sesh.chatroom
             )
-        open_sesh.delete()
+        # open_sesh.delete()
+
+        tutor = past_sesh.tutor
 
         # calculate price and charge
         past_request = past_sesh.past_request
-        tutor_percentage = 1.0 - constants.administrative_percentage
-        duration = max(past_sesh.duration() * 60, constants.minimum_sesh_duration)/60.0
         num_guests = past_request.num_people - 1
-        rate = past_request.hourly_rate + (num_guests * constants.additional_student_fee)
-        price = float(rate) * float(duration)
+        tutor_percentage = 1.0 - float(constants.administrative_percentage)
+        rate = float(past_request.hourly_rate) + (num_guests * float(constants.additional_student_fee))
+        duration = max(past_sesh.duration() * 60, constants.minimum_sesh_duration)/60.0
+        price = past_sesh.get_cost()
 
         comp = duration * float(past_request.sesh_comp)
 
@@ -331,12 +336,12 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
         # handle tutor payment
         tutor_payment = (price + comp) * tutor_percentage
-        if past_sesh.tutor.num_seshes == 0 and tutor_payment < constants.first_tutor_rate:
+        if tutor.num_seshes == 0 and tutor_payment < constants.first_tutor_rate:
             tutor_payment = constants.first_tutor_rate
-            past_sesh.tutor_percentage = 1.0
+            tutor_percentage = 1.0
         elif tutor_payment < constants.tutor_min:
             tutor_payment = constants.tutor_min
-            past_sesh.tutor_percentage = 1.0
+            tutor_percentage = 1.0
 
         # make sure tutor doesn't have outstanding charges
         charges = OutstandingCharge.objects.filter(user=past_sesh.tutor.user, resolved=False)
@@ -352,27 +357,55 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                 tutor_payment = 0.0
                 break
 
-        past_sesh.tutor.credits = float(past_sesh.tutor.credits) + tutor_payment
-        past_sesh.tutor.save()
+        tutor.credits = float(tutor.credits) + tutor_payment
+        tutor.save()
         past_sesh.tutor_earnings = tutor_payment
-
-        # TODO send tutor review email
-
         past_sesh.save()
+
+        # send tutor review email (TODO separate one if direct request?)
+        # TODO update tutor review email without admin fee stuff? talk to Neil about new/updated templates
+        base_rate_min = (float(past_request.hourly_rate) + float(past_request.sesh_comp))/60.0 * tutor_percentage
+        student_rate_min = num_guests * float(constants.additional_student_fee)/60.0 * tutor_percentage
+        total_rate_min = base_rate_min + student_rate_min
+        duration_minutes = "{} min".format(int(duration * 60))
+        if (duration < 30):
+            duration_minutes = "< 30 min"
+        merge_vars = {
+            'NAME': past_sesh.student.user.readable_name,
+            'COURSE': past_request.course.get_readable_name(),
+            'ASSIGNMENT': past_request.description if past_request.description is not None else "",
+            'TIME': duration_minutes,
+            'STUDENTS': past_request.num_people,
+            'BASE_RATE_PER_MIN': locale.currency(base_rate_min),
+            'ADDITIONAL_STUDENT_PER_MIN': locale.currency(student_rate_min),
+            'TOTAL_RATE_MIN': locale.currency(total_rate_min),
+            'ADMINISTRATIVE_FEE': float(constants.administrative_percentage)*100,
+            'ADMINISTRATIVE_TOTAL': '-%s' % locale.currency(past_sesh.get_cost() * float(constants.administrative_percentage)),
+            'TOTAL_EARNED': locale.currency(tutor_payment),  # TODO add referral bonus here
+            'PRICE': locale.currency(past_sesh.get_cost()),
+            'FIRST_NAME': tutor.user.readable_name,
+            'SCHOOL': past_request.school.name
+            # TODO add 'REFERRAL_BONUS':
+        }
+
+        if tutor.num_seshes == 0:
+            EmailManager.send_email(EmailManager.TUTOR_FIRST_SESH_RECEIPT, merge_vars, tutor.user.email, tutor.user.readable_name, None)
+        else:
+            EmailManager.send_email(EmailManager.REVIEW_SESH_TUTOR, merge_vars, tutor.user.email, tutor.user.readable_name, None)
 
         # archive chatroom
         past_sesh.chatroom.is_past = True
         past_sesh.chatroom.save()
 
         # increment num_seshes for tutor
-        past_sesh.tutor.num_seshes = past_sesh.tutor.num_seshes + 1
-        past_sesh.tutor.save()
+        tutor.num_seshes = tutor.num_seshes + 1
+        tutor.save()
 
         # TODO award bonus points if applicable
 
         # update states
         past_sesh.student.user.update_sesh_state('SeshStateNone')
-        past_sesh.tutor.user.update_sesh_state('SeshStateNone')
+        tutor.user.update_sesh_state('SeshStateNone')
 
         # clear old notifications, send REVIEW and REFRESH
         past_sesh.send_has_ended_notifications()

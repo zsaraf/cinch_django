@@ -7,10 +7,12 @@ from apps.university.models import Constant
 from decimal import *
 from rest_framework import exceptions
 from django.db.models import Q
+from sesh.mandrill_utils import EmailManager
 from sesh import settings
-
+import locale
 import stripe
 
+locale.setlocale(locale.LC_ALL, '')
 stripe.api_key = settings.STRIPE_API_KEY
 
 
@@ -133,9 +135,6 @@ class SeshRequest(models.Model):
         Sends a notification to the tutor that job is available
         '''
         from serializers import NotificationSeshRequestSerializer
-        import locale
-
-        locale.setlocale(locale.LC_ALL, '')
 
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name,
@@ -278,9 +277,56 @@ class PastSesh(models.Model):
         past_request = self.past_request
         duration = max(self.duration() * 60, constants.minimum_sesh_duration)/60.0
         num_guests = past_request.num_people - 1
-        rate = past_request.hourly_rate + (num_guests * constants.additional_student_fee)
-        price = float(rate) * float(duration)
+        rate = float(past_request.hourly_rate) + (num_guests * float(constants.additional_student_fee))
+        price = rate * float(duration)
         return price
+
+    def send_student_review_email(self, brand, last_four):
+        from apps.university.models import Constant
+        constants = Constant.objects.get(school_id=self.student.user.school.id)
+
+        base_rate_min = float(self.past_request.hourly_rate)/60.0
+        student_rate_min = (self.past_request.num_people - 1) * float(constants.additional_student_fee)/60.0
+        total_rate_min = base_rate_min + student_rate_min
+        cost = self.get_cost()
+
+        duration = max(self.duration() * 60, constants.minimum_sesh_duration)/60.0
+        duration_minutes = "{} min".format(int(duration * 60))
+        if (duration < 30):
+            duration_minutes = "< 30 min"
+
+        credits_applied = self.sesh_credits_applied + self.student_credits_applied + self.tutor_credits_applied
+        charge_amount = cost - float(credits_applied)
+        if not brand and not last_four:
+            if charge_amount > 0:
+                charge_amount = 0
+                card = "none (charge &lt; $0.50)"
+            else:
+                card = "none"
+        else:
+            card = "{} - {}".format(brand, last_four)
+
+        merge_vars = {
+            'NAME': self.tutor.user.readable_name,
+            'COURSE': self.past_request.course.get_readable_name(),
+            'ASSIGNMENT': self.past_request.description if self.past_request.description is not None else "",
+            'TIME': duration_minutes,
+            'STUDENTS': self.past_request.num_people,
+            'BASE_RATE_PER_MIN': locale.currency(base_rate_min),
+            'ADDITIONAL_STUDENT_PER_MIN': locale.currency(student_rate_min),
+            'TOTAL_RATE_MIN': locale.currency(total_rate_min),
+            'TOTAL_PRICE': locale.currency(cost),
+            'CREDIT_APPLIED': credits_applied,
+            'CARD_CHARGE_AMOUNT': locale.currency(charge_amount),
+            'CARD': card,
+            'PRICE': locale.currency(cost),
+        }
+
+        if self.was_cancelled:
+            merge_vars['CANCELLATION_FEE'] = self.cancellation_charge
+            EmailManager.send_email(EmailManager.STUDENT_CANCELLATION_FEE_RECEIPT, merge_vars, self.student.user.email, self.student.user.readable_name, None)
+        else:
+            EmailManager.send_email(EmailManager.REVIEW_SESH_STUDENT, merge_vars, self.student.user.email, self.student.user.readable_name, None)
 
     def charge_student(self, price):
         remainder = price
@@ -333,13 +379,14 @@ class PastSesh(models.Model):
                     # TODO send receipt email
                     self.charge_id = charge_object[0]
                     self.save()
+                    self.send_student_review_email(charge_object[1], charge_object[2])
 
-        #     else:
-        #         # TODO got what we needed from credits, email them receipt
-        #         # past_sesh.send_student_review_email()
-        # else:
-        #     # TODO got what we needed from credits, email them receipt
-        #     # past_sesh.send_student_review_email()
+            else:
+                # got what we needed from credits, email them receipt
+                self.send_student_review_email("", "")
+        else:
+            # got what we needed from credits, email them receipt
+            self.send_student_review_email("", "")
 
     def stripe_charge_student(self, amount):
         from apps.transaction.models import OutstandingCharge
