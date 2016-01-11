@@ -61,7 +61,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         if sesh_request.status == 0 and 'available_blocks' in request.data:
             # calculate new expiration_time
-            jsonArr = json.loads(request.data.get('available_blocks'))
+            jsonArr = request.data.get('available_blocks')
             last_end_time = datetime.now()
             for block in jsonArr:
                 end_time = dateparse.parse_datetime(block['end_time'])
