@@ -135,9 +135,15 @@ class ChatroomSerializer(serializers.ModelSerializer):
     unread_activity_count = serializers.SerializerMethodField()
     first_activity_id = serializers.SerializerMethodField()
     additional_uploads = serializers.SerializerMethodField()
+    notifications_enabled = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_notifications_enabled(self, obj):
+        user = self.context['request'].user
+        membership = ChatroomMember.objects.get(chatroom=obj, user=user)
+        return membership.notifications_enabled
 
     def get_first_activity_id(self, obj):
         l = list(ChatroomActivity.objects.filter(chatroom=obj)[:1])

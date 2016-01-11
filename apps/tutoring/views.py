@@ -21,6 +21,7 @@ locale.setlocale(locale.LC_ALL, '')
 stripe.api_key = settings.STRIPE_API_KEY
 logger = logging.getLogger(__name__)
 
+
 class OpenBidViewSet(viewsets.ModelViewSet):
     queryset = OpenBid.objects.all()
     serializer_class = OpenBidSerializer
