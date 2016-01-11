@@ -31,6 +31,48 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
     serializer_class = SeshRequestSerializer
     permission_classes = [IsAuthenticated]
 
+    @detail_route(methods=['post'])
+    def edit(self, request, pk=None):
+        user = request.user
+        sesh_request = self.get_object()
+
+        if sesh_request.student != user.student:
+            return Response({"detail": "Student cannot edit this request"}, 405)
+
+        if sesh_request.status > 1:
+            return Response({"detail": "Student cannot edit this request"}, 405)
+
+        num_people = request.data.get('num_people', None)
+        assignment = request.data.get('assignment', None)
+        location_notes = request.data.get('location_notes', None)
+        est_time = request.data.get('est_time', None)
+        available_blocks = request.data.get('available_blocks', None)
+
+        if num_people is not None:
+            sesh_request.num_people = num_people
+        if assignment is not None:
+            sesh_request.assignment = assignment
+        if location_notes is not None:
+            sesh_request.location_notes = location_notes
+        if est_time is not None:
+            sesh_request.est_time = est_time
+        if available_blocks is not None and sesh_request.tutor is not None:
+            sesh_request.available_blocks = available_blocks
+
+        sesh_request.save()
+
+        # for now only notifications in sesh
+        if sesh_request.status == 1:
+            open_sesh = OpenSesh.objects.get(past_request=sesh_request)
+            announcement_type = AnnouncementType.objects.get(identifier="USER_EDITED_SESH")
+            announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, user=user, announcement_type=announcement_type)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
+            activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
+
+            open_sesh.send_sesh_edited_notification(activity, request)
+
+        return Response(SeshRequestSerializer(sesh_request, context={'request': request}).data)
+
     @list_route(methods=['post'])
     def get_available_jobs(self, request):
         '''
@@ -38,10 +80,12 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         from apps.tutor.models import TutorCourse
 
+        # TODO add departments
+
         user = request.user
 
         courses = TutorCourse.objects.filter(tutor=user.tutor)
-        requests = SeshRequest.objects.filter(status=0, tutor=None, course__in=courses.values('course_id'))
+        requests = SeshRequest.objects.filter(status=0, tutor=None, course__in=courses.values('course_id')).exclude(student=user.student)
 
         return Response(SeshRequestSerializer(requests, many=True).data)
 
@@ -424,13 +468,13 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.location_notes = location_notes
         open_sesh.save()
 
-        announcement_type = AnnouncementType.objects.get(identifier="USER_SET_LOCATION")
+        announcement_type = AnnouncementType.objects.get(identifier="USER_EDITED_SESH")
         announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, user=user, announcement_type=announcement_type)
 
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        open_sesh.send_set_location_notification(activity, request)
+        open_sesh.send_sesh_edited_notification(activity, request)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 

@@ -56,11 +56,11 @@ class SeshRequest(models.Model):
         Get estimated wage for a request
         '''
         tutor_rate = self.adjusted_hourly_rate()
-        return tutor_rate * Decimal(self.est_time / 60.0)
+        return tutor_rate * Decimal(int(self.est_time) / 60.0)
 
     def adjusted_hourly_rate(self):
         constants = Constant.objects.get(school_id=self.school.pk)
-        additional_student_fee = (self.num_people - 1) * constants.additional_student_fee
+        additional_student_fee = (int(self.num_people) - 1) * constants.additional_student_fee
         tutor_rate = (self.hourly_rate + self.sesh_comp + additional_student_fee) * Decimal(1.0 - constants.administrative_percentage)
         return tutor_rate
 
@@ -176,6 +176,24 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
+    def send_sesh_edited_notification(self, activity, request):
+        '''
+        Sends notification that sesh's request was edited
+        '''
+        from apps.chatroom.serializers import PNChatroomActivitySerializer
+        from serializers import OpenSeshSerializer
+
+        merge_vars = {
+            "STUDENT_NAME": self.student.user.readable_name
+        }
+
+        data = {
+            "chatroom_activity": PNChatroomActivitySerializer(activity, context={'request': request}).data,
+            "sesh": OpenSeshSerializer(self, context={'request': request}).data
+        }
+        notification_type = NotificationType.objects.get(identifier="SESH_EDITED")
+        OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
+
     def send_has_started_notification(self):
         '''
         Sends a notification to student that the sesh has started
@@ -202,26 +220,6 @@ class OpenSesh(models.Model):
             "set_time": self.set_time
         }
         notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
-        for cm in chatroom_members:
-            if cm.notifications_enabled:
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
-
-    def send_set_location_notification(self, chatroom_activity, request):
-        '''
-        Sends a notification to the chatroom members
-        '''
-        from apps.chatroom.serializers import PNChatroomActivitySerializer
-
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
-        merge_vars = {
-            "STUDENT_NAME": self.student.user.readable_name,
-            "LOCATION_NOTES": self.location_notes
-        }
-        data = {
-            "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-            "location_notes": self.location_notes
-        }
-        notification_type = NotificationType.objects.get(identifier="LOCATION_NOTES_UPDATED")
         for cm in chatroom_members:
             if cm.notifications_enabled:
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
