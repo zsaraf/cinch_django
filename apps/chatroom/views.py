@@ -39,7 +39,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
             chatroom_member.notifications_enabled = not chatroom_member.notifications_enabled
             chatroom_member.save()
-            return Response()
+            return Response({"notifications_enabled": chatroom_member.notifications_enabled})
         except ChatroomMember.DoesNotExist:
             raise exceptions.NotFount("Chatroom member not found")
 
