@@ -1,7 +1,11 @@
-from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorCourse, TutorDepartment, Tutor, TutorSignup, TutorTier
+from .models import *
+from .serializers import *
+from apps.student.models import Favorite
+from apps.student.serializers import FavoriteSerializer
 from rest_framework import viewsets
-from apps.tutor.serializers import OpenTutorPromoSerializer, PastTutorPromoSerializer, PendingTutorClassSerializer, PendingTutorSerializer, \
-                                   TutorCourseSerializer, TutorDepartmentSerializer, TutorSerializer, TutorSignupSerializer, TutorTierSerializer
+from rest_framework.decorators import detail_route
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 
 class OpenTutorPromoViewSet(viewsets.ModelViewSet):
@@ -37,6 +41,22 @@ class TutorDepartmentViewSet(viewsets.ModelViewSet):
 class TutorViewSet(viewsets.ModelViewSet):
     queryset = Tutor.objects.all()
     serializer_class = TutorSerializer
+    permission_classes = [IsAuthenticated]
+
+    @detail_route(methods=['post'])
+    def toggle_favorite(self, request, pk=None):
+
+        tutor = self.get_object()
+
+        # Check if favorite already exists
+        favorites = Favorite.objects.filter(student=request.user.student, tutor=tutor)
+        if favorites.count() > 0:
+            # Remove the favorite
+            favorites.delete()
+            return Response()
+        else:
+            # Add the favorite
+            return Response(FavoriteSerializer(Favorite.objects.create(student=request.user.student, tutor=tutor)).data)
 
 
 class TutorSignupViewSet(viewsets.ModelViewSet):
