@@ -5,7 +5,7 @@ from .managers import StudentManager
 class Favorite(models.Model):
     student = models.ForeignKey('student.Student', blank=True, null=True)
     tutor = models.ForeignKey('tutor.Tutor', blank=True, null=True)
-    timestamp = models.DateTimeField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False

@@ -10,9 +10,13 @@ logger = logging.getLogger(__name__)
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user_data = serializers.SerializerMethodField()
+    tutor_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Favorite
+
+    def get_tutor_id(self, obj):
+        return obj.tutor.pk
 
     def get_user_data(self, obj):
         from apps.account.serializers import UserBasicInfoSerializer
@@ -42,7 +46,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
 
     def get_favorites(self, obj):
-        return FavoriteSerializer(source='favorite_set', many=True).data
+        return FavoriteSerializer(Favorite.objects.filter(student=obj), many=True).data
 
     def get_open_seshes(self, obj):
         return OpenSeshSerializer(OpenSesh.objects.filter(student=obj), many=True, context={'request': self.context['request']}).data

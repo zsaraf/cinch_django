@@ -5,8 +5,6 @@ from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
 from apps.university.models import Constant
 from decimal import *
-from rest_framework import exceptions
-from django.db.models import Q
 from sesh.mandrill_utils import EmailManager
 from sesh import settings
 import locale
