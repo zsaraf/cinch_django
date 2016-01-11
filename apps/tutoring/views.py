@@ -47,7 +47,6 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         assignment = request.data.get('assignment', None)
         location_notes = request.data.get('location_notes', None)
         est_time = request.data.get('est_time', None)
-        available_blocks = request.data.get('available_blocks', None)
 
         if num_people is not None:
             sesh_request.num_people = num_people
@@ -57,19 +56,19 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             sesh_request.location_notes = location_notes
         if est_time is not None:
             sesh_request.est_time = est_time
-        if available_blocks is not None:
-            sesh_request.available_blocks = available_blocks
+        if 'available_blocks' in request.data:
+            sesh_request.available_blocks = json.dumps(request.data['available_blocks'])
 
-            if sesh_request.status == 0:
-                # calculate new expiration_time
-                jsonArr = json.loads(available_blocks)
-                last_end_time = datetime.now()
-                for block in jsonArr:
-                    end_time = dateparse.parse_datetime(block['end_time'])
-                    if end_time > last_end_time:
-                        last_end_time = end_time
+        if sesh_request.status == 0 and 'available_blocks' in request.data:
+            # calculate new expiration_time
+            jsonArr = json.loads(request.data.get('available_blocks'))
+            last_end_time = datetime.now()
+            for block in jsonArr:
+                end_time = dateparse.parse_datetime(block['end_time'])
+                if end_time > last_end_time:
+                    last_end_time = end_time
 
-                sesh_request.expiration_time = last_end_time - timedelta(minutes=15)
+            sesh_request.expiration_time = last_end_time - timedelta(minutes=15)
 
         sesh_request.save()
 
@@ -121,17 +120,22 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             if request.data.get('discount', False):
                 discount = Discount.objects.get(pk=request.data['discount'])
 
+            expiration_time = dateparse.parse_datetime(request.data['expiration_time'])
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
-            available_blocks = request.data['available_blocks']
-            # calculate expiration_time
-            last_end_time = datetime.now() + timedelta(minutes=30)
-            for block in available_blocks:
-                end_time = dateparse.parse_datetime(block['end_time'])
-                if end_time > last_end_time:
-                    last_end_time = end_time
+            available_blocks = None
+            if request.data.get('available_blocks', False):
+                available_blocks = json.dumps(request.data['available_blocks'])
 
-            expiration_time = last_end_time - timedelta(minutes=15)
+            # available_blocks = request.data['available_blocks']
+            # calculate expiration_time
+            # last_end_time = datetime.now() + timedelta(minutes=30)
+            # for block in available_blocks:
+            #     end_time = dateparse.parse_datetime(block['end_time'])
+            #     if end_time > last_end_time:
+            #         last_end_time = end_time
+
+            # expiration_time = last_end_time - timedelta(minutes=15)
 
             est_time = int(request.data.get('est_time', 0))
 
