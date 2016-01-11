@@ -139,7 +139,7 @@ class PastSeshSerializer(serializers.ModelSerializer):
         return float(obj.get_cost()) - float(obj.student_credits_applied) - float(obj.tutor_credits_applied)
 
 
-class PastSeshStudentSerializer(serializers.ModelSerializer):
+class PastSeshStudentSerializer(PastSeshSerializer):
     tutor_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -150,7 +150,7 @@ class PastSeshStudentSerializer(serializers.ModelSerializer):
         return UserBasicInfoSerializer(obj.tutor.user).data
 
 
-class PastSeshTutorSerializer(serializers.ModelSerializer):
+class PastSeshTutorSerializer(PastSeshSerializer):
     student_data = serializers.SerializerMethodField()
 
     class Meta:

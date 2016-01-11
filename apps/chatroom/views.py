@@ -41,7 +41,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             chatroom_member.save()
             return Response({"notifications_enabled": chatroom_member.notifications_enabled})
         except ChatroomMember.DoesNotExist:
-            raise exceptions.NotFount("Chatroom member not found")
+            raise exceptions.NotFound("Chatroom member not found")
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_uploads_with_offset(self, request, pk=None):
