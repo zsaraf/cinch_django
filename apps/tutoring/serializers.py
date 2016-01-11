@@ -64,7 +64,7 @@ class SeshEditableRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SeshRequest
-        fields = ['available_blocks', 'estimated_wage', 'num_people', 'location_notes', 'description', 'est_time']
+        fields = ['available_blocks', 'estimated_wage', 'num_people', 'location_notes', 'description', 'est_time', 'expiration_time']
 
     def get_available_blocks(self, obj):
         if obj.available_blocks:

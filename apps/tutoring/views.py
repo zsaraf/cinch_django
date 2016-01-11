@@ -1,6 +1,6 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
-from datetime import datetime
+from datetime import datetime, timedelta
 from rest_framework import exceptions
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route, list_route
@@ -57,8 +57,19 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             sesh_request.location_notes = location_notes
         if est_time is not None:
             sesh_request.est_time = est_time
-        if available_blocks is not None and sesh_request.tutor is not None:
+        if available_blocks is not None:
             sesh_request.available_blocks = available_blocks
+
+            if sesh_request.status == 0:
+                # calculate new expiration_time
+                jsonArr = json.loads(available_blocks)
+                last_end_time = datetime.now()
+                for block in jsonArr:
+                    end_time = dateparse.parse_datetime(block['end_time'])
+                    if end_time > last_end_time:
+                        last_end_time = end_time
+
+                sesh_request.expiration_time = last_end_time - timedelta(minutes=15)
 
         sesh_request.save()
 
