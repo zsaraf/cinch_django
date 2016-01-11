@@ -58,6 +58,24 @@ class SeshRequestSerializer(serializers.ModelSerializer):
             return None
 
 
+class SeshEditableRequestSerializer(serializers.ModelSerializer):
+    available_blocks = serializers.SerializerMethodField()
+    estimated_wage = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SeshRequest
+        fields = ['available_blocks', 'estimated_wage', 'num_people', 'location_notes', 'description', 'est_time']
+
+    def get_available_blocks(self, obj):
+        if obj.available_blocks:
+            return json.loads(obj.available_blocks)
+        else:
+            return None
+
+    def get_estimated_wage(self, obj):
+        return float(obj.get_estimated_wage())
+
+
 class SeshBasicRequestSerializer(SeshRequestSerializer):
 
     def get_tutor(self, obj):

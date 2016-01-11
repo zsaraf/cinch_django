@@ -181,7 +181,7 @@ class OpenSesh(models.Model):
         Sends notification that sesh's request was edited
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer
-        from serializers import OpenSeshSerializer
+        from serializers import SeshEditableRequestSerializer
 
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name
@@ -189,7 +189,7 @@ class OpenSesh(models.Model):
 
         data = {
             "chatroom_activity": PNChatroomActivitySerializer(activity, context={'request': request}).data,
-            "sesh": OpenSeshSerializer(self, context={'request': request}).data
+            "request": SeshEditableRequestSerializer(self.past_request).data
         }
         notification_type = NotificationType.objects.get(identifier="SESH_EDITED")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)

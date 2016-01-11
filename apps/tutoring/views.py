@@ -72,7 +72,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
             open_sesh.send_sesh_edited_notification(activity, request)
 
-        return Response(SeshRequestSerializer(sesh_request, context={'request': request}).data)
+        return Response(SeshEditableRequestSerializer(sesh_request, context={'request': request}).data)
 
     @list_route(methods=['post'])
     def get_available_jobs(self, request):
