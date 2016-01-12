@@ -98,6 +98,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         user = request.user
 
+        if user.is_rep:
+            request = SeshRequest.objects.filter(school=user.school, status=0, tutor=None)
+            return Response(SeshRequestSerializer(requests, many=True).data)
+
         courses = TutorCourse.objects.filter(tutor=user.tutor)
         departments = TutorDepartment.objects.filter(tutor=user.tutor)
         requests = SeshRequest.objects.filter(Q(course__in=courses.values('course_id')) | Q(course__department_id__in=departments.values('department_id')), status=0, tutor=None).exclude(student=user.student)
@@ -349,8 +353,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.save()
 
         # update states
-        open_sesh.student.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": str(open_sesh.start_time)})
-        open_sesh.tutor.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": str(open_sesh.start_time)})
+        open_sesh.student.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": open_sesh.start_time.isoformat()})
+        open_sesh.tutor.user.update_sesh_state('SeshStateInSesh', {"sesh_id": open_sesh.pk, "start_time": open_sesh.start_time.isoformat()})
 
         open_sesh.send_has_started_notification()
 
