@@ -103,7 +103,7 @@ class User(models.Model):
     completed_app_tour = models.BooleanField(default=False)
     is_rep = models.BooleanField(default=False)
     is_test = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(default=datetime.now())
+    timestamp = models.DateTimeField(auto_now_add=True)
     is_disabled = models.BooleanField(default=False)
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)

@@ -18,6 +18,8 @@ class SeshAuthentication(authentication.BaseAuthentication):
         if not token:
             if os.path.basename(os.path.normpath(request.path)) == "login":
                 return self.authenticate_login(request)
+            elif self.is_create_user(request):
+                return (AnonymousUser(), None)
             else:
                 return None
 
@@ -30,6 +32,9 @@ class SeshAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed('Invalid token')
 
         return (user, token)
+
+    def is_create_user(self, request):
+        return request.method == "POST" and os.path.basename(os.path.normpath(request.path)) == "users"
 
     def authenticate_login(self, request):
 
