@@ -10,6 +10,7 @@ from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 import json
 import logging
@@ -91,14 +92,15 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         get available jobs for the requesting tutor
         '''
-        from apps.tutor.models import TutorCourse
+        from apps.tutor.models import TutorCourse, TutorDepartment
 
         # TODO add departments
 
         user = request.user
 
         courses = TutorCourse.objects.filter(tutor=user.tutor)
-        requests = SeshRequest.objects.filter(status=0, tutor=None, course__in=courses.values('course_id')).exclude(student=user.student)
+        departments = TutorDepartment.objects.filter(tutor=user.tutor)
+        requests = SeshRequest.objects.filter(Q(course__in=courses.values('course_id')) | Q(course__department_id__in=departments.values('department_id')), status=0, tutor=None).exclude(student=user.student)
 
         return Response(SeshRequestSerializer(requests, many=True).data)
 
