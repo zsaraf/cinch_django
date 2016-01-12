@@ -233,15 +233,26 @@ class User(models.Model):
         db_table = 'users'
 
 
-class PastSharePromo(models.Model):
+class PromoType(models.Model):
+    identifier = models.CharField(max_length=50)
+    award_constant_name = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'promo_type'
+
+
+class SharePromo(models.Model):
     new_user = models.ForeignKey(User, related_name="new_user")
     old_user = models.ForeignKey(User, related_name="old_user")
     amount = models.DecimalField(max_digits=19, decimal_places=4)
+    promo_type = models.ForeignKey(PromoType)
+    is_past = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
-        db_table = 'past_share_promos'
+        db_table = 'share_promo'
 
 
 class Device(models.Model):

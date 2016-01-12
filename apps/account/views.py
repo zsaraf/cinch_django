@@ -148,11 +148,8 @@ class UserViewSet(viewsets.ModelViewSet):
                     promo_recipient = User.objects.get(share_code=promo_code)
                     constants = Constant.objects.get(school_id=promo_recipient.school.pk)
 
-                    promo_recipient.tutor.credits = promo_recipient.tutor.credits + constants.new_user_recruitment_award
-                    promo_recipient.tutor.save()
-                    PastSharePromo.objects.create(new_user=user, old_user=promo_recipient, amount=constants.new_user_recruitment_award)
-
-                    # TODO notify user that they got a promo (email? notification?)
+                    promo_type = PromoType.objects.get(identifier='user_to_user_share')
+                    SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
 
             except Exception, e:
                 return Response(e, 405)

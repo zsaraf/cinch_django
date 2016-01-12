@@ -104,6 +104,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Add or remove course_groups
         """
+        from apps.account.models import SharePromo, PromoType
+
         addJsonArr = request.data['course_group_additions']
         deleteJsonArr = request.data['course_group_deletions']
         user = request.user
@@ -196,8 +198,19 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
             course_group.send_new_member_notification(user, chatroom_activity, request)
 
-        memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
+        try:
+            # check for completion of user_to_user_share promos
+            promo_type = PromoType.objects.get(identifier='user_to_user_share')
+            promo = SharePromo.objects.get(promo_type=promo_type, new_user=user, is_past=False)
+            promo.old_user.tutor.credits += promo.amount
+            promo.old_user.tutor.save()
+            # TODO notify old_user that they got promo credits
+            promo.is_past = True
+            promo.save()
+        except SharePromo.DoesNotExist:
+            pass
 
+        memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
         serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
         return Response(serializer.data)
 
