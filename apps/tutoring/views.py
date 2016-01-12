@@ -10,6 +10,7 @@ from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
+from django.shortcuts import get_object_or_404
 import json
 import logging
 import stripe
@@ -118,7 +119,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
             discount = None
             if request.data.get('discount', False):
-                discount = Discount.objects.get(pk=request.data['discount'])
+                discount = Discount.objfects.get(pk=request.data['discount'])
 
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
@@ -529,6 +530,18 @@ class PastBidViewSet(viewsets.ModelViewSet):
 class PastSeshViewSet(viewsets.ModelViewSet):
     queryset = PastSesh.objects.all()
     serializer_class = PastSeshSerializer
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, pk=None):
+        queryset = PastSesh.objects.all()
+        pastSesh = get_object_or_404(queryset, pk=pk)
+
+        if (pastSesh.student == request.user.student):
+            serializer = PastSeshStudentSerializer(pastSesh)
+        else:
+            serializer = PastSeshTutorSerializer(pastSesh)
+
+        return Response(serializer.data)
 
 
 class ReportedProblemViewSet(viewsets.ModelViewSet):
