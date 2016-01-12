@@ -99,7 +99,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if user.is_rep:
-            request = SeshRequest.objects.filter(school=user.school, status=0, tutor=None)
+            requests = SeshRequest.objects.filter(school=user.school, status=0, tutor=None)
             return Response(SeshRequestSerializer(requests, many=True).data)
 
         courses = TutorCourse.objects.filter(tutor=user.tutor)
@@ -483,27 +483,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         # TODO: post to slack
 
         return Response()
-
-    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def set_location_notes(self, request, pk=None):
-        """
-        Set location notes for an open sesh
-        """
-        user = request.user
-        open_sesh = self.get_object()
-        location_notes = request.data.get('location_notes')
-        open_sesh.location_notes = location_notes
-        open_sesh.save()
-
-        announcement_type = AnnouncementType.objects.get(identifier="USER_EDITED_SESH")
-        announcement = Announcement.objects.create(chatroom=open_sesh.chatroom, user=user, announcement_type=announcement_type)
-
-        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-        activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-
-        open_sesh.send_sesh_edited_notification(activity, request)
-
-        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def set_start_time(self, request, pk=None):
