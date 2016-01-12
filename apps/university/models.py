@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q
 import re
+from .managers import SchoolManager
 from rest_framework import exceptions
 import json
 
@@ -130,6 +131,7 @@ class School(models.Model):
     tutors_needed = models.IntegerField()
     ready_to_add_classes = models.IntegerField()
     requests_enabled = models.IntegerField()
+    objects = SchoolManager()
 
     class Meta:
         managed = False

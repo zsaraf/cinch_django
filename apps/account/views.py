@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+import hashlib
+import random
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
 from .models import *
 from .serializers import *
@@ -54,6 +56,63 @@ class TokenViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserBasicInfoSerializer
+
+    def create(self, request):
+        '''
+        Create a new user
+        '''
+        from apps.university.models import School
+
+        email = request.data.get('email').lower()
+        full_name = request.data.get('full_name').title()
+        password = request.data.get('password')
+        promo_code = request.data.get('promo_code', None)
+        pending_tutor_verification_id = request.data.get('pending_tutor_verification_id', None)
+        version_number = float(request.data.get('version_number', 1.0))
+
+        if version_number < 2:
+            return Response("Download the latest version on the AppStore then try again!")
+
+        try:
+            existing_user = User.objects.get(email=email)
+            if existing_user.is_verified:
+                return Response("An account with that email already exists")
+            else:
+                str_to_hash = 'Eabltf1!' + existing_user.salt + password
+                m = hashlib.sha1()
+                m.update(str_to_hash)
+                hex_dig = m.hexdigest()
+                if existing_user.password == hex_dig:
+                    return Response("Verify your account and log in!")
+                else:
+                    return Response("An account with that email already exists")
+
+        except User.DoesNotExist:
+            # brand new user
+
+            # TODO validate entries
+
+            length = 25
+            chars = list(hashlib.md5(str(datetime.now())).digest())
+            random.shuffle(chars)
+            salt = str(chars[0: length])
+            str_to_hash = 'Eabltf1!' + salt + password
+            m = hashlib.sha1()
+            m.update(str_to_hash)
+            hex_dig = m.hexdigest()
+
+            new_token = Token.objects.generate_new_token()
+            is_verified = False
+
+            # TODO if pending_tutor_verification_id is not None:
+            #     # check for pending verification stuff and change is_verified if appropriate
+
+            school = School.objects.get_school_from_email(email)
+
+            state = SeshState.objects.get(identifier='SeshStateNone')
+            user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=new_token.session_id, school=school, sesh_state=state, is_verified=is_verified)
+
+            return Response(UserBasicInfoSerializer(user).data)
 
     @list_route(methods=['POST'])
     def update_user_info(self, request):

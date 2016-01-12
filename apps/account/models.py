@@ -5,8 +5,10 @@ from datetime import datetime
 from apps.university.serializers import DiscountSerializer
 from .managers import TokenManager, DeviceManager
 from random import randint
-
+import stripe
 import logging
+
+stripe.api_key = settings.STRIPE_API_KEY
 logger = logging.getLogger(__name__)
 
 
@@ -97,12 +99,12 @@ class User(models.Model):
     bio = models.CharField(max_length=256)
     sesh_state = models.ForeignKey(SeshState)
     salt = models.CharField(max_length=25)
-    notifications_enabled = models.IntegerField()
-    completed_app_tour = models.IntegerField()
-    is_rep = models.IntegerField()
-    is_test = models.IntegerField()
-    timestamp = models.DateTimeField()
-    is_disabled = models.IntegerField()
+    notifications_enabled = models.BooleanField(default=False)
+    completed_app_tour = models.BooleanField(default=False)
+    is_rep = models.BooleanField(default=False)
+    is_test = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(default=datetime.now())
+    is_disabled = models.BooleanField(default=False)
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
 
