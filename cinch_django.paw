@@ -5,7 +5,7 @@
     <databaseInfo>
         <version>134481920</version>
         <UUID>864EDF03-051B-4C13-BE7F-181DCC50FB78</UUID>
-        <nextObjectID>136</nextObjectID>
+        <nextObjectID>140</nextObjectID>
         <metadata>
             <plist version="1.0">
                 <dict>
@@ -374,5 +374,50 @@
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z134 z133 z135"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z137">
+        <attribute name="uuid" type="string">32A1B5A8-28C4-426C-9847-A1DCA1BD4F1F</attribute>
+        <attribute name="url" type="string">http://localhost:8000/django/tutoring/past_seshes/132/</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">GET</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="order" type="int64">3</attribute>
+        <attribute name="name" type="string">tutoring/past_seshes/132</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z140 z139 z138"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z138">
+        <attribute name="value" type="string">application/json</attribute>
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="name" type="string">Content-Type</attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z137"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z139">
+        <attribute name="value" type="string"></attribute>
+        <attribute name="order" type="int64">2</attribute>
+        <attribute name="name" type="string"></attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z137"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z140">
+        <attribute name="value" type="string">Mny5A2UxXYhSRwFNmCUGAvYS5BAuLStr</attribute>
+        <attribute name="order" type="int64">1</attribute>
+        <attribute name="name" type="string">X-Session-Id</attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z137"></relationship>
     </object>
 </database>

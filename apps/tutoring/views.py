@@ -10,6 +10,7 @@ from apps.chatroom.serializers import ChatroomActivitySerializer
 from rest_framework.response import Response
 from decimal import *
 from django.utils import dateparse
+from django.shortcuts import get_object_or_404
 import json
 import logging
 import stripe
@@ -45,14 +46,14 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Student cannot edit this request"}, 405)
 
         num_people = request.data.get('num_people', None)
-        assignment = request.data.get('assignment', None)
+        description = request.data.get('description', None)
         location_notes = request.data.get('location_notes', None)
         est_time = request.data.get('est_time', None)
 
         if num_people is not None:
             sesh_request.num_people = num_people
-        if assignment is not None:
-            sesh_request.assignment = assignment
+        if description is not None:
+            sesh_request.description = description
         if location_notes is not None:
             sesh_request.location_notes = location_notes
         if est_time is not None:
@@ -119,7 +120,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
             discount = None
             if request.data.get('discount', False):
-                discount = Discount.objects.get(pk=request.data['discount'])
+                discount = Discount.objfects.get(pk=request.data['discount'])
 
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
@@ -528,6 +529,18 @@ class PastBidViewSet(viewsets.ModelViewSet):
 class PastSeshViewSet(viewsets.ModelViewSet):
     queryset = PastSesh.objects.all()
     serializer_class = PastSeshSerializer
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, pk=None):
+        queryset = PastSesh.objects.all()
+        pastSesh = get_object_or_404(queryset, pk=pk)
+
+        if (pastSesh.student == request.user.student):
+            serializer = PastSeshStudentSerializer(pastSesh)
+        else:
+            serializer = PastSeshTutorSerializer(pastSesh)
+
+        return Response(serializer.data)
 
 
 class ReportedProblemViewSet(viewsets.ModelViewSet):
