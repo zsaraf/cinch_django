@@ -44,14 +44,14 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Student cannot edit this request"}, 405)
 
         num_people = request.data.get('num_people', None)
-        assignment = request.data.get('description', None)
+        description = request.data.get('description', None)
         location_notes = request.data.get('location_notes', None)
         est_time = request.data.get('est_time', None)
 
         if num_people is not None:
             sesh_request.num_people = num_people
-        if assignment is not None:
-            sesh_request.assignment = assignment
+        if description is not None:
+            sesh_request.description = description
         if location_notes is not None:
             sesh_request.location_notes = location_notes
         if est_time is not None:
