@@ -44,7 +44,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Student cannot edit this request"}, 405)
 
         num_people = request.data.get('num_people', None)
-        assignment = request.data.get('assignment', None)
+        assignment = request.data.get('description', None)
         location_notes = request.data.get('location_notes', None)
         est_time = request.data.get('est_time', None)
 
