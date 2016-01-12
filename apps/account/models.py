@@ -7,6 +7,7 @@ from .managers import TokenManager, DeviceManager
 from random import randint
 import stripe
 import logging
+from sesh.mandrill_utils import EmailManager
 
 stripe.api_key = settings.STRIPE_API_KEY
 logger = logging.getLogger(__name__)
@@ -108,6 +109,18 @@ class User(models.Model):
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
 
+    def send_verification_email(self):
+
+        # TODO implement server_name() call like in php
+        link = "https://cinchtutoring.com/verify.html?verificationId=" + self.verification_id
+
+        merge_vars = {
+            'ACTIVATION_LINK': link,
+            'FIRST_NAME': self.first_name
+        }
+
+        EmailManager.send_email(EmailManager.NEW_SESH_ACCOUNT, merge_vars, self.email, self.readable_name, None)
+
     def update_sesh_state(self, state_identifier, optional_data=None):
         from apps.notification.models import OpenNotification, NotificationType
 
@@ -199,6 +212,11 @@ class User(models.Model):
         return first_name + " " + last_name[0] + "."
 
     @property
+    def first_name(self):
+        split_name = self.full_name.split(' ')
+        return split_name[0]
+
+    @property
     def is_admin(self):
         return self.is_test
 
@@ -213,6 +231,17 @@ class User(models.Model):
     class Meta:
         managed = False
         db_table = 'users'
+
+
+class PastSharePromo(models.Model):
+    new_user = models.ForeignKey(User, related_name="new_user")
+    old_user = models.ForeignKey(User, related_name="old_user")
+    amount = models.DecimalField(max_digits=19, decimal_places=4)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'past_share_promos'
 
 
 class Device(models.Model):

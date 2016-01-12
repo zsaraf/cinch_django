@@ -2,9 +2,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from apps.university.models import Constant
 from django.utils.crypto import get_random_string
 import hashlib
-import random
+import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
 from .models import *
 from .serializers import *
@@ -92,6 +93,25 @@ class UserViewSet(viewsets.ModelViewSet):
             # brand new user
 
             # TODO validate entries
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                return Response({"detail": "Invalid email"}, 405)
+
+            if len(email) > 100:
+                return Response({"detail": "Invalid email"}, 405)
+
+            if len(full_name) > 100:
+                full_name = full_name[0:99]
+
+            full_name.strip()
+            parts = full_name.split(" ")
+            if len(parts) < 2:
+                return Response({"detail": "Please enter both a first and last name"}, 405)
+
+            if len(password) > 100:
+                return Response({"detail": "Your password is too long."}, 405)
+
+            if len(password) < 6:
+                return Response({"detail": "The password you entered is too short. It must be at least 6 characters!"}, 405)
 
             salt = get_random_string(length=25)
             str_to_hash = 'Eabltf1!' + salt + password
@@ -101,17 +121,41 @@ class UserViewSet(viewsets.ModelViewSet):
 
             logger.debug(len(salt))
 
-            new_token = Token.objects.generate_new_token()
+            verification_id = get_random_string(length=32)
             is_verified = False
+            # TODO make sure this isn't a duplicate
+            new_user_promo = get_random_string(length=5).lower()
 
-            # TODO if pending_tutor_verification_id is not None:
-            #     # check for pending verification stuff and change is_verified if appropriate
+            if pending_tutor_verification_id is not None:
+                # check for pending verification stuff and change is_verified if appropriate
+                try:
+                    PendingTutor.objects.get(email=email, verification_id=pending_tutor_verification_id)
+                    is_verified = True
+                except:
+                    return Response({"detail": "Invalid pending tutor id"}, 405)
+
             school = School.objects.get_school_from_email(email)
             if not school:
                 return Response({"detail": "Sorry, we're not at your school yet!"}, 405)
 
             state = SeshState.objects.get(identifier='SeshStateNone')
-            user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=new_token.session_id, school=school, sesh_state=state, is_verified=is_verified)
+            user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=verification_id, school=school, sesh_state=state, is_verified=is_verified, share_code=new_user_promo)
+
+            user.send_verification_email()
+
+            try:
+                if promo_code is not None:
+                    promo_recipient = User.objects.get(share_code=promo_code)
+                    constants = Constant.objects.get(school_id=promo_recipient.school.pk)
+
+                    promo_recipient.tutor.credits = promo_recipient.tutor.credits + constants.new_user_recruitment_award
+                    promo_recipient.tutor.save()
+                    PastSharePromo.objects.create(new_user=user, old_user=promo_recipient, amount=constants.new_user_recruitment_award)
+
+                    # TODO notify user that they got a promo (email? notification?)
+
+            except Exception, e:
+                return Response(e, 405)
 
             return Response(UserBasicInfoSerializer(user).data)
 

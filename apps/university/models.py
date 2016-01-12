@@ -92,6 +92,7 @@ class Constant(models.Model):
     tutor_promo_recruiter_award = models.DecimalField(max_digits=19, decimal_places=4)
     tutor_promo_recruitee_award = models.DecimalField(max_digits=19, decimal_places=4)
     cancellation_administrative_percentage = models.DecimalField(max_digits=19, decimal_places=4)
+    new_user_recruitment_award = models.DecimalField(max_digits=19, decimal_places=4)
 
     class Meta:
         managed = False
