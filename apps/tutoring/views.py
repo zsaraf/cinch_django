@@ -134,7 +134,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 if end_time > last_end_time:
                     last_end_time = end_time
 
-            sesh_request.expiration_time = last_end_time - timedelta(minutes=15)
+            expiration_time = last_end_time - timedelta(minutes=15)
 
             est_time = int(request.data.get('est_time', 0))
 
