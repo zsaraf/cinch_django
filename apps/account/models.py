@@ -44,10 +44,10 @@ class PasswordChangeRequest(models.Model):
 
 
 class PastBonus(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey('User')
     amount = models.DecimalField(max_digits=19, decimal_places=4)
-    timestamp = models.DateTimeField()
-    is_tier_bonus = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_tier_bonus = models.BooleanField(default=False)
 
     class Meta:
         managed = False

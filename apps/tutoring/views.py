@@ -15,6 +15,7 @@ import logging
 import stripe
 from sesh import settings
 from sesh.mandrill_utils import EmailManager
+from sesh.bonus_utils import BonusManager
 import locale
 
 locale.setlocale(locale.LC_ALL, '')
@@ -123,18 +124,19 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
             available_blocks = None
+            expiration_time = datetime.now() + timedelta(hours=24)
             if request.data.get('available_blocks', False):
                 available_blocks = json.dumps(request.data['available_blocks'])
 
-            # calculate new expiration_time
-            jsonArr = request.data.get('available_blocks')
-            last_end_time = datetime.now()
-            for block in jsonArr:
-                end_time = dateparse.parse_datetime(block['end_time'])
-                if end_time > last_end_time:
-                    last_end_time = end_time
+                # calculate new expiration_time
+                jsonArr = request.data.get('available_blocks')
+                last_end_time = datetime.now()
+                for block in jsonArr:
+                    end_time = dateparse.parse_datetime(block['end_time'])
+                    if end_time > last_end_time:
+                        last_end_time = end_time
 
-            sesh_request.expiration_time = last_end_time - timedelta(minutes=15)
+                expiration_time = last_end_time - timedelta(minutes=15)
 
             est_time = int(request.data.get('est_time', 0))
 
@@ -285,7 +287,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
                 if date_diff.total_seconds()/60.0 < timeout:
                     cancellation_fee = float(constants.late_cancellation_fee)
-                    # TODO charge function should be more like end_sesh and pull from credits
                     past_sesh.charge_student(cancellation_fee)
 
                     past_sesh.cancellation_charge = cancellation_fee
@@ -357,25 +358,27 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         '''
         End an ongoing Sesh
         '''
-        from apps.university.models import Constant, DiscountUse
+        from apps.university.models import Constant
         from apps.transaction.models import OutstandingCharge
 
         user = request.user
+        tutor = user.tutor
         open_sesh = self.get_object()
         constants = Constant.objects.get(school_id=user.school.pk)
 
-        if user.tutor != open_sesh.tutor:
+        if tutor != open_sesh.tutor:
             return Response({"detail": "User does not own this Sesh"}, 405)
 
         if not open_sesh.has_started:
             return Response({"detail": "This Sesh has not started"}, 405)
 
-        # TODO: check for promo completion
+        # check for bonus completion
+        BonusManager.award_points_for_action(user, BonusManager.END_SESH)
 
         # move sesh to past
         past_sesh = PastSesh.objects.create(
             past_request=open_sesh.past_request,
-            tutor=open_sesh.tutor,
+            tutor=tutor,
             student=open_sesh.student,
             start_time=open_sesh.start_time,
             end_time=datetime.now(),
@@ -384,13 +387,10 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             )
         # open_sesh.delete()
 
-        tutor = past_sesh.tutor
-
         # calculate price and charge
         past_request = past_sesh.past_request
         num_guests = past_request.num_people - 1
         tutor_percentage = 1.0 - float(constants.administrative_percentage)
-        rate = float(past_request.hourly_rate) + (num_guests * float(constants.additional_student_fee))
         duration = max(past_sesh.duration() * 60, constants.minimum_sesh_duration)/60.0
         price = past_sesh.get_cost()
 
@@ -426,8 +426,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         past_sesh.tutor_earnings = tutor_payment
         past_sesh.save()
 
-        # send tutor review email (TODO separate one if direct request?)
-        # TODO update tutor review email without admin fee stuff? talk to Neil about new/updated templates
+        # send tutor review email
         base_rate_min = (float(past_request.hourly_rate) + float(past_request.sesh_comp))/60.0 * tutor_percentage
         student_rate_min = num_guests * float(constants.additional_student_fee)/60.0 * tutor_percentage
         total_rate_min = base_rate_min + student_rate_min

@@ -30,7 +30,7 @@ class OutstandingCharge(models.Model):
     amount_payed = models.DecimalField(default=0, max_digits=19, decimal_places=4)
     resolved = models.BooleanField(default=False)
     code = models.CharField(max_length=100)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False

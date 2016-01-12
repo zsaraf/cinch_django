@@ -1,7 +1,7 @@
 from apps.tutor.models import OpenTutorPromo, PastTutorPromo, PendingTutorClass, PendingTutor, TutorCourse, TutorDepartment, Tutor, TutorSignup, TutorTier
 from rest_framework import serializers
 from apps.university.serializers import CourseSerializer, DepartmentSerializer
-from apps.tutoring.serializers import PastSeshStudentSerializer, OpenSeshSerializer
+from apps.tutoring.serializers import PastSeshStudentSerializer, PastSeshTutorSerializer, OpenSeshSerializer
 from apps.tutoring.models import OpenSesh
 from django.conf import settings
 
@@ -69,7 +69,7 @@ class TutorSerializer(serializers.ModelSerializer):
     courses = serializers.SerializerMethodField()
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
     open_seshes = serializers.SerializerMethodField()
-    past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
+    past_seshes = PastSeshTutorSerializer(many=True, source='pastsesh_set')
     bonus_info = serializers.SerializerMethodField()
     tiers = serializers.SerializerMethodField()
     stats = serializers.ReadOnlyField()
