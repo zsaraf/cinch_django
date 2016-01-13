@@ -81,7 +81,8 @@ class CourseGroupSerializer(serializers.ModelSerializer):
         return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
     def get_study_groups(self, obj):
-        return StudyGroupBasicSerializer(many=True, source="studygroup_set", context={'request': self.context['request']}).data
+        open_groups = StudyGroup.objects.filter(course_group=obj, is_past=False)
+        return StudyGroupBasicSerializer(open_groups, many=True, context={'request': self.context['request']}).data
 
     def get_tutors(self, obj):
         from apps.tutor.models import Tutor, TutorCourse
