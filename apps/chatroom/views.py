@@ -84,7 +84,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
         name = request.data.get('name')
-        is_anonymous = request.data.get('is_anonymous', False)
+        is_anonymous = int(request.data.get('is_anonymous', 0))
         tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
         new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)

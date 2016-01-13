@@ -247,11 +247,15 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             return Response("You do not own this study group", 200)
         if (study_group.is_past):
             return Response("This study group has ended", 200)
+        
+        #TODO are all of these parameters always updated? If not then this won't work as some parameters will be absent or have bad values
 
         time = request.POST.get('time')
         topic = request.POST.get('topic')
         location = request.POST.get('location')
         num_people = request.POST.get('num_people')
+        if (num_people > study_group.num_people):
+            study_group.is_full = False
 
         study_group.time = time
         study_group.topic = topic
