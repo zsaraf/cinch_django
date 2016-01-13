@@ -13,6 +13,8 @@ from datetime import datetime
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from apps.chatroom.serializers import ChatroomActivitySerializer
 import logging
+import locale
+locale.setlocale(locale.LC_ALL, '')
 logger = logging.getLogger(__name__)
 
 
@@ -204,9 +206,17 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             promo = SharePromo.objects.get(promo_type=promo_type, new_user=user, is_past=False)
             promo.old_user.tutor.credits += promo.amount
             promo.old_user.tutor.save()
-            # TODO notify old_user that they got promo credits
             promo.is_past = True
             promo.save()
+
+            # notify old user that they got a promo
+            merge_vars = {
+                "AMOUNT": locale.currency(promo.amount),
+                "NEW_USER_NAME": user.first_name
+            }
+            notification_type = NotificationType.objects.get(identifier="RECEIVED_SHARE_PROMO")
+            OpenNotification.objects.create(promo.old_user, notification_type, None, merge_vars, None)
+
         except SharePromo.DoesNotExist:
             pass
 

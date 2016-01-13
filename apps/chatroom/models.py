@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
-from PIL import Image
+from datetime import datetime
 from rest_framework.response import Response
 
 
@@ -71,16 +71,16 @@ class ChatroomActivity(models.Model):
             chatroom_members = []
             if self.chatroom_activity_type.is_message():
                 message = Message.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=message.chatroom_member.user)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=message.chatroom_member.user)
             elif self.chatroom_activity_type.is_announcement():
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False)
             elif self.chatroom_activity_type.is_upload():
                 new_upload = Upload.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_upload.chatroom_member.user)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=new_upload.chatroom_member.user)
             elif self.chatroom_activity_type.is_study_group():
                 from apps.group.models import StudyGroup
                 group = StudyGroup.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=group.user)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=group.user)
             for member in chatroom_members:
                 member.unread_activity_count = member.unread_activity_count + 1
                 member.save()
@@ -219,7 +219,7 @@ class Message(models.Model):
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
         merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
             "MESSAGE": self.message

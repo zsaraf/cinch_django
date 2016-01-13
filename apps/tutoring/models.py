@@ -208,7 +208,7 @@ class OpenSesh(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.tutor.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.tutor.user)
         merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name,
             "SET_TIME": self.set_time

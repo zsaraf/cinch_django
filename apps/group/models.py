@@ -56,7 +56,7 @@ class CourseGroup(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=user)
         merge_vars = {
             "NEW_USER_NAME": user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
@@ -76,7 +76,7 @@ class CourseGroup(models.Model):
         '''
         from apps.chatroom.serializers import ChatroomActivitySerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=user)
         merge_vars = {
             "CREATOR_NAME": user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
@@ -117,7 +117,7 @@ class StudyGroup(models.Model):
         '''
         After a group has ended, clear old notifications for all users
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False)
         refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
         types = NotificationType.objects.filter(identifier__in=["NEW_GROUP_MEMBER_COURSE_GROUP", "NEW_GROUP_MEMBER_STUDY_GROUP", "STUDY_GROUP_EDITED", "NEW_GROUP_OWNER", "NEW_UPLOAD", "NEW_MESSAGE", "NEW_MESSAGE_COURSE_GROUP", "NEW_MESSAGE_STUDY_GROUP"])
         for cm in chatroom_members:
@@ -136,7 +136,7 @@ class StudyGroup(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.user)
         merge_vars = {
             "NEW_CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
@@ -156,7 +156,7 @@ class StudyGroup(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.user)
         merge_vars = {
             "CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
@@ -173,7 +173,7 @@ class StudyGroup(models.Model):
         '''
         Sends a notification to the chatroom members that the group has ended
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.user)
         merge_vars = {
             "CREATOR_NAME": self.user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
@@ -191,7 +191,7 @@ class StudyGroup(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer, ChatroomMemberSerializer
 
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=new_user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=new_user)
         merge_vars = {
             "NEW_USER_NAME": new_user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
