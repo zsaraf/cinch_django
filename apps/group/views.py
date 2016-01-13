@@ -54,7 +54,7 @@ class ConversationParticipantViewSet(viewsets.ModelViewSet):
 
 class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
-    serializer_class = CourseGroupSerializer
+    serializer_class = CourseGroupRegularSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def create_study_group(self, request, pk=None):
@@ -221,7 +221,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             pass
 
         memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
-        serializer = CourseGroupSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
+        serializer = CourseGroupFullSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
         return Response(serializer.data)
 
 

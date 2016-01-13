@@ -20,9 +20,9 @@ class CourseWithGroupsSerializer(serializers.ModelSerializer):
         model = Course
 
     def get_course_groups(self, obj):
-        from apps.group.serializers import CourseGroupBasicSerializer
+        from apps.group.serializers import CourseGroupSlimSerializer
         from apps.group.models import CourseGroup
-        return CourseGroupBasicSerializer(CourseGroup.objects.filter(course=obj), many=True).data
+        return CourseGroupSlimSerializer(CourseGroup.objects.filter(course=obj), many=True).data
 
 
 class CourseSerializer(serializers.ModelSerializer):

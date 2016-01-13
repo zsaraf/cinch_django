@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import *
 from apps.tutoring.serializers import OpenSeshSerializer, PastSeshStudentSerializer, SeshRequestSerializer
 from apps.tutoring.models import OpenSesh
-from apps.group.serializers import CourseGroupSerializer
+from apps.group.serializers import CourseGroupFullSerializer
 from apps.group.models import CourseGroup, CourseGroupMember
 import logging
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def get_course_groups(self, obj):
         course_group_memberships = CourseGroupMember.objects.filter(student=obj, is_past=False)
-        return CourseGroupSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
+        return CourseGroupFullSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
 
     def get_requests(self, obj):
         from apps.tutoring.models import SeshRequest
