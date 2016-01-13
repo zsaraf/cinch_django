@@ -160,7 +160,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
         return []
 
     def get_chatroom_members(self, obj):
-        return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj, is_past=False), many=True).data
+        return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj), many=True).data
 
     def get_unread_activity_count(self, obj):
         request = self.context.get('request', None)
