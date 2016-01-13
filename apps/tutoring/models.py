@@ -392,22 +392,26 @@ class PastSesh(models.Model):
         user = self.student.user
 
         if user.stripe_customer_id is None:
-            OutstandingCharge.objects.create(
+            ou = OutstandingCharge.objects.create(
                 user=self.student.user,
                 past_sesh=self,
                 amount_owed=amount/100.0,
                 code='no_payment_card'
             )
+            ou.email_user("You do not have any payment cards.")
+            return None
 
         try:
             cards = stripe.Customer.retrieve(user.stripe_customer_id).sources.all(limit=5, object='card')
             if len(cards) == 0:
-                OutstandingCharge.objects.create(
+                ou = OutstandingCharge.objects.create(
                     user=self.student.user,
                     past_sesh=self,
                     amount_owed=amount/100.0,
                     code='no_payment_card'
                 )
+                ou.email_user("You do not have any payment cards.")
+                return None
 
             charge = stripe.Charge.create(
                 amount=amount,
@@ -427,15 +431,29 @@ class PastSesh(models.Model):
             err = body['error']
             code = err['code']
 
-            OutstandingCharge.objects.create(
+            ou = OutstandingCharge.objects.create(
                 user=self.student.user,
                 past_sesh=self,
                 amount_owed=amount/100.0,
                 code=code
             )
-        except stripe.error.StripeError, e:
-            # TODO handle exception
+            ou.email_user(err['message'])
             return None
+
+        except stripe.error.StripeError, e:
+            body = e.json_body
+            err = body['error']
+            code = err['code']
+
+            ou = OutstandingCharge.objects.create(
+                user=self.student.user,
+                past_sesh=self,
+                amount_owed=amount/100.0,
+                code=code
+            )
+            ou.email_user(err['message'])
+            return None
+
         except Exception, e:
             # TODO handle exception
             return None

@@ -1,4 +1,7 @@
 from django.db import models
+import locale
+from sesh.mandrill_utils import EmailManager
+locale.setlocale(locale.LC_ALL, '')
 
 
 class CashOutAttempt(models.Model):
@@ -35,3 +38,12 @@ class OutstandingCharge(models.Model):
     class Meta:
         managed = False
         db_table = 'outstanding_charges'
+
+    def email_user(self, message):
+        # notify user of new outstanding charge
+        merge_vars = {
+            'FULL_LEGAL_NAME': self.user.full_name,
+            'CHARGE': locale.currency(self.amount_owed),
+            'CONTENT': message
+        }
+        EmailManager.send_email(EmailManager.PAYMENT_FAILED, merge_vars, self.user.email, self.user.first_name, None, None)
