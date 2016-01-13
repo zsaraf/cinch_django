@@ -19,8 +19,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return obj.tutor.pk
 
     def get_user_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.tutor.user).data
 
 
 class StudentUserInfoSerializer(serializers.ModelSerializer):
@@ -30,8 +30,25 @@ class StudentUserInfoSerializer(serializers.ModelSerializer):
         model = Student
 
     def get_user_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.user).data
+
+
+class StudentBasicSerializer(serializers.ModelSerializer):
+    favorites = serializers.SerializerMethodField()
+    past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
+    requests = serializers.SerializerMethodField()
+    stats = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Student
+
+    def get_favorites(self, obj):
+        return FavoriteSerializer(Favorite.objects.filter(student=obj), many=True).data
+
+    def get_requests(self, obj):
+        from apps.tutoring.models import SeshRequest
+        return SeshRequestSerializer(SeshRequest.objects.filter(student=obj, status=0), many=True).data
 
 
 class StudentSerializer(serializers.ModelSerializer):

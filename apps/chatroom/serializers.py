@@ -13,9 +13,13 @@ class ChatroomActivityTypeSerializer(serializers.ModelSerializer):
 class PNAnnouncementSerializer(serializers.ModelSerializer):
 
     message = serializers.SerializerMethodField()
+    chatroom_member = serializers.SerializerMethodField()
 
     class Meta:
         model = Announcement
+
+    def get_chatroom_member(self, obj):
+        return ChatroomMemberBasicSerializer(ChatroomMember.objects.get(chatroom=obj.chatroom, user=obj.user)).data
 
     def get_message(self, obj):
         # No second-person in push notifications
@@ -124,6 +128,18 @@ class ChatroomActivitySerializer(serializers.ModelSerializer):
             return []
 
 
+class ChatroomMemberBasicSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChatroomMember
+        fields = ['id', 'user']
+
+    def get_user(self, obj):
+        from apps.account.serializers import UserSlimInfoSerializer
+        return UserSlimInfoSerializer(obj.user).data
+
+
 class ChatroomMemberSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 
@@ -131,8 +147,8 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
         model = ChatroomMember
 
     def get_user(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.user).data
+        from apps.account.serializers import UserSlimInfoSerializer
+        return UserSlimInfoSerializer(obj.user).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -200,6 +216,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
 class UploadSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     tag = TagSerializer()
+    chatroom_member = ChatroomMemberBasicSerializer()
 
     class Meta:
         model = Upload
@@ -214,6 +231,7 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class BasicMessageSerializer(serializers.ModelSerializer):
+    chatroom_member = ChatroomMemberBasicSerializer()
 
     class Meta:
         model = Message

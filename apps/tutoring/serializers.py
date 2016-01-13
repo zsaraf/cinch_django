@@ -20,8 +20,8 @@ class NotificationSeshRequestSerializer(serializers.ModelSerializer):
         model = SeshRequest
 
     def get_student_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.student.user).data
 
     def get_estimated_wage(self, obj):
         return float(obj.get_estimated_wage())
@@ -47,8 +47,8 @@ class SeshRequestSerializer(serializers.ModelSerializer):
         return float(obj.get_estimated_wage())
 
     def get_student_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.student.user).data
 
     def get_tutor(self, obj):
         from apps.tutor.serializers import PeerTutorSerializer
@@ -97,12 +97,12 @@ class OpenSeshSerializer(serializers.ModelSerializer):
         return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
 
     def get_user_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
+        from apps.account.serializers import UserRegularInfoSerializer
         request = self.context['request']
         if request.user == obj.tutor.user:
-            return UserBasicInfoSerializer(obj.student.user).data
+            return UserRegularInfoSerializer(obj.student.user).data
         else:
-            return UserBasicInfoSerializer(obj.tutor.user).data
+            return UserRegularInfoSerializer(obj.tutor.user).data
 
     def get_is_student(self, obj):
         request = self.context['request']
@@ -146,8 +146,8 @@ class PastSeshStudentSerializer(PastSeshSerializer):
         model = PastSesh
 
     def get_tutor_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.tutor.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.tutor.user).data
 
 
 class PastSeshTutorSerializer(PastSeshSerializer):
@@ -157,8 +157,8 @@ class PastSeshTutorSerializer(PastSeshSerializer):
         model = PastSesh
 
     def get_student_data(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.student.user).data
 
 
 class ReportedProblemSerializer(serializers.ModelSerializer):

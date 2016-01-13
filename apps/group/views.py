@@ -6,7 +6,7 @@ from rest_framework.decorators import detail_route, list_route
 from apps.university.models import Course
 from apps.student.models import Student
 from apps.chatroom.models import Chatroom, Announcement, AnnouncementType
-from apps.account.serializers import UserBasicInfoSerializer
+from apps.account.serializers import UserRegularInfoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import exceptions
 from datetime import datetime
@@ -98,7 +98,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
         all_members = CourseGroupMember.objects.filter(course_group=course_group, is_past=False)
         all_users = [m.student.user for m in all_members]
-        obj = UserBasicInfoSerializer(all_users, many=True)
+        obj = UserRegularInfoSerializer(all_users, many=True)
         return Response(obj.data)
 
     @list_route(methods=['post'], permission_classes=[IsAuthenticated])

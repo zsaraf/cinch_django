@@ -57,7 +57,7 @@ class TokenViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserBasicInfoSerializer
+    serializer_class = UserRegularInfoSerializer
 
     def create(self, request):
         '''
@@ -183,7 +183,7 @@ class UserViewSet(viewsets.ModelViewSet):
             except Exception, e:
                 return Response(e, 405)
 
-            return Response(UserBasicInfoSerializer(user).data)
+            return Response()
 
     @list_route(methods=['POST'])
     def update_user_info(self, request):
@@ -213,7 +213,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         user.save()
 
-        return Response(UserBasicInfoSerializer(user).data)
+        return Response(UserRegularInfoSerializer(user).data)
 
     @list_route(methods=['POST'])
     def resize_existing_pictures(self, request):
@@ -290,7 +290,19 @@ class UserViewSet(viewsets.ModelViewSet):
         file_name = '%s_large.jpeg' % base_name
         upload_image_to_s3(new_fp, path, file_name)
 
-        return Response(UserBasicInfoSerializer(user).data)
+        return Response(UserRegularInfoSerializer(user).data)
+
+    @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_husky_info')
+    def get_husky_info(self, request):
+        user = request.user
+
+        # Check against pending tutors
+        user.tutor.check_if_pending()
+        user.refresh_from_db()
+        user.tutor.refresh_from_db()
+
+        serializer = UserHuskyInfoSerializer(user, context={'request': request})
+        return Response(serializer.data)
 
     @list_route(methods=['GET'], permission_classes=[IsAuthenticated], url_path='get_full_info')
     def get_full_info(self, request):

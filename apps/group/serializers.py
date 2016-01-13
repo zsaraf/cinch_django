@@ -35,9 +35,11 @@ class StudyGroupMemberSerializer(serializers.ModelSerializer):
 
 
 class StudyGroupBasicSerializer(serializers.ModelSerializer):
+    # TODO For activity PN need to have chatroom_member? think about this when study groups implemented
 
     class Meta:
         model = StudyGroup
+
 
 class StudyGroupSerializer(serializers.ModelSerializer):
     chatroom = serializers.SerializerMethodField()
@@ -60,8 +62,8 @@ class CourseGroupMemberSerializer(serializers.ModelSerializer):
         model = CourseGroupMember
 
     def get_user(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.student.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.student.user).data
 
 
 class CourseGroupRegularSerializer(serializers.ModelSerializer):

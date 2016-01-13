@@ -58,8 +58,36 @@ class PeerTutorSerializer(serializers.ModelSerializer):
         model = Tutor
 
     def get_user(self, obj):
-        from apps.account.serializers import UserBasicInfoSerializer
-        return UserBasicInfoSerializer(obj.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.user).data
+
+    def get_tiers(self, obj):
+        return TutorTierSerializer(TutorTier.objects.all(), many=True).data
+
+
+class TutorBasicSerializer(serializers.ModelSerializer):
+    courses = serializers.SerializerMethodField()
+    departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
+    past_seshes = PastSeshTutorSerializer(many=True, source='pastsesh_set')
+    bonus_info = serializers.SerializerMethodField()
+    tiers = serializers.SerializerMethodField()
+    stats = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Tutor
+
+    def get_courses(self, obj):
+        return TutorCourseSerializer(TutorCourse.objects.filter(tutor=obj), many=True).data
+
+    def get_bonus_info(self, obj):
+        with open(os.path.join(settings.ROOT_DIR, 'files/monthly_bonus.json'), 'r') as f:
+            monthly_bonus_description = json.load(f)
+            school = obj.user.school
+
+            if str(school.id) in monthly_bonus_description:
+                return monthly_bonus_description[str(school.id)]
+            else:
+                return monthly_bonus_description["0"]
 
     def get_tiers(self, obj):
         return TutorTierSerializer(TutorTier.objects.all(), many=True).data
