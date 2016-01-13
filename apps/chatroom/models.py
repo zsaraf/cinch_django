@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
+from rest_framework import exceptions
 from datetime import datetime
 from rest_framework.response import Response
 
@@ -226,7 +227,7 @@ class Message(models.Model):
             "MESSAGE": self.message
         }
         data = {
-            "chatroom_activity": serializers.ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
         }
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:

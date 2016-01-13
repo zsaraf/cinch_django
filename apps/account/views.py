@@ -64,6 +64,10 @@ class UserViewSet(viewsets.ModelViewSet):
         Create a new user
         '''
         from apps.university.models import School
+        from apps.chatroom.models import Chatroom, ChatroomMember, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager, Message
+        from apps.chatroom.serializers import WelcomeMessageChatroomActivitySerializer
+        from apps.group.models import Conversation, ConversationParticipant
+        from apps.notification.models import OpenNotification, NotificationType
 
         email = request.data.get('email').lower()
         full_name = request.data.get('full_name').title()
@@ -142,6 +146,31 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=verification_id, school=school, sesh_state=state, is_verified=is_verified, share_code=new_user_promo)
 
             user.send_verification_email()
+
+            # create auto welcome message from team@seshtutoring
+            team_user = User.objects.get(email='team@seshtutoring.com')
+            name = "Welcome to Sesh!"
+            desc = "We're so happy you're here! Any questions?"
+            chatroom = Chatroom.objects.create(name=name, description=desc)
+            conversation = Conversation.objects.create(chatroom=chatroom)
+            ConversationParticipant.objects.create(user=user, conversation=conversation)
+            ConversationParticipant.objects.create(user=team_user, conversation=conversation)
+            ChatroomMember.objects.create(user=user, chatroom=chatroom)
+            team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
+            text = "Hi! Welcome to Sesh, we hope you have fun earning and learning in the app! Feel free to ask us questions, share your ideas for how we can improve, or just chat - we'll be here!"
+            message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+            activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+            merge_vars = {
+                "NAME": team_user.full_name,
+                "MESSAGE": text
+            }
+            data = {
+                "chatroom_activity": WelcomeMessageChatroomActivitySerializer(activity).data,
+            }
+            notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+            OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
 
             try:
                 if promo_code is not None:

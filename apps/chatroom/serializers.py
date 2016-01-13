@@ -78,6 +78,21 @@ class PNChatroomActivitySerializer(serializers.ModelSerializer):
             return []
 
 
+class WelcomeMessageChatroomActivitySerializer(serializers.ModelSerializer):
+    activity = serializers.SerializerMethodField()
+    chatroom_activity_type = ChatroomActivityTypeSerializer()
+    user_has_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChatroomActivity
+
+    def get_user_has_liked(self, obj):
+        return False
+
+    def get_activity(self, obj):
+        return BasicMessageSerializer(Message.objects.get(pk=obj.activity_id)).data
+
+
 class ChatroomActivitySerializer(serializers.ModelSerializer):
     activity = serializers.SerializerMethodField()
     chatroom_activity_type = ChatroomActivityTypeSerializer()
