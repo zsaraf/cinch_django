@@ -392,7 +392,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             set_time=open_sesh.set_time,
             chatroom=open_sesh.chatroom
             )
-        # open_sesh.delete()
+        open_sesh.delete()
 
         # calculate price and charge
         past_request = past_sesh.past_request
