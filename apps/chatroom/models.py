@@ -73,7 +73,8 @@ class ChatroomActivity(models.Model):
                 message = Message.objects.get(pk=self.activity_id)
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=message.chatroom_member.user)
             elif self.chatroom_activity_type.is_announcement():
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False)
+                announcement = Announcement.objects.get(pk=self.activity_id)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=announcement.user)
             elif self.chatroom_activity_type.is_upload():
                 new_upload = Upload.objects.get(pk=self.activity_id)
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=new_upload.chatroom_member.user)
@@ -82,7 +83,7 @@ class ChatroomActivity(models.Model):
                 group = StudyGroup.objects.get(pk=self.activity_id)
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=group.user)
             for member in chatroom_members:
-                member.unread_activity_count = member.unread_activity_count + 1
+                member.unread_activity_count += 1
                 member.save()
 
         super(ChatroomActivity, self).save(*args, **kwargs)
