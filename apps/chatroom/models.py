@@ -127,7 +127,7 @@ class Upload(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     tag = models.ForeignKey('Tag')
-    is_anonymous = models.BooleanField(default=False)
+    is_anonymous = models.IntegerField(default=0)
 
     def upload_file(self, fp):
 
