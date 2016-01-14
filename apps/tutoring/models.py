@@ -2,6 +2,7 @@
 
 from django.db import models
 from apps.chatroom.models import ChatroomMember
+from datetime import datetime, timedelta
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
 from apps.university.models import Constant
 from decimal import *
@@ -210,7 +211,8 @@ class OpenSesh(models.Model):
 
         # clear out other set_time requests
         search_str = "\"chatroom\": " + str(self.chatroom_id)
-        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str)
+        notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
+        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str, notification_type=notification_type)
         for n in existing_notifications:
             PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
             OpenNotification.objects.get(pk=n.pk).delete()
@@ -224,10 +226,21 @@ class OpenSesh(models.Model):
             "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
             "set_time": self.set_time
         }
-        notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
+
         for cm in chatroom_members:
             if cm.notifications_enabled:
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+
+        # create delayed notification for 30 minute reminder
+        reminder_time = datetime.strptime(self.set_time, '%Y-%m-%d %H:%M:%S') - timedelta(minutes=30)
+        student_type = NotificationType.objects.get(identifier='SESH_APPROACHING_STUDENT')
+        OpenNotification.objects.create(self.student.user, student_type, data, None, reminder_time)
+        merge_vars = {
+            'START_TIME': self.set_time,
+            'STUDENT_NAME': self.student.user.first_name
+        }
+        tutor_type = NotificationType.objects.get(identifier='SESH_APPROACHING_TUTOR')
+        OpenNotification.objects.create(self.tutor.user, tutor_type, data, merge_vars, reminder_time)
 
     class Meta:
         managed = False
