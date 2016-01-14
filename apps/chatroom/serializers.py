@@ -167,6 +167,9 @@ class ChatroomSerializer(serializers.ModelSerializer):
     additional_uploads = serializers.SerializerMethodField()
     notifications_enabled = serializers.SerializerMethodField()
 
+    # return chatroom member based on context
+    chatroom_member = serializers.SerializerMethodField()
+
     class Meta:
         model = Chatroom
 
@@ -207,6 +210,16 @@ class ChatroomSerializer(serializers.ModelSerializer):
         Limits the number of messages to 50 (editable in Chatroom model)
         '''
         return ChatroomActivitySerializer(obj.get_chatroom_activities(), many=True, context={'request': self.context['request']}).data
+
+    def get_chatroom_member(self, obj):
+        request = self.context.get('request', None)
+        if request is not None:
+            try:
+                member = ChatroomMember.objects.get(user=request.user, chatroom=obj)
+                return ChatroomMemberBasicSerializer(member).data
+            except ChatroomMember.DoesNotExist:
+                raise exceptions.NotFound("Chatroom " + str(obj.pk) + " member " + str(request.user.pk) + " not found")
+        raise exceptions.NotFound("Request not found")
 
 
 class UploadSerializer(serializers.ModelSerializer):
