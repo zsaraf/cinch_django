@@ -422,7 +422,7 @@
     </object>
     <object type="LMREQUEST" id="z141">
         <attribute name="uuid" type="string">D82606C4-4BAB-46BE-AD06-E47999C034EE</attribute>
-        <attribute name="url" type="string">http://localhost:8000/django/groups/course_groups/88/</attribute>
+        <attribute name="url" type="string">http://localhost:8000/django/groups/course_groups/58/</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
