@@ -269,16 +269,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
         current_photo = user.profile_picture
         if current_photo is not None:
-            delete_image_from_s3(path, '%s.jpeg' % current_photo)
             delete_image_from_s3(path, '%s_small.jpeg' % current_photo)
             delete_image_from_s3(path, '%s_medium.jpeg' % current_photo)
             delete_image_from_s3(path, '%s_large.jpeg' % current_photo)
 
         fp = request.FILES['profile_picture']
         base_name = get_random_string(20)
-
-        file_name = '%s.jpeg' % base_name
-        upload_image_to_s3(fp, path, file_name)
         user.profile_picture = base_name
         user.save()
 
