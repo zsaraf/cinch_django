@@ -451,11 +451,10 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             'TOTAL_RATE_MIN': locale.currency(total_rate_min),
             'ADMINISTRATIVE_FEE': float(constants.administrative_percentage)*100,
             'ADMINISTRATIVE_TOTAL': '-%s' % locale.currency(past_sesh.get_cost() * float(constants.administrative_percentage)),
-            'TOTAL_EARNED': locale.currency(tutor_payment),  # TODO add referral bonus here
+            'TOTAL_EARNED': locale.currency(tutor_payment),
             'PRICE': locale.currency(past_sesh.get_cost()),
             'FIRST_NAME': tutor.user.readable_name,
             'SCHOOL': past_request.school.name
-            # TODO add 'REFERRAL_BONUS':
         }
 
         if tutor.num_seshes == 0:
