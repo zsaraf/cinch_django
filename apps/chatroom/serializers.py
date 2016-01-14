@@ -133,7 +133,7 @@ class ChatroomMemberBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatroomMember
-        fields = ['id', 'user']
+        fields = ['id', 'user', 'chatroom']
 
     def get_user(self, obj):
         from apps.account.serializers import UserSlimInfoSerializer
@@ -160,7 +160,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_activities = serializers.SerializerMethodField()
-    chatroom_members = serializers.SerializerMethodField()
     # in the future tags would likely be chatroom-specific so including tags here
     tags = serializers.SerializerMethodField()
     unread_activity_count = serializers.SerializerMethodField()
@@ -189,9 +188,6 @@ class ChatroomSerializer(serializers.ModelSerializer):
             uploads = ChatroomActivity.objects.filter(id__lt=activities[0].pk, chatroom=obj, chatroom_activity_type=upload_type).order_by('-id')[:20]
             return ChatroomActivitySerializer(uploads, many=True, context={'request': self.context['request']}).data
         return []
-
-    def get_chatroom_members(self, obj):
-        return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj), many=True).data
 
     def get_unread_activity_count(self, obj):
         request = self.context.get('request', None)
