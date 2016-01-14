@@ -166,12 +166,13 @@ class ChatroomSerializer(serializers.ModelSerializer):
     first_activity_id = serializers.SerializerMethodField()
     additional_uploads = serializers.SerializerMethodField()
     notifications_enabled = serializers.SerializerMethodField()
-
-    # return chatroom member based on context
-    chatroom_member = serializers.SerializerMethodField()
+    chatroom_members = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_chatroom_members(self, obj):
+        return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj), many=True).data
 
     def get_notifications_enabled(self, obj):
         user = self.context['request'].user
