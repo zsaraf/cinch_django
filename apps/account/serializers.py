@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import *
-from apps.tutor.serializers import TutorBasicSerializer
-from apps.student.serializers import StudentBasicSerializer
+from apps.tutor.serializers import TutorSerializer, TutorBasicSerializer
+from apps.student.serializers import StudentSerializer, StudentBasicSerializer
 from apps.university.serializers import SchoolSerializer, ConstantSerializer
 from apps.transaction.models import OutstandingCharge
 from apps.transaction.serializers import OutstandingChargeSerializer
