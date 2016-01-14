@@ -202,14 +202,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if bio is not None:
             if len(bio) > 256:
-                return Response("Your bio must be less than 256 characters. Shorten it up!")
+                return Response({"detail": "Your bio must be less than 256 characters. Shorten it up!"}, 405)
             elif bio == "Tell us a bit about yourself! What are you passionte about and what do you love to learn? This will be public.":
                 bio = ""
             user.bio = bio
 
         if major is not None:
             if len(major) > 100:
-                return Response("Your major must be less than 100 characters. Abbreviate!")
+                return Response({"detail": "Your major must be less than 100 characters. Abbreviate!"}, 405)
             user.major = major
 
         if class_year is not None:
