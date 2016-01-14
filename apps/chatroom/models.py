@@ -224,7 +224,8 @@ class Message(models.Model):
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
         merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
-            "MESSAGE": self.message
+            "MESSAGE": self.message,
+            "CHATROOM_NAME": self.chatroom.name
         }
         data = {
             "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
