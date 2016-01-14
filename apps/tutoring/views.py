@@ -300,6 +300,13 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                     past_sesh.tutor.credits = float(past_sesh.tutor.credits) + (cancellation_fee * tutor_percentage)
                     past_sesh.tutor.save()
 
+                    # send tutor review email
+                    merge_vars = {
+                        'COURSE': past_sesh.past_request.course.get_readable_name(),
+                        'CANCELLATION_FEE': locale.currency(past_sesh.cancellation_charge)
+                    }
+                    EmailManager.send_email(EmailManager.TUTOR_CANCELLATION_FEE_RECEIPT, merge_vars, past_sesh.tutor.user.email, past_sesh.tutor.user.readable_name, None)
+
             past_sesh.send_student_cancelled_notification()
             past_sesh.save()
 
@@ -489,6 +496,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         user = request.user
         open_sesh = self.get_object()
         set_time = request.POST.get('set_time')
+        if set_time is None:
+            return Response({"detail": "Invalid start time"}, 405)
         open_sesh.set_time = set_time
         open_sesh.save()
 
