@@ -164,7 +164,7 @@ class UserViewSet(viewsets.ModelViewSet):
             ConversationParticipant.objects.create(user=team_user, conversation=conversation)
             ChatroomMember.objects.create(user=user, chatroom=chatroom)
             team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
-            text = "Welcome to the new and improved Sesh! Feel free to message us at any time to ask questions, give feedback, or just say hi. We’re always here to improve your experience and make sure you get the most out of our platform."
+            text = "Welcome to the new and improved Sesh! Feel free to message us at any time to ask questions, give feedback, or just say hi. We're always here to improve you're experience and make sure you get the most out of our platform."
             message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
