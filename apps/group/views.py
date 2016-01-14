@@ -31,7 +31,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         other_user = User.objects.get(pk=int(request.data.get('user_id')))
         user = request.user
         if other_user == user:
-            return Response("Cannot start a conversation with yourself.")
+            return Response({"detail": "Cannot start a conversation with yourself."}, 405)
 
         name = "Chat"
         desc = "Private conversation between " + user.readable_name + " and " + other_user.readable_name
@@ -64,6 +64,11 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
         user = request.user
 
+        try:
+            CourseGroupMember.objects.get(course_group=course_group, user=user)
+        except CourseGroupMember.DoesNotExist:
+            return Response({"detail": "You are not a member of the course"}, 405)
+
         str_time = request.data.get('time')
         topic = request.data.get('topic')
         location = request.data.get('location')
@@ -95,7 +100,14 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         """
         Get basic info for student members of a course_group
         """
+        user = request.user
         course_group = self.get_object()
+
+        try:
+            CourseGroupMember.objects.get(user=user, course_group=course_group)
+        except CourseGroupMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this course"}, 405)
+
         all_members = CourseGroupMember.objects.filter(course_group=course_group, is_past=False)
         all_users = [m.student.user for m in all_members]
         obj = UserRegularInfoSerializer(all_users, many=True)
@@ -129,13 +141,13 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 chat_member.is_past = True
                 chat_member.save()
             except CourseGroup.DoesNotExist:
-                raise exceptions.NotFound("Course Group could not be found")
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             except Student.DoesNotExist:
-                raise exceptions.NotFound("Couldn't find a record of this student")
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             except CourseGroupMember.DoesNotExist:
-                raise exceptions.NotFound("Couldn't find a member of the course group for this user")
+                return Response({"detail": "You are not a member of the class"}, 405)
             except ChatroomMember.DoesNotExist:
-                raise exceptions.NotFound("Couldn't find a member of the chatroom for this user")
+                return Response({"detail": "You are not a member of the chatroom"}, 405)
 
         for obj in addJsonArr:
 
@@ -147,7 +159,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 try:
                     course = Course.objects.get(pk=course_id)
                 except Course.DoesNotExist:
-                    raise exceptions.NotFound("Course could not be found")
+                    return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
                 # first search to see if there's another group with same professor name
                 try:
                     course_group = CourseGroup.objects.get(course=course, professor_name=professor_name)
@@ -159,10 +171,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 try:
                     course_group = CourseGroup.objects.get(pk=int(course_group_id))
                     if course_group.is_past:
-                        return Response("Course group has ended")
+                        return Response({"detail": "The class has ended"}, 405)
                     member = CourseGroupMember.objects.get(course_group=course_group, student=user.student)
                     if not member.is_past:
-                        return Response("User is already a member of this group")
+                        return Response({"detail": "You are already a member of the class"}, 405)
                     else:
                         member.is_past = False
                         member.save()
@@ -179,9 +191,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                         course_group.send_new_member_notification(user, chatroom_activity, request)
                         continue
                 except CourseGroup.DoesNotExist:
-                    raise exceptions.NotFound("Course Group could not be found")
+                    return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
                 except ChatroomMember.DoesNotExist:
-                    raise exceptions.NotFound("Chatroom member could not be found")
+                    return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
                 except CourseGroupMember.DoesNotExist:
                     # pass on exception, this just means they hadn't been a member previously
                     pass
@@ -218,6 +230,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             OpenNotification.objects.create(promo.old_user, notification_type, None, merge_vars, None)
 
         except SharePromo.DoesNotExist:
+            # this is fine, just means they weren't involved in a promo
             pass
 
         memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
@@ -244,9 +257,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         study_group = self.get_object()
         if (user != study_group.user):
             # non-owner cannot edit
-            return Response("You do not own this study group", 200)
+            return Response({"detail": "Only the group leader can edit the group details"}, 405)
         if (study_group.is_past):
-            return Response("This study group has ended", 200)
+            return Response({"detail": "This study group has ended"}, 405)
         
         #FUTURE are all of these parameters always updated? If not then this won't work as some parameters will be absent or have bad values
 
@@ -283,7 +296,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         new_owner_id = int(request.data.get('new_owner_id'))
         study_group = self.get_object()
         if (study_group.is_past):
-            return Response("This study group has ended", 200)
+            return Response({"detail": "Only the group leader can edit the group details"}, 405)
 
         if (user == study_group.user):
             try:
@@ -298,9 +311,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 study_group.send_owner_changed_notification(activity, request)
                 return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
             except User.DoesNotExist:
-                raise exceptions.NotFound("User not found")
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             except StudyGroupMember.DoesNotExist:
-                raise exceptions.NotFound("User is not part of the study group")
+                return Response({"detail": "You are not a member of the study group"}, 405)
 
         else:
             return Response("Only owner can alter study group", 200)
@@ -338,9 +351,9 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                     study_group.is_full = False
                     study_group.save()
             except StudyGroupMember.DoesNotExist:
-                return Response("Study Group member not found")
+                return Response({"detail": "You are not a member of the study group"}, 405)
             except ChatroomMember.DoesNotExist:
-                return Response("Chatroom Member not found")
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 
         return Response()
 
@@ -353,16 +366,16 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         study_group = self.get_object()
 
         if study_group.is_past:
-            return Response("This study group has ended")
+            return Response({"detail": "The study group has ended"}, 405)
 
         if study_group.is_full:
-            return Response("This study group is full")
+            return Response({"detail": "Sorry, the study group is already full"}, 405)
 
         # check if there is an existing member for this user
         try:
             curr_member = StudyGroupMember.objects.get(study_group=study_group, user=user)
             if not curr_member.is_past:
-                return Response("User is already a member of this group")
+                return Response({"detail": "You are already a member of the group"}, 405)
             else:
                 curr_member.is_past = False
                 curr_member.save()
@@ -371,7 +384,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 chat_member.save()
                 return Response(StudyGroupMemberSerializer(curr_member).data)
         except ChatroomMember.DoesNotExist:
-            raise exceptions.NotFound("Chatroom member not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         except StudyGroupMember.DoesNotExist:
 
             # add user to both study group and chatroom

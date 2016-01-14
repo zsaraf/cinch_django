@@ -42,10 +42,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request = self.get_object()
 
         if sesh_request.student != user.student:
-            return Response({"detail": "Student cannot edit this request"}, 405)
+            return Response({"detail": "You cannot edit this request"}, 405)
 
         if sesh_request.status > 1:
-            return Response({"detail": "Student cannot edit this request"}, 405)
+            return Response({"detail": "You cannot edit this request"}, 405)
 
         num_people = request.data.get('num_people', None)
         description = request.data.get('description', None)
@@ -179,13 +179,13 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response(SeshRequestSerializer(sesh_request).data)
 
         except Discount.DoesNotExist:
-            raise exceptions.NotFound("Discount not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         except Course.DoesNotExist:
-            raise exceptions.NotFound("Course not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         except Student.DoesNotExist:
-            raise exceptions.NotFound("Student not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         except Tutor.DoesNotExist:
-            raise exceptions.NotFound("Tutor not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 
     @detail_route(methods=['post'])
     def cancel(self, request, pk=None):
@@ -195,7 +195,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request = self.get_object()
         cancellation_reason = request.data.get("cancellation_reason")
         if request.user.student != sesh_request.student:
-            return Response({"detail": "Student cannot cancel this request"}, 405)
+            return Response({"detail": "You cannot cancel this request"}, 405)
         if sesh_request.status > 0:
             return Response({"detail": "It's too late to cancel this request"}, 405)
         sesh_request.status = 3
@@ -214,7 +214,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         sesh_request = self.get_object()
         if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor:
-            return Response({"detail": "Tutor cannot respond to this request"}, 405)
+            return Response({"detail": "You cannot respond to this request"}, 405)
 
         if sesh_request.status != 0:
             return Response({"detail": "The student cancelled the request."})
@@ -244,7 +244,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request = self.get_object()
 
         if sesh_request.tutor is None or sesh_request.tutor != request.user.tutor:
-            return Response({"detail": "Tutor cannot respond to this request"}, 405)
+            return Response({"detail": "You cannot respond to this request"}, 405)
 
         if sesh_request.status != 0:
             return Response({"detail": "The student cancelled the request."})
@@ -276,8 +276,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Sesh cannot be cancelled once it has started"}, 405)
 
         if open_sesh.student == user.student:
-            # fee_enabled = user.device is not None and user.device.type == 'ios' and user.device.app_version >= 11
-            fee_enabled = True
+            fee_enabled = user.device is not None and user.device.type == 'ios' and user.device.app_version >= 11
             has_activity = ChatroomActivity.objects.filter(chatroom=open_sesh.chatroom).count() > 0
 
             tutor_percentage = 1.0 - float(constants.administrative_percentage)
@@ -337,7 +336,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             open_sesh.delete()
 
         else:
-            return Response({"detail": "User is not part of this Sesh"}, 405)
+            return Response({"detail": "You are not part of the Sesh"}, 405)
 
         return Response()
 
@@ -350,7 +349,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh = self.get_object()
 
         if user.tutor != open_sesh.tutor:
-            return Response({"detail": "User does not own this Sesh"}, 405)
+            return Response({"detail": "Only the tutor can cancel the Sesh"}, 405)
 
         if open_sesh.has_started:
             return Response({"detail": "This Sesh has already started"}, 405)
@@ -381,7 +380,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         constants = Constant.objects.get(school_id=user.school.pk)
 
         if tutor != open_sesh.tutor:
-            return Response({"detail": "User does not own this Sesh"}, 405)
+            return Response({"detail": "Only the tutor can end the Sesh"}, 405)
 
         if not open_sesh.has_started:
             return Response({"detail": "This Sesh has not started"}, 405)

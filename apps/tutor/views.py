@@ -48,13 +48,11 @@ class TutorViewSet(viewsets.ModelViewSet):
 
         tutor = self.get_object()
 
-        # Check if favorite already exists
-        favorites = Favorite.objects.filter(student=request.user.student, tutor=tutor)
-        if favorites.count() > 0:
-            # Remove the favorite
-            favorites.delete()
+        try:
+            # Delete if favorite exists
+            Favorite.objects.get(student=request.user.student, tutor=tutor).delete()
             return Response()
-        else:
+        except Favorite.DoesNotExist:
             # Add the favorite
             return Response(FavoriteSerializer(Favorite.objects.create(student=request.user.student, tutor=tutor)).data)
 

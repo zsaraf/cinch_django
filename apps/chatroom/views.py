@@ -29,7 +29,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             chatroom_member.save()
             return Response()
         except ChatroomMember.DoesNotExist:
-            raise exceptions.NotFound("Chatroom member not found")
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def toggle_notifications(self, request, pk=None):
@@ -41,12 +41,17 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             chatroom_member.save()
             return Response({"notifications_enabled": chatroom_member.notifications_enabled})
         except ChatroomMember.DoesNotExist:
-            raise exceptions.NotFound("Chatroom member not found")
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_uploads_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
+        try:
+            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
+
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
         activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
@@ -66,6 +71,11 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         data_with_user['user'] = request.user.id
         data_with_user['chatroom'] = chatroom.pk
         data_with_user['chatroom_member'] = chatroom_member.pk
+        try:
+            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
+
         serializer = MessageSerializer(data=data_with_user)
         if serializer.is_valid():
             message = serializer.save()
@@ -82,20 +92,25 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def upload(self, request, pk=None):
 
         chatroom = self.get_object()
-        chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
-        name = request.data.get('name')
-        is_anonymous = int(request.data.get('is_anonymous', 0))
-        tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
-        new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)
-        for fp in request.FILES.getlist('file'):
-            new_upload.upload_file(fp)
+        try:
+            chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
+            name = request.data.get('name')
+            is_anonymous = int(request.data.get('is_anonymous', 0))
+            tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
-        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
-        activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
-        new_upload.send_created_notification(activity, request)
+            new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)
+            for fp in request.FILES.getlist('file'):
+                new_upload.upload_file(fp)
 
-        return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
+            activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
+            new_upload.send_created_notification(activity, request)
+
+            return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
+
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
 
 
 class InteractionViewSet(viewsets.ModelViewSet):
@@ -121,7 +136,6 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
     def record_view(self, request, pk=None):
         user = request.user
         activity = self.get_object()
-
         try:
             interaction = Interaction.objects.get(chatroom_activity=activity, user=user)
             interaction.num_views = interaction.num_views + 1
