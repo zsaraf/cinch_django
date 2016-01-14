@@ -70,7 +70,7 @@ class UserViewSet(viewsets.ModelViewSet):
         from apps.notification.models import OpenNotification, NotificationType
 
         email = request.data.get('email').lower()
-        full_name = request.data.get('full_name').title()
+        full_name = request.data.get('full_name')
         password = request.data.get('password')
         promo_code = request.data.get('promo_code', None)
         pending_tutor_verification_id = request.data.get('pending_tutor_verification_id', None)
@@ -96,7 +96,7 @@ class UserViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             # brand new user
 
-            # TODO validate entries
+            # validate entries
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 return Response({"detail": "Invalid email"}, 405)
 
@@ -127,8 +127,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
             verification_id = get_random_string(length=32)
             is_verified = False
-            # TODO make sure this isn't a duplicate
+
+            # assign unique code
             new_user_promo = get_random_string(length=5).lower()
+            while True:
+                try:
+                    User.object.get(share_code=new_user_promo)
+                    new_user_promo = get_random_string(length=5).lower()
+                except:
+                    break
 
             if pending_tutor_verification_id is not None:
                 # check for pending verification stuff and change is_verified if appropriate

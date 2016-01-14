@@ -141,7 +141,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
-            professor_name = obj.get('professor_name', '').title()
+            professor_name = obj.get('professor_name', '')
             if not course_group_id or course_group_id == -1:
                 # must create a group to join
                 try:
@@ -248,7 +248,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         if (study_group.is_past):
             return Response("This study group has ended", 200)
         
-        #TODO are all of these parameters always updated? If not then this won't work as some parameters will be absent or have bad values
+        #FUTURE are all of these parameters always updated? If not then this won't work as some parameters will be absent or have bad values
 
         time = request.POST.get('time')
         topic = request.POST.get('topic')

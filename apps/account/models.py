@@ -112,7 +112,7 @@ class User(models.Model):
     def send_verification_email(self):
 
         # TODO implement server_name() call like in php
-        link = "https://cinchtutoring.com/verify.html?verificationId=" + self.verification_id
+        link = "https://" + settings.SERVER_NAME + "/verify.html?verificationId=" + self.verification_id
 
         merge_vars = {
             'ACTIVATION_LINK': link,

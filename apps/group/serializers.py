@@ -35,7 +35,7 @@ class StudyGroupMemberSerializer(serializers.ModelSerializer):
 
 
 class StudyGroupBasicSerializer(serializers.ModelSerializer):
-    # TODO For activity PN need to have chatroom_member? think about this when study groups implemented
+    # FUTURE For activity PN need to have chatroom_member? think about this when study groups implemented
 
     class Meta:
         model = StudyGroup

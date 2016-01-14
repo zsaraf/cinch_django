@@ -17,6 +17,7 @@ import logging
 import stripe
 from sesh import settings
 from sesh.mandrill_utils import EmailManager
+from apps.emailclient.models import PendingEmail
 from sesh.bonus_utils import BonusManager
 import locale
 
@@ -94,8 +95,6 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         '''
         from apps.tutor.models import TutorCourse, TutorDepartment
 
-        # TODO add departments
-
         user = request.user
 
         if user.is_rep:
@@ -172,7 +171,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 # notify all eligible tutors
                 sesh_request.send_request_notification()
 
-            # TODO remove pending timeout emails
+            # remove pending timeout emails
+            PendingEmail.objects.filter(Q(tag='first-instant-request-timeout') | Q(tag='first-scheduled-request-timeout') | Q(tag='request-timeout'), user=request.user).delete()
 
             # TODO post to slack
 
@@ -470,8 +470,6 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         # increment num_seshes for tutor
         tutor.num_seshes = tutor.num_seshes + 1
         tutor.save()
-
-        # TODO award bonus points if applicable
 
         # update states
         past_sesh.student.user.update_sesh_state('SeshStateNone')

@@ -371,8 +371,8 @@ class PastSesh(models.Model):
             if final_remainder > 0.5:
                 charge_amount = int(final_remainder * 100)
                 charge_object = self.stripe_charge_student(charge_amount)
+
                 if charge_object is not None:
-                    # TODO send receipt email
                     self.charge_id = charge_object[0]
                     self.save()
                     self.send_student_review_email(charge_object[1], charge_object[2])
@@ -386,8 +386,6 @@ class PastSesh(models.Model):
 
     def stripe_charge_student(self, amount):
         from apps.transaction.models import OutstandingCharge
-
-        # TODO send email with new outstanding charge
 
         user = self.student.user
 
