@@ -208,6 +208,13 @@ class OpenSesh(models.Model):
         '''
         from apps.chatroom.serializers import PNChatroomActivitySerializer
 
+        # clear out other set_time requests
+        search_str = "\"chatroom\": " + str(self.chatroom_id)
+        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str)
+        for n in existing_notifications:
+            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+            OpenNotification.objects.get(pk=n.pk).delete()
+
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.tutor.user)
         merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name,
