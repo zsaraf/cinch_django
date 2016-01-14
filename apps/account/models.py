@@ -100,7 +100,7 @@ class User(models.Model):
     bio = models.CharField(max_length=256)
     sesh_state = models.ForeignKey(SeshState)
     salt = models.CharField(max_length=25)
-    notifications_enabled = models.BooleanField(default=False)
+    notifications_enabled = models.BooleanField(default=True)
     completed_app_tour = models.BooleanField(default=False)
     is_rep = models.BooleanField(default=False)
     is_test = models.BooleanField(default=False)

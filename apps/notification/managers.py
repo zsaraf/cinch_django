@@ -7,6 +7,9 @@ class OpenNotificationManager(models.Manager):
 
     def create(self, to_user, notification_type, data, merge_vars, send_time):
 
+        if not to_user.notifications_enabled:
+            return None
+
         if not send_time:
             send_time = datetime.now()
 
