@@ -117,6 +117,15 @@ class Tutor(models.Model):
             pt.make_real_tutor()
 
     @property
+    def tier(self):
+        tutor_tiers = TutorTier.objects.all()
+        for tier in tutor_tiers:
+            if (self.num_seshes >= tier.sesh_prereq):
+                current_tier = tier
+
+        return current_tier
+
+    @property
     def stats(self):
         cashout_attempt_queryset = self.user.cashoutattempt_set.filter(successful=1)
 
