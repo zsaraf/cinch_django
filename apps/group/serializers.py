@@ -66,30 +66,6 @@ class CourseGroupMemberSerializer(serializers.ModelSerializer):
         return UserRegularInfoSerializer(obj.student.user).data
 
 
-class CourseGroupRegularSerializer(serializers.ModelSerializer):
-    members = serializers.SerializerMethodField()
-    tutors = serializers.SerializerMethodField()
-    course = CourseSerializer()
-
-    class Meta:
-        model = CourseGroup
-
-    def get_members(self, obj):
-        return CourseGroupMemberSerializer(CourseGroupMember.objects.filter(course_group=obj, is_past=False), many=True).data
-
-    def get_tutors(self, obj):
-        from apps.tutor.models import Tutor, TutorCourse
-        from apps.tutor.serializers import PeerTutorSerializer
-        from apps.tutoring.models import PastSesh
-
-        seshes = PastSesh.objects.filter(past_request__course=obj.course)
-        tutors = [item.tutor.id for item in seshes]
-        courses = TutorCourse.objects.filter(course=obj.course)
-        tutors.extend([item.tutor.id for item in courses])
-
-        return PeerTutorSerializer(Tutor.objects.filter(id__in=tutors), many=True).data
-
-
 class CourseGroupFullSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     chatroom = serializers.SerializerMethodField()
@@ -121,3 +97,10 @@ class CourseGroupFullSerializer(serializers.ModelSerializer):
         tutors.extend([item.tutor.id for item in courses])
 
         return PeerTutorSerializer(Tutor.objects.filter(id__in=tutors), many=True).data
+
+
+class CourseGroupRegularSerializer(CourseGroupFullSerializer):
+
+    class Meta:
+        model = CourseGroup
+        fields = ('tutors', 'members', 'professor_name', 'id')
