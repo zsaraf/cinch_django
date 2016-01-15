@@ -36,7 +36,6 @@ class StudentUserInfoSerializer(serializers.ModelSerializer):
 
 class StudentBasicSerializer(serializers.ModelSerializer):
     favorites = serializers.SerializerMethodField()
-    past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
     requests = serializers.SerializerMethodField()
     stats = serializers.ReadOnlyField()
 
