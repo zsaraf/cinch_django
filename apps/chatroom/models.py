@@ -146,7 +146,7 @@ class Upload(models.Model):
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom).exclude(user=self.chatroom_member.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
         creator_name = self.chatroom_member.user.readable_name
         if self.is_anonymous:
             creator_name = "Someone"

@@ -182,13 +182,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                         chat_member = ChatroomMember.objects.get(chatroom=course_group.chatroom, user=user)
                         chat_member.is_past = False
                         chat_member.save()
-                        # announce to the group that a new member has joined
-                        announcement_type = AnnouncementType.objects.get(identifier="USER_JOINED_GROUP")
-                        announcement = Announcement.objects.create(chatroom=course_group.chatroom, announcement_type=announcement_type, user=user)
-
-                        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
-                        chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-                        course_group.send_new_member_notification(user, chatroom_activity, request)
+                        # announcement when they have previously been in the group
                         continue
                 except CourseGroup.DoesNotExist:
                     return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
