@@ -1,7 +1,7 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
 from datetime import datetime, timedelta
-from rest_framework import exceptions
+from django_slack import slack_message
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +19,9 @@ from sesh import settings
 from sesh.mandrill_utils import EmailManager
 from apps.emailclient.models import PendingEmail
 from sesh.bonus_utils import BonusManager
+from sesh import settings
 import locale
+import os
 
 locale.setlocale(locale.LC_ALL, '')
 stripe.api_key = settings.STRIPE_API_KEY
@@ -175,6 +177,12 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             PendingEmail.objects.filter(Q(tag='first-instant-request-timeout') | Q(tag='first-scheduled-request-timeout') | Q(tag='request-timeout'), user=request.user).delete()
 
             # TODO post to slack
+            # try:
+            #     slack_message(os.path.join(settings.BASE_DIR, 'templates/create_request_message.slack'), {
+            #         'sesh_request': sesh_request
+            #         })
+            # except Exception, e:
+            #     return Response(e)
 
             return Response(SeshRequestSerializer(sesh_request).data)
 
@@ -520,6 +528,47 @@ class PastSeshViewSet(viewsets.ModelViewSet):
     queryset = PastSesh.objects.all()
     serializer_class = PastSeshSerializer
     permission_classes = [IsAuthenticated]
+
+    @detail_route(methods=['post'])
+    def submit_rating(self, request, pk=None):
+        from apps.student.models import Favorite
+
+        past_sesh = self.get_object()
+        tutor = past_sesh.tutor
+        user = request.user
+
+        if user != past_sesh.student.user:
+            return Response({"detail": "You cannot edit this request"}, 405)
+
+        past_sesh.rating_1 = request.data['rating_1']
+        past_sesh.rating_2 = request.data['rating_2']
+        past_sesh.rating_3 = request.data['rating_3']
+        is_favorited = request.data.get('favorited', False)
+
+        past_sesh.save()
+
+        curr_rating_1 = tutor.ave_rating_1
+        curr_rating_2 = tutor.ave_rating_2
+        curr_rating_3 = tutor.ave_rating_3
+        curr_num = tutor.num_seshes - 1
+
+        tutor.ave_rating_1 = (curr_rating_1 * curr_num + int(past_sesh.rating_1))/(curr_num + 1)
+        tutor.ave_rating_2 = (curr_rating_2 * curr_num + int(past_sesh.rating_2))/(curr_num + 1)
+        tutor.ave_rating_3 = (curr_rating_3 * curr_num + int(past_sesh.rating_3))/(curr_num + 1)
+
+        tutor.save()
+
+        user.update_sesh_state('SeshStateNone')
+
+        if is_favorited:
+            try:
+                Favorite.objects.get(student=user.student, tutor=tutor)
+                # already exists, don't need to do anything
+            except Favorite.DoesNotExist:
+                # create new Favorite entry
+                Favorite.objects.create(student=user.student, tutor=tutor)
+
+        return Response()
 
     def retrieve(self, request, pk=None):
         queryset = PastSesh.objects.all()
