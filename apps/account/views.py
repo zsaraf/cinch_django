@@ -187,8 +187,8 @@ class UserViewSet(viewsets.ModelViewSet):
                     promo_type = PromoType.objects.get(identifier='user_to_user_share')
                     SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
 
-            except Exception, e:
-                return Response(e, 405)
+            except Exception:
+                return Response({"detail": "Invalid promo code"}, 405)
 
             return Response()
 
