@@ -119,18 +119,25 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         Add or remove course_groups
         """
         from apps.account.models import SharePromo, PromoType
+        from apps.university.models import Constant
 
-        addJsonArr = request.data['course_group_additions']
-        deleteJsonArr = request.data['course_group_deletions']
+        add_json_arr = request.data['course_group_additions']
+        delete_json_arr = request.data['course_group_deletions']
         user = request.user
+        constants = Constant.objects.get(school_id=user.school.pk)
 
-        if not deleteJsonArr:
-            deleteJsonArr = []
+        if not delete_json_arr:
+            delete_json_arr = []
 
-        if not addJsonArr:
-            addJsonArr = []
+        if not add_json_arr:
+            add_json_arr = []
 
-        for obj in deleteJsonArr:
+        current_membership_count = CourseGroupMember.objects.filter(student=user.student, is_past=False, course_group__is_past=False).count()
+        if len(add_json_arr) + current_membership_count - len(delete_json_arr) > constants.max_course_groups:
+            error = "You cannot be enrolled in more than {} classes".format(constants.max_course_groups)
+            return Response({"detail": error}, 405)
+
+        for obj in delete_json_arr:
             course_group_id = obj.get('course_group_id', '')
             try:
                 course_group = CourseGroup.objects.get(pk=course_group_id)
@@ -149,7 +156,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             except ChatroomMember.DoesNotExist:
                 return Response({"detail": "You are not a member of the chatroom"}, 405)
 
-        for obj in addJsonArr:
+        for obj in add_json_arr:
 
             course_group_id = obj.get('course_group_id', '')
             course_id = obj.get('course_id', '')
