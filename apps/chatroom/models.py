@@ -2,8 +2,6 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
-from rest_framework import exceptions
-from datetime import datetime
 from rest_framework.response import Response
 
 
@@ -15,6 +13,22 @@ class Announcement(models.Model):
     class Meta:
         managed = False
         db_table = 'announcement'
+
+    def send_notifications(self, request, chatroom_activity):
+        import serializers
+        '''
+        Sends a notification to the chatroom members
+        '''
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
+
+        data = {
+            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
+        }
+        notification_type = NotificationType.objects.get(identifier="NEW_ANNOUNCEMENT")
+
+        for cm in chatroom_members:
+            if (cm.notifications_enabled):
+                OpenNotification.objects.create(cm.user, notification_type, data, None, None)
 
 
 class AnnouncementType(models.Model):

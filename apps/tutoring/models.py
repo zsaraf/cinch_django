@@ -175,11 +175,10 @@ class OpenSesh(models.Model):
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
 
-    def send_sesh_edited_notification(self, activity, request):
+    def send_sesh_edited_notification(self, request):
         '''
         Sends notification that sesh's request was edited
         '''
-        from apps.chatroom.serializers import PNChatroomActivitySerializer
         from serializers import SeshEditableRequestSerializer
 
         merge_vars = {
@@ -187,7 +186,6 @@ class OpenSesh(models.Model):
         }
 
         data = {
-            "chatroom_activity": PNChatroomActivitySerializer(activity, context={'request': request}).data,
             "request": SeshEditableRequestSerializer(self.past_request).data
         }
         notification_type = NotificationType.objects.get(identifier="SESH_EDITED")

@@ -211,7 +211,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-            course_group.send_new_member_notification(user, chatroom_activity, request)
+
+            announcement.send_notifications(request, chatroom_activity)
+            course_group.send_new_member_notification(user, request)
 
         try:
             # check for completion of user_to_user_share promos
@@ -283,7 +285,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-        study_group.send_group_edited_notification(activity, request)
+        announcement.send_notifications(request, activity)
+        study_group.send_group_edited_notification(request)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
@@ -309,7 +312,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, user=new_user, announcement_type=announcement_type)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
                 activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
-                study_group.send_owner_changed_notification(activity, request)
+                announcement.send_notifications(request, activity)
+                study_group.send_owner_changed_notification(request)
                 return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
             except User.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
@@ -405,7 +409,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
             chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
-            study_group.send_new_member_notification(user, chatroom_activity, request)
+            announcement.send_notifications(request, chatroom_activity)
+            study_group.send_new_member_notification(user, request)
 
             obj = StudyGroupMemberSerializer(new_group_member, context={'request': request})
             return Response(obj.data)
