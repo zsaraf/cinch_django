@@ -44,7 +44,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def get_uploads_with_offset(self, request, pk=None):
+    def load_old_uploads_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
         try:
@@ -54,6 +54,19 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
         activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
+        return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def refresh_recent_uploads_with_offset(self, request, pk=None):
+        chatroom = self.get_object()
+        min_id = request.data.get('min_id')
+        try:
+            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
+
+        upload_type = ChatroomActivityType.objects.get(identifier='upload')
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__gt=min_id, chatroom_activity_type=upload_type)[:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
