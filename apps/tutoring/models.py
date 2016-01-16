@@ -205,7 +205,6 @@ class OpenSesh(models.Model):
         '''
         Sends a notification to the chatroom members
         '''
-        from apps.chatroom.serializers import PNChatroomActivitySerializer
 
         # clear out other set_time requests
         search_str = "\"chatroom\": " + str(self.chatroom_id)
@@ -220,10 +219,8 @@ class OpenSesh(models.Model):
             "TUTOR_NAME": self.tutor.user.readable_name,
             "SET_TIME": self.set_time
         }
-        data = {
-            "chatroom_activity": PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-            "set_time": self.set_time
-        }
+        data = chatroom_activity.get_pn_data(request)
+        data['set_time'] = self.set_time
 
         for cm in chatroom_members:
             if cm.notifications_enabled:

@@ -15,15 +15,11 @@ class Announcement(models.Model):
         db_table = 'announcement'
 
     def send_notifications(self, request, chatroom_activity):
-        import serializers
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
-
-        data = {
-            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-        }
+        chatroom_members = ChatroomMember.objects.filter(chatroom=chatroom_activity.chatroom, is_past=False).exclude(user=self.user)
+        data = chatroom_activity.get_pn_data(request)
         notification_type = NotificationType.objects.get(identifier="NEW_ANNOUNCEMENT")
 
         for cm in chatroom_members:
@@ -79,6 +75,17 @@ class ChatroomActivity(models.Model):
     class Meta:
         managed = False
         db_table = 'chatroom_activity'
+
+    def get_pn_data(self, request):
+        from serializers import PNChatroomActivitySerializer
+        data = {}
+        full_object = PNChatroomActivitySerializer(self, context={'request': request}).data
+        if len(full_object) > 1900:
+            data['chatroom_activity_id'] = self.pk
+        else:
+            data['chatroom_activity'] = full_object
+
+        return data
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -168,9 +175,8 @@ class Upload(models.Model):
             "CREATOR_NAME": creator_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-        }
+        data = chatroom_activity.get_pn_data(request)
+
         notification_type = None
         if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_COURSE_GROUP")
@@ -241,9 +247,7 @@ class Message(models.Model):
             "MESSAGE": self.message,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": serializers.PNChatroomActivitySerializer(chatroom_activity, context={'request': request}).data,
-        }
+        data = chatroom_activity.get_pn_data(request)
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
         if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_COURSE_GROUP")

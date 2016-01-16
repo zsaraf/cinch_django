@@ -73,16 +73,14 @@ class CourseGroup(models.Model):
         '''
         Sends a notification to the chatroom members that the group has a new member
         '''
-        from apps.chatroom.serializers import ChatroomActivitySerializer
-
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=user)
         merge_vars = {
             "CREATOR_NAME": user.readable_name,
             "CHATROOM_NAME": self.chatroom.name
         }
-        data = {
-            "chatroom_activity": ChatroomActivitySerializer(chatroom_activity, context={'request': request}).data
-        }
+
+        data = chatroom_activity.get_pn_data(request)
+
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
         for cm in chatroom_members:
             if cm.notifications_enabled:
