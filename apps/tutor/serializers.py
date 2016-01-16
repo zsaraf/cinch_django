@@ -68,7 +68,6 @@ class PeerTutorSerializer(serializers.ModelSerializer):
 class TutorBasicSerializer(serializers.ModelSerializer):
     courses = serializers.SerializerMethodField()
     departments = TutorDepartmentSerializer(many=True, source='tutordepartment_set')
-    past_seshes = PastSeshTutorSerializer(many=True, source='pastsesh_set')
     bonus_info = serializers.SerializerMethodField()
     tiers = serializers.SerializerMethodField()
     stats = serializers.ReadOnlyField()

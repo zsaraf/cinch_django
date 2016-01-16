@@ -533,6 +533,7 @@ class PastSeshViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def submit_rating(self, request, pk=None):
         from apps.student.models import Favorite
+        from apps.student.serializers import FavoriteSerializer
 
         past_sesh = self.get_object()
         tutor = past_sesh.tutor
@@ -541,9 +542,9 @@ class PastSeshViewSet(viewsets.ModelViewSet):
         if user != past_sesh.student.user:
             return Response({"detail": "You cannot edit this request"}, 405)
 
-        past_sesh.rating_1 = request.data['rating_1']
-        past_sesh.rating_2 = request.data['rating_2']
-        past_sesh.rating_3 = request.data['rating_3']
+        past_sesh.rating_1 = request.data['rating_1']  # helpful
+        past_sesh.rating_2 = request.data['rating_2']  # knowledge
+        past_sesh.rating_3 = request.data['rating_3']  # friendly
         is_favorited = request.data.get('favorited', False)
 
         past_sesh.save()
@@ -567,7 +568,8 @@ class PastSeshViewSet(viewsets.ModelViewSet):
                 # already exists, don't need to do anything
             except Favorite.DoesNotExist:
                 # create new Favorite entry
-                Favorite.objects.create(student=user.student, tutor=tutor)
+                favorite = Favorite.objects.create(student=user.student, tutor=tutor)
+                return Response(FavoriteSerializer(favorite).data)
 
         return Response()
 
