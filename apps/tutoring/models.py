@@ -106,7 +106,6 @@ class SeshRequest(models.Model):
         '''
         Sends a notification to all eligible tutos that job is available
         '''
-        from serializers import SeshRequestSerializer
         from apps.tutor.models import TutorCourse
         import locale
 
@@ -120,14 +119,11 @@ class SeshRequest(models.Model):
             "ESTIMATED_WAGE": locale.currency(self.get_estimated_wage()),
             "COURSE_NAME": self.course.get_readable_name()
         }
-        data = {
-            "request": SeshRequestSerializer(self).data
-        }
         tutor_courses = TutorCourse.objects.filter(course=self.course)
         notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
 
         for tc in tutor_courses:
-            OpenNotification.objects.create(tc.tutor.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(tc.tutor.user, notification_type, None, merge_vars, None)
 
     def send_direct_request_notification(self):
         '''
@@ -186,7 +182,7 @@ class OpenSesh(models.Model):
         }
 
         data = {
-            "request": SeshEditableRequestSerializer(self.past_request).data,
+            "request_id": self.past_request.id,
             "sesh_id": sesh_id
         }
         notification_type = NotificationType.objects.get(identifier="SESH_EDITED")
