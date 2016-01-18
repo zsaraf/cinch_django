@@ -96,7 +96,7 @@ class SeshRequest(models.Model):
             )
             for n in notifications:
                 json_arr = json.loads(n.data)
-                request_id = json_arr.get('request').get('id')
+                request_id = json_arr.get('request_id').get('id')
                 if request_id == self.pk:
                     PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
                     OpenNotification.objects.get(pk=n.pk).delete()
@@ -123,10 +123,13 @@ class SeshRequest(models.Model):
             'request_id': self.id
         }
         tutor_courses = TutorCourse.objects.filter(course=self.course)
-        notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+        tutors = [tc.tutor for tc in tutor_courses]
+        tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(id__in=tutors.values('id'))
+        tutors.extend([td.tutor for td in tutor_departments])
 
-        for tc in tutor_courses:
-            OpenNotification.objects.create(tc.tutor.user, notification_type, data, merge_vars, None)
+        notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+        for tutor in tutors:
+            OpenNotification.objects.create(tutor.user, notification_type, data, merge_vars, None)
 
     def send_direct_request_notification(self):
         '''
