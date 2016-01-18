@@ -87,7 +87,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
             announcement.send_notifications(request, activity)
-            open_sesh.send_sesh_edited_notification(request)
+            open_sesh.send_sesh_edited_notification(request, open_sesh.pk)
 
         return Response(SeshEditableRequestSerializer(sesh_request, context={'request': request}).data)
 
