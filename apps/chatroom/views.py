@@ -66,7 +66,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
-        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__gt=min_id, chatroom_activity_type=upload_type)[:50]
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__gte=min_id, chatroom_activity_type=upload_type)[:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
