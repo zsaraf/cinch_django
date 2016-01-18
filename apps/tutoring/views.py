@@ -133,8 +133,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             school = request.user.school
             sesh_comp = Constant.objects.get(school_id=school.pk).sesh_comp
             available_blocks = None
-            expiration_time = datetime.now() + timedelta(hours=24)
-            if request.data.get('available_blocks', False):
+
+            if 'tutor' not in request.data:
                 available_blocks = json.dumps(request.data['available_blocks'])
 
                 # calculate new expiration_time
@@ -146,6 +146,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                         last_end_time = end_time
 
                 expiration_time = last_end_time - timedelta(minutes=15)
+            else:
+                expiration_time = datetime.now() + timedelta(hours=24)
 
             est_time = int(request.data.get('est_time', 0))
 
