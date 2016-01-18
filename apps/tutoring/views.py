@@ -228,7 +228,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You cannot respond to this request"}, 405)
 
         if sesh_request.status != 0:
-            return Response({"detail": "The student cancelled the request."})
+            return Response({"detail": "The student cancelled the request."}, 405)
 
         sesh_request.status = 1
         sesh_request.save()
