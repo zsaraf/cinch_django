@@ -108,6 +108,7 @@ class User(models.Model):
     is_disabled = models.BooleanField(default=False)
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
+    daily_digest_enabled = models.BooleanField(default=True)
 
     def send_verification_email(self):
 
