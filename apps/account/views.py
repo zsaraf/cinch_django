@@ -59,7 +59,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserRegularInfoSerializer
 
-    @list_route(methods=['post'], permissions_classes=[IsAuthenticated])
+    @list_route(methods=['post'])
     def toggle_daily_digest(self, request):
         user = request.user
         user.daily_digest_enabled = not user.daily_digest_enabled
@@ -201,7 +201,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
             return Response()
 
-    @list_route(methods=['POST'], permissions_classes=[IsAuthenticated])
+    @list_route(methods=['POST'])
     def update_user_info(self, request):
         user = request.user
         bio = request.data.get('bio', None)
