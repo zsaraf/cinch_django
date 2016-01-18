@@ -118,8 +118,6 @@ class UserFullInfoSerializer(serializers.ModelSerializer):
         memberships = ConversationParticipant.objects.filter(user=obj)
         return ConversationSerializer(Conversation.objects.filter(id__in=memberships.values('conversation_id')), many=True, context={'request': self.context['request']}).data
 
-        return ConversationSerializer(ConversationSerializer.objects.filter(user=obj), many=True, context={'request': self.context['request']}).data
-
     def get_student(self, obj):
         return StudentSerializer(obj.student, context={'request': self.context['request']}).data
 

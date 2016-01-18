@@ -2,7 +2,6 @@ from django.db import models
 from apps.chatroom.models import ChatroomMember
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
 import json
-from rest_framework.response import Response
 
 
 class ConversationParticipant(models.Model):
@@ -31,11 +30,11 @@ class Conversation(models.Model):
 
         convo_members = ConversationParticipant.objects.filter(conversation=self).exclude(user=user)
         merge_vars = {}
-        data = {
-            "conversation": ConversationSerializer(self, context={'request': request}).data
-        }
         notification_type = NotificationType.objects.get(identifier="CONVERSATION_CREATED")
         for cm in convo_members:
+            data = {
+                "conversation": ConversationSerializer(self, context={'request': request, 'context_user': cm.user}).data
+            }
             OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
 
 

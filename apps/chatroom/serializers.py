@@ -167,9 +167,25 @@ class ChatroomSerializer(serializers.ModelSerializer):
     additional_uploads = serializers.SerializerMethodField()
     notifications_enabled = serializers.SerializerMethodField()
     chatroom_members = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = Chatroom
+
+    def get_name(self, obj):
+        from apps.group.models import Conversation, ConversationParticipant
+        if 'context_user' in self.context:
+            user = self.context['context_user']
+        else:
+            user = self.context['request'].user
+
+        try:
+            conversation = Conversation.objects.get(chatroom=obj)
+            other_participant = ConversationParticipant.objects.exclude(user=user).get(conversation=conversation)
+            return other_participant.user.readable_name
+
+        except Conversation.DoesNotExist:
+            return obj.name
 
     def get_chatroom_members(self, obj):
         return ChatroomMemberSerializer(ChatroomMember.objects.filter(chatroom=obj), many=True).data

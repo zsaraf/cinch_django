@@ -19,7 +19,7 @@ class ConversationSerializer(serializers.ModelSerializer):
         model = Conversation
 
     def get_chatroom(self, obj):
-        return ChatroomSerializer(obj.chatroom, context={'request': self.context['request']}).data
+        return ChatroomSerializer(obj.chatroom, context=self.context).data
 
 
 class CourseGroupSlimSerializer(serializers.ModelSerializer):
