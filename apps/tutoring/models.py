@@ -119,11 +119,14 @@ class SeshRequest(models.Model):
             "ESTIMATED_WAGE": locale.currency(self.get_estimated_wage()),
             "COURSE_NAME": self.course.get_readable_name()
         }
+        data = {
+            'request_id': self.id
+        }
         tutor_courses = TutorCourse.objects.filter(course=self.course)
         notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
 
         for tc in tutor_courses:
-            OpenNotification.objects.create(tc.tutor.user, notification_type, None, merge_vars, None)
+            OpenNotification.objects.create(tc.tutor.user, notification_type, data, merge_vars, None)
 
     def send_direct_request_notification(self):
         '''
@@ -175,8 +178,6 @@ class OpenSesh(models.Model):
         '''
         Sends notification that sesh's request was edited
         '''
-        from serializers import SeshEditableRequestSerializer
-
         merge_vars = {
             "STUDENT_NAME": self.student.user.readable_name
         }
