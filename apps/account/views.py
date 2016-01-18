@@ -79,6 +79,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if version_number < 2:
             return Response({"detail": "Download the latest version on the AppStore then try again!"}, 405)
 
+        promo_recipient = None
+
+        try:
+            if promo_code is not None:
+                promo_recipient = User.objects.get(share_code=promo_code)
+        except Exception:
+            return Response({"detail": "Invalid promo code"}, 405)
+
         try:
             existing_user = User.objects.get(email=email)
             if existing_user.is_verified:
@@ -179,16 +187,10 @@ class UserViewSet(viewsets.ModelViewSet):
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
             OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
 
-            try:
-                if promo_code is not None:
-                    promo_recipient = User.objects.get(share_code=promo_code)
-                    constants = Constant.objects.get(school_id=promo_recipient.school.pk)
-
-                    promo_type = PromoType.objects.get(identifier='user_to_user_share')
-                    SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
-
-            except Exception:
-                return Response({"detail": "Invalid promo code"}, 405)
+            if promo_code is not None and promo_recipient is not None:
+                constants = Constant.objects.get(school_id=promo_recipient.school.pk)
+                promo_type = PromoType.objects.get(identifier='user_to_user_share')
+                SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
 
             return Response()
 
