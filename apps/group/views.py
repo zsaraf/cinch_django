@@ -137,6 +137,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             error = "You cannot be enrolled in more than {} classes".format(constants.max_course_groups)
             return Response({"detail": error}, 405)
 
+        newCourseGroups = []
+
         for obj in delete_json_arr:
             course_group_id = obj.get('course_group_id', '')
             try:
@@ -202,6 +204,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             # now add them to the group
             CourseGroupMember.objects.create(course_group=course_group, student=user.student)
 
+            # add the group to the return serializer
+            newCourseGroups.append(course_group)
+
             # add them to the group's chatroom
             ChatroomMember.objects.create(chatroom=course_group.chatroom, user=user)
 
@@ -236,8 +241,9 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             # this is fine, just means they weren't involved in a promo
             pass
 
+        logger.debug(newCourseGroups)
         memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
-        serializer = CourseGroupFullSerializer(CourseGroup.objects.filter(id__in=memberships.values('course_group_id')), many=True, context={'request': request})
+        serializer = CourseGroupFullSerializer(newCourseGroups, many=True, context={'request': request})
         return Response(serializer.data)
 
 
