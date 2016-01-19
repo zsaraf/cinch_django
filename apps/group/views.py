@@ -172,7 +172,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
                 # first search to see if there's another group with same professor name
                 try:
-                    course_group = CourseGroup.objects.get(course=course, professor_name=professor_name)
+                    course_group = CourseGroup.objects.get(course=course, professor_name=professor_name, is_past=False)
                 except CourseGroup.DoesNotExist:
                     # no such group, create a new one
                     chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)

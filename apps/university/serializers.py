@@ -22,7 +22,7 @@ class CourseWithGroupsSerializer(serializers.ModelSerializer):
     def get_course_groups(self, obj):
         from apps.group.serializers import CourseGroupSlimSerializer
         from apps.group.models import CourseGroup
-        return CourseGroupSlimSerializer(CourseGroup.objects.filter(course=obj), many=True).data
+        return CourseGroupSlimSerializer(CourseGroup.objects.filter(course=obj, is_past=False), many=True).data
 
 
 class CourseSerializer(serializers.ModelSerializer):

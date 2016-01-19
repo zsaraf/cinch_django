@@ -24,7 +24,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         user = request.user
         try:
             num_unread = ChatroomActivity.objects.filter(pk__gt=last_activity_id, chatroom=chatroom).count()
-            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroomm, is_past=False)
             chatroom_member.unread_activity_count = num_unread
             chatroom_member.save()
             return Response()
@@ -36,7 +36,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         user = request.user
         try:
-            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom)
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
             chatroom_member.notifications_enabled = not chatroom_member.notifications_enabled
             chatroom_member.save()
             return Response({"notifications_enabled": chatroom_member.notifications_enabled})
@@ -48,7 +48,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
         try:
-            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
+            ChatroomMember.objects.get(user=request.user, chatroom=chatroom, is_past=False)
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
@@ -61,7 +61,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         min_id = request.data.get('min_id')
         try:
-            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
+            ChatroomMember.objects.get(user=request.user, chatroom=chatroom, is_past=False)
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
@@ -80,14 +80,15 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def send_message(self, request, pk=None):
         data_with_user = request.data
         chatroom = self.get_object()
-        chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
+        chatroom_member = None
+        try:
+            chatroom_member = ChatroomMember.objects.get(user=request.user, chatroom=chatroom, is_past=False)
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
+
         data_with_user['user'] = request.user.id
         data_with_user['chatroom'] = chatroom.pk
         data_with_user['chatroom_member'] = chatroom_member.pk
-        try:
-            ChatroomMember.objects.get(user=request.user, chatroom=chatroom)
-        except ChatroomMember.DoesNotExist:
-            return Response({"detail": "You are not a member of this chatroom"}, 405)
 
         serializer = MessageSerializer(data=data_with_user)
         if serializer.is_valid():
@@ -107,7 +108,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
 
         try:
-            chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
+            chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user, is_past=False)
             name = request.data.get('name')
             is_anonymous = int(request.data.get('is_anonymous', 0))
             tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))

@@ -178,9 +178,9 @@ class Upload(models.Model):
         data = chatroom_activity.get_pn_data(request)
 
         notification_type = None
-        if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+        if CourseGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_COURSE_GROUP")
-        elif StudyGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+        elif StudyGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_STUDY_GROUP")
         elif OpenSesh.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_SESH")
@@ -249,9 +249,9 @@ class Message(models.Model):
         }
         data = chatroom_activity.get_pn_data(request)
         notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
-        if CourseGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+        if CourseGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_COURSE_GROUP")
-        elif StudyGroup.objects.filter(chatroom=self.chatroom).count() > 0:
+        elif StudyGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_STUDY_GROUP")
 
         for cm in chatroom_members:

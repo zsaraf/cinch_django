@@ -69,7 +69,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def get_course_groups(self, obj):
         course_group_memberships = CourseGroupMember.objects.filter(student=obj, is_past=False)
-        return CourseGroupFullSerializer(CourseGroup.objects.filter(id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
+        return CourseGroupFullSerializer(CourseGroup.objects.filter(is_past=False, id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
 
     def get_requests(self, obj):
         from apps.tutoring.models import SeshRequest
