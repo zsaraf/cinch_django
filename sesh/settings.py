@@ -21,6 +21,14 @@ SERVER_NAME = "cinchtutoring"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
+#Slack Integration - for API tips see https://github.com/os/slacker
+
+# Below is the dev (Cinch) slack bot
+SLACK_BOT_TOKEN = 'xoxb-18843217328-ICDugF9g9eMKgaxGXkX646yY'
+
+# Below is the prod (Sesh) slack bot
+# SLACK_BOT_TOKEN = 'xoxb-18843597536-6nv8LjUVidq2oTtkT0qAQ5OY'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'l%rjm^+u1m_k59lmah+052v!)*4&^mxn7&+y$f6q)tfikpb#$e'
 

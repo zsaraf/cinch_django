@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
+from slacker import Slacker
+from sesh import settings
 from .serializers import *
 from .models import *
 import logging
@@ -81,14 +83,20 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def send_message(self, request, pk=None):
         user = request.user
         chatroom = self.get_object()
-        message = request.data['message']
+        text = request.data['message']
 
         try:
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
-            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=message)
+            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text)
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
             message.send_notifications(activity, request)
+
+            # post to slack TODO add detail
+            slack = Slacker(settings.SLACK_BOT_TOKEN)
+            slack_message = user.email + " posted in " + chatroom.name + ":\n" + text
+            slack.chat.post_message('#sesh_all', slack_message, as_user=True)
+
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
         except ChatroomMember.DoesNotExist:
@@ -106,12 +114,19 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
 
             new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)
+            all_urls = ""
             for fp in request.FILES.getlist('file'):
-                new_upload.upload_file(fp)
+                url = new_upload.upload_file(fp)
+                all_urls = all_urls + url + "\n"
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
             new_upload.send_created_notification(activity, request)
+
+            # post to slack TODO add detail
+            slack = Slacker(settings.SLACK_BOT_TOKEN)
+            message = request.user.email + " uploaded files to " + chatroom.name + ":\n" + all_urls
+            slack.chat.post_message('#sesh_all', message, as_user=True)
 
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
