@@ -300,6 +300,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                 for cm in members:
                     cm.unread_activity_count = 0
                     cm.save()
+                    OpenNotification.objects.send_badge_update(cm.user)
             except ChatroomMember.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 
@@ -354,6 +355,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                 for cm in members:
                     cm.unread_activity_count = 0
                     cm.save()
+                    OpenNotification.objects.send_badge_update(cm.user)
             except ChatroomMember.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             open_sesh.delete()
@@ -498,6 +500,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             for cm in members:
                 cm.unread_activity_count = 0
                 cm.save()
+                OpenNotification.objects.send_badge_update(cm.user)
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 

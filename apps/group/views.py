@@ -150,6 +150,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 chat_member.is_past = True
                 chat_member.unread_activity_count = 0
                 chat_member.save()
+                OpenNotification.objects.send_badge_update(user)
             except CourseGroup.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             except Student.DoesNotExist:
@@ -355,6 +356,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 chat_member.is_past = True
                 chat_member.unread_activity_count = 0
                 chat_member.save()
+                OpenNotification.objects.send_badge_update(user)
                 # announce to the group that a member has left
                 announcement_type = AnnouncementType.objects.get(identifier="USER_LEFT_GROUP")
                 announcement = Announcement.objects.create(chatroom=study_group.chatroom, announcement_type=announcement_type, user=user)

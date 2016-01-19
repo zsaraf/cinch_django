@@ -93,13 +93,13 @@ class ChatroomActivity(models.Model):
             chatroom_members = []
             if self.chatroom_activity_type.is_message():
                 message = Message.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=message.chatroom_member.user)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(id=message.chatroom_member.id)
             elif self.chatroom_activity_type.is_announcement():
                 announcement = Announcement.objects.get(pk=self.activity_id)
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=announcement.user)
             elif self.chatroom_activity_type.is_upload():
                 new_upload = Upload.objects.get(pk=self.activity_id)
-                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=new_upload.chatroom_member.user)
+                chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(id=new_upload.chatroom_member.id)
             elif self.chatroom_activity_type.is_study_group():
                 from apps.group.models import StudyGroup
                 group = StudyGroup.objects.get(pk=self.activity_id)
