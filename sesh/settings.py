@@ -30,7 +30,7 @@ STRIPE_API_KEY = 'sk_test_qJfmv5RuoEQK9BMDHNBf4I82'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['cinchtutoring.com', 'localhost']
+ALLOWED_HOSTS = ['cinchtutoring.com', 'localhost', 'seshtutoring.com']
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
