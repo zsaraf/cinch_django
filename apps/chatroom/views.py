@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
-from slacker import Slacker
+from sesh import slack_utils
 from sesh import settings
 from .serializers import *
 from .models import *
@@ -93,9 +93,8 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             message.send_notifications(activity, request)
 
             # post to slack TODO add detail
-            slack = Slacker(settings.SLACK_BOT_TOKEN)
             slack_message = user.email + " posted in " + chatroom.name + ":\n" + text
-            slack.chat.post_message('#sesh_all', slack_message, as_user=True)
+            slack_utils.send_simple_slack_message(slack_message)
 
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
@@ -124,9 +123,8 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             new_upload.send_created_notification(activity, request)
 
             # post to slack TODO add detail
-            slack = Slacker(settings.SLACK_BOT_TOKEN)
             message = request.user.email + " uploaded files to " + chatroom.name + ":\n" + all_urls
-            slack.chat.post_message('#sesh_all', message, as_user=True)
+            slack_utils.send_simple_slack_message(message)
 
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 

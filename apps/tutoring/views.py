@@ -1,7 +1,7 @@
 from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
 from rest_framework import viewsets
 from datetime import datetime, timedelta
-from slacker import Slacker
+from sesh import slack_utils
 from apps.tutoring.serializers import *
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +19,6 @@ from sesh import settings
 from sesh.mandrill_utils import EmailManager
 from apps.emailclient.models import PendingEmail
 from sesh.bonus_utils import BonusManager
-from sesh import settings
 import locale
 import os
 
@@ -173,9 +172,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 sesh_request.send_direct_request_notification()
 
                 # post to slack TODO add detail
-                slack = Slacker(settings.SLACK_BOT_TOKEN)
                 message = request.user.email + " submitted a direct request for " + sesh_request.tutor.user.email + " in " + sesh_request.course.get_readable_name()
-                slack.chat.post_message('#sesh_all', message, as_user=True)
+                slack_utils.send_simple_slack_message(message)
 
             else:
                 sesh_request.save()
@@ -183,9 +181,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
                 sesh_request.send_request_notification()
 
                 # post to slack TODO add detail
-                slack = Slacker(settings.SLACK_BOT_TOKEN)
                 message = request.user.email + " submitted a request in " + sesh_request.course.get_readable_name()
-                slack.chat.post_message('#sesh_all', message, as_user=True)
+                slack_utils.send_simple_slack_message(message)
 
 
             # remove pending timeout emails
@@ -218,9 +215,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request.save()
         sesh_request.clear_notifications()
 
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = request.user.email + " cancelled his/her request."
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response()
 
@@ -254,9 +250,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
         sesh_request.send_tutor_accepted_notification(sesh)
 
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = request.user.email + " accepted " + sesh_request.student.user.email + "'s direct request!"
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response(OpenSeshSerializer(sesh, context={'request': request}).data)
 
@@ -278,9 +273,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         sesh_request.send_tutor_rejected_notification()
 
         # post to slack
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = request.user.email + " rejected " + sesh_request.student.user.email + "'s direct request :("
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response()
 
@@ -383,9 +377,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You are not part of the Sesh"}, 405)
 
         # post to slack
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = user.email + " cancelled the Sesh.\nWhy? " + cancellation_reason
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response()
 
@@ -413,9 +406,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
 
         open_sesh.send_has_started_notification()
 
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = user.email + " started the Sesh."
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response()
 
@@ -545,9 +537,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         past_sesh.send_has_ended_notifications()
 
         # post to slack TODO add detail
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = tutor.user.email + " ended the Sesh."
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response()
 
@@ -573,9 +564,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         open_sesh.clear_approaching_notifications()
         open_sesh.send_set_time_notification(activity, request)
 
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = user.email + " set the start time: " + set_time
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
 
@@ -622,9 +612,8 @@ class PastSeshViewSet(viewsets.ModelViewSet):
 
         user.update_sesh_state('SeshStateNone')
 
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = user.email + " gave a rating of ({}, {}, {})".format(past_sesh.rating_1, past_sesh.rating_2, past_sesh.rating_3)
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         if is_favorited:
             try:

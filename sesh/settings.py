@@ -26,8 +26,14 @@ SERVER_NAME = 'seshtutoring'
 # Below is the dev (Cinch) slack bot
 SLACK_BOT_TOKEN = 'xoxb-18843217328-ICDugF9g9eMKgaxGXkX646yY'
 
+# Below is the dev (Cinch) slack channel
+SLACK_CHANNEL = '#slack_testing'
+
 # Below is the prod (Sesh) slack bot
 # SLACK_BOT_TOKEN = 'xoxb-18843597536-6nv8LjUVidq2oTtkT0qAQ5OY'
+
+# Below is the dev (Sesh) slack channel
+# SLACK_CHANNEL = '#sesh_all'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'l%rjm^+u1m_k59lmah+052v!)*4&^mxn7&+y$f6q)tfikpb#$e'

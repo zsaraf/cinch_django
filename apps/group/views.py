@@ -1,8 +1,7 @@
 from .models import *
 from rest_framework import viewsets
 from .serializers import *
-from slacker import Slacker
-from sesh import settings
+from sesh import slack_utils
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from apps.university.models import Course
@@ -95,9 +94,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group.send_study_group_notification(user, chatroom_activity, request)
 
         # post to slack
-        slack = Slacker(settings.SLACK_BOT_TOKEN)
         message = user.email + " started a Study Group in " + chatroom.name
-        slack.chat.post_message('#sesh_all', message, as_user=True)
+        slack_utils.send_simple_slack_message(message)
 
         obj = StudyGroupSerializer(new_study_group, context={'request': request})
         return Response(obj.data)
