@@ -83,7 +83,6 @@ class SeshRequest(models.Model):
         '''
         import json
 
-        refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
         new_request_notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
 
         notifications = OpenNotification.objects.filter(notification_type=new_request_notification_type)
@@ -93,7 +92,6 @@ class SeshRequest(models.Model):
             if request_id == self.pk:
                 PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
                 OpenNotification.objects.get(pk=n.pk).delete()
-        OpenNotification.objects.create(tc.tutor.user, refresh_type, None, None, None)
 
     def send_request_notification(self):
         '''

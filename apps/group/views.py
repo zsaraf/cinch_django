@@ -65,7 +65,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         user = request.user
 
         try:
-            CourseGroupMember.objects.get(course_group=course_group, user=user)
+            CourseGroupMember.objects.get(course_group=course_group, student=user.student, is_past=False)
         except CourseGroupMember.DoesNotExist:
             return Response({"detail": "You are not a member of the course"}, 405)
 
@@ -104,7 +104,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
         course_group = self.get_object()
 
         try:
-            CourseGroupMember.objects.get(user=user, course_group=course_group)
+            CourseGroupMember.objects.get(student=user.student, course_group=course_group, is_past=False)
         except CourseGroupMember.DoesNotExist:
             return Response({"detail": "You are not a member of this course"}, 405)
 
@@ -143,7 +143,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             course_group_id = obj.get('course_group_id', '')
             try:
                 course_group = CourseGroup.objects.get(pk=course_group_id)
-                course_member = CourseGroupMember.objects.get(student=user.student, course_group=course_group)
+                course_member = CourseGroupMember.objects.get(student=user.student, course_group=course_group, is_past=False)
                 course_member.is_past = True
                 course_member.save()
                 chat_member = ChatroomMember.objects.get(user=user, chatroom=course_group.chatroom)
@@ -182,7 +182,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     course_group = CourseGroup.objects.get(pk=int(course_group_id))
                     if course_group.is_past:
                         return Response({"detail": "The class has ended"}, 405)
-                    member = CourseGroupMember.objects.get(course_group=course_group, student=user.student)
+                    member = CourseGroupMember.objects.get(course_group=course_group, student=user.student, is_past=False)
                     if not member.is_past:
                         return Response({"detail": "You are already a member of the class"}, 405)
                     else:
