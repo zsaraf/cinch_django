@@ -105,7 +105,7 @@ class ChatroomActivity(models.Model):
                 group = StudyGroup.objects.get(pk=self.activity_id)
                 chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=group.user)
             for member in chatroom_members:
-                # member.unread_activity_count = member.unread_activity_count + 1
+                member.unread_activity_count = member.unread_activity_count + 1
                 member.save()
 
         super(ChatroomActivity, self).save(*args, **kwargs)
