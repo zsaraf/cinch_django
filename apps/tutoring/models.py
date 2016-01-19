@@ -106,7 +106,7 @@ class SeshRequest(models.Model):
         '''
         Sends a notification to all eligible tutos that job is available
         '''
-        from apps.tutor.models import TutorCourse
+        from apps.tutor.models import TutorCourse, TutorDepartment
         import locale
 
         locale.setlocale(locale.LC_ALL, '')
