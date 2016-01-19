@@ -112,7 +112,7 @@ class User(models.Model):
 
     def send_verification_email(self):
 
-        link = "https://" + settings.SERVER_NAME + "/verify.html?verificationId=" + self.verification_id
+        link = "https://" + settings.SERVER_NAME + ".com/verify.html?verificationId=" + self.verification_id
 
         merge_vars = {
             'ACTIVATION_LINK': link,
