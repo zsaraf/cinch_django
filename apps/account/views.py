@@ -90,8 +90,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
         try:
             if promo_code is not None:
-                promo_recipient = User.objects.get(share_code=promo_code)
-        except Exception:
+                promo_recipient = User.objects.get(share_code=promo_code.lower())
+        except User.DoesNotExist:
             return Response({"detail": "Invalid promo code"}, 405)
 
         try:
