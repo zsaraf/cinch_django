@@ -81,26 +81,19 @@ class SeshRequest(models.Model):
         '''
         After a request has ended, clear old notifications for all users
         '''
-        from apps.tutor.models import TutorCourse
         import json
 
-        tutor_classes = TutorCourse.objects.filter(course=self.course)
         refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
         new_request_notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
-        new_direct_request_notification_type = NotificationType.objects.get(identifier="NEW_DIRECT_REQUEST")
 
-        for tc in tutor_classes:
-            notifications = OpenNotification.objects.filter(
-                user=tc.tutor.user,
-                notification_type__in=[new_request_notification_type, new_direct_request_notification_type]
-            )
-            for n in notifications:
-                json_arr = json.loads(n.data)
-                request_id = json_arr.get('request_id').get('id')
-                if request_id == self.pk:
-                    PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-                    OpenNotification.objects.get(pk=n.pk).delete()
-            OpenNotification.objects.create(tc.tutor.user, refresh_type, None, None, None)
+        notifications = OpenNotification.objects.filter(notification_type=new_request_notification_type)
+        for n in notifications:
+            json_arr = json.loads(n.data)
+            request_id = json_arr.get('request_id').get('id')
+            if request_id == self.pk:
+                PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                OpenNotification.objects.get(pk=n.pk).delete()
+        OpenNotification.objects.create(tc.tutor.user, refresh_type, None, None, None)
 
     def send_request_notification(self):
         '''
