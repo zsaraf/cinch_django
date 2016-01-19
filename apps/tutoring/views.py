@@ -491,9 +491,14 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         else:
             EmailManager.send_email(EmailManager.REVIEW_SESH_TUTOR, merge_vars, tutor.user.email, tutor.user.readable_name, None)
 
-        # archive chatroom
-        past_sesh.chatroom.is_past = True
-        past_sesh.chatroom.save()
+        # remove chatroom_members activity count and delete open_sesh
+        try:
+            members = ChatroomMember.objects.filter(chatroom=past_sesh.chatroom)
+            for cm in members:
+                cm.unread_activity_count = 0
+                cm.save()
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 
         # increment num_seshes for tutor
         tutor.num_seshes = tutor.num_seshes + 1
