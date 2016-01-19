@@ -396,6 +396,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         '''
         from apps.university.models import Constant
         from apps.transaction.models import OutstandingCharge
+        from apps.chatroom.models import ChatroomMember
 
         user = request.user
         tutor = user.tutor
