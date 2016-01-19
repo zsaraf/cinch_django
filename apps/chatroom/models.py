@@ -187,7 +187,7 @@ class Upload(models.Model):
         elif Conversation.objects.filter(chatroom=self.chatroom).count() > 0:
             notification_type = NotificationType.objects.get(identifier="NEW_UPLOAD_CONVERSATION")
         else:
-            return Response("Group not found")
+            return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         for cm in chatroom_members:
             if (cm.notifications_enabled):
                 OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)

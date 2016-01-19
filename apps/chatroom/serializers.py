@@ -225,8 +225,8 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 member = ChatroomMember.objects.get(user=request.user, chatroom=obj)
                 return member.unread_activity_count
             except ChatroomMember.DoesNotExist:
-                raise exceptions.NotFound("Chatroom " + str(obj.pk) + " member " + str(request.user.pk) + " not found")
-        raise exceptions.NotFound("Request not found")
+                raise exceptions.NotFound("Sorry, something's wrong with the network. Be back soon!")
+        raise exceptions.NotFound("Sorry, something's wrong with the network. Be back soon!")
 
     def get_tags(self, obj):
         return TagSerializer(Tag.objects.all(), many=True).data
@@ -244,8 +244,8 @@ class ChatroomSerializer(serializers.ModelSerializer):
                 member = ChatroomMember.objects.get(user=request.user, chatroom=obj)
                 return ChatroomMemberBasicSerializer(member).data
             except ChatroomMember.DoesNotExist:
-                raise exceptions.NotFound("Chatroom " + str(obj.pk) + " member " + str(request.user.pk) + " not found")
-        raise exceptions.NotFound("Request not found")
+                raise exceptions.NotFound("Sorry, something's wrong with the network. Be back soon!")
+        raise exceptions.NotFound("Sorry, something's wrong with the network. Be back soon!")
 
 
 class UploadSerializer(serializers.ModelSerializer):

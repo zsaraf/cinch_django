@@ -329,7 +329,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "You are not a member of the study group"}, 405)
 
         else:
-            return Response("Only owner can alter study group", 200)
+            return Response({"detail": "Only the group leader can edit the group details"}, 405)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def leave(self, request, pk=None):
@@ -339,7 +339,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         user = request.user
         study_group = self.get_object()
         if study_group.is_past:
-            return Response("This study group has ended")
+            return Response({"detail": "The study group has ended"}, 405)
 
         if user == study_group.user:
             # user is creator of group -> archive group and notify users
