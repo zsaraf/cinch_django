@@ -175,6 +175,8 @@ class ChatroomSerializer(serializers.ModelSerializer):
     def get_name(self, obj):
         from apps.group.models import Conversation, ConversationParticipant
         from apps.tutoring.models import OpenSesh
+        from apps.account.models import User
+
         if 'context_user' in self.context:
             user = self.context['context_user']
         else:
@@ -183,7 +185,12 @@ class ChatroomSerializer(serializers.ModelSerializer):
         try:
             conversation = Conversation.objects.get(chatroom=obj)
             other_participant = ConversationParticipant.objects.exclude(user=user).get(conversation=conversation)
-            return other_participant.user.readable_name
+            team_user = User.objects.get(email='team@seshtutoring.com')
+
+            if other_participant.user == team_user:
+                return obj.name
+            else:
+                return other_participant.user.readable_name
 
         except Conversation.DoesNotExist:
             pass
