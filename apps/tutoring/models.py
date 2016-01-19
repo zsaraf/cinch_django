@@ -97,7 +97,7 @@ class SeshRequest(models.Model):
 
     def send_request_notification(self):
         '''
-        Sends a notification to all eligible tutos that job is available
+        Sends a notification to all eligible tutors that job is available
         '''
         from apps.tutor.models import TutorCourse, TutorDepartment
         import locale
