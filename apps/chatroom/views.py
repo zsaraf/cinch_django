@@ -85,6 +85,9 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         chatroom = self.get_object()
         text = request.data['message']
 
+        if len(text) > 500:
+            return Response({"detail": "Message must be less than 500 characters. Shorten it up!"}, 405)
+
         try:
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
             message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text)
