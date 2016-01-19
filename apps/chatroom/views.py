@@ -24,9 +24,10 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         user = request.user
         try:
             num_unread = ChatroomActivity.objects.filter(pk__gt=last_activity_id, chatroom=chatroom).count()
-            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroomm, is_past=False)
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
             chatroom_member.unread_activity_count = num_unread
             chatroom_member.save()
+            OpenNotification.objects.send_badge_update(user)
             return Response()
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "You are not a member of this chatroom"}, 405)

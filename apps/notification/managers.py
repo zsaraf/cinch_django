@@ -5,6 +5,11 @@ from json import dumps
 
 class OpenNotificationManager(models.Manager):
 
+    def send_badge_update(self, user):
+        from apps.notification.models import NotificationType
+        badge_type = NotificationType.objects.get(identifier="UPDATE_BADGE_NUMBER")
+        self.model.objects.create(user, badge_type, None, None, None)
+
     def send_refresh(self, user):
         from apps.notification.models import NotificationType
         refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
