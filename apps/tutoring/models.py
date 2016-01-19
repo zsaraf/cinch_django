@@ -229,8 +229,7 @@ class OpenSesh(models.Model):
         data['set_time'] = self.set_time
 
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
         # create delayed notification for 30 minute reminder
         reminder_time = datetime.strptime(self.set_time, '%Y-%m-%d %H:%M:%S') - timedelta(minutes=30)

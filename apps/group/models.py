@@ -63,12 +63,11 @@ class CourseGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_COURSE_GROUP")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                data = {
-                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
-                    'chatroom_id': self.chatroom.id
-                }
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            data = {
+                "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
+                'chatroom_id': self.chatroom.id
+            }
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     def send_study_group_notification(self, user, chatroom_activity, request):
         '''
@@ -84,8 +83,7 @@ class CourseGroup(models.Model):
 
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_CREATED")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
 
 class CourseGroupMember(models.Model):
@@ -124,12 +122,11 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_OWNER")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                data = {
-                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
-                    'chatroom_id': self.chatroom.id
-                }
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            data = {
+                "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
+                'chatroom_id': self.chatroom.id
+            }
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     def send_group_edited_notification(self, request):
         '''
@@ -146,8 +143,7 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_EDITED")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     def send_group_ended_notification(self):
         '''
@@ -162,9 +158,8 @@ class StudyGroup(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="STUDY_GROUP_ENDED")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                OpenNotification.clear_by_user_and_chatroom(cm.user, self.chatroom)
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.clear_by_user_and_chatroom(cm.user, self.chatroom)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     def send_new_member_notification(self, new_user, request):
         '''
@@ -180,12 +175,11 @@ class StudyGroup(models.Model):
 
         notification_type = NotificationType.objects.get(identifier="NEW_GROUP_MEMBER_STUDY_GROUP")
         for cm in chatroom_members:
-            if cm.notifications_enabled:
-                data = {
-                    "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
-                    'chatroom_id': self.chatroom.id
-                }
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            data = {
+                "chatroom_member": ChatroomMemberSerializer(cm, context={'request': request}).data,
+                'chatroom_id': self.chatroom.id
+            }
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     class Meta:
         managed = False

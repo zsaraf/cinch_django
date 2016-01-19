@@ -22,6 +22,7 @@ class OpenNotification(models.Model):
     notification_vars = models.TextField(blank=True, null=True)
     has_sent = models.IntegerField()
     send_time = models.DateTimeField()
+    muted = models.BooleanField(default=False)
     objects = OpenNotificationManager()
 
     class Meta:

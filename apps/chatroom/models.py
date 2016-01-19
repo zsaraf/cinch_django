@@ -23,8 +23,7 @@ class Announcement(models.Model):
         notification_type = NotificationType.objects.get(identifier="NEW_ANNOUNCEMENT")
 
         for cm in chatroom_members:
-            if (cm.notifications_enabled):
-                OpenNotification.objects.create(cm.user, notification_type, data, None, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, None, None, cm.notifications_enabled)
 
 
 class AnnouncementType(models.Model):
@@ -193,8 +192,7 @@ class Upload(models.Model):
         else:
             return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         for cm in chatroom_members:
-            if (cm.notifications_enabled):
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     class Meta:
         managed = False
@@ -259,8 +257,7 @@ class Message(models.Model):
             notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE_STUDY_GROUP")
 
         for cm in chatroom_members:
-            if (cm.notifications_enabled):
-                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     class Meta:
         managed = False
