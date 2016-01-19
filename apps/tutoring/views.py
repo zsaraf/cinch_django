@@ -277,6 +277,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         Cancel an open sesh
         '''
         from apps.university.models import Constant
+        from apps.chatroom.models import ChatroomMember
 
         user = request.user
         open_sesh = self.get_object()
@@ -293,9 +294,15 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             tutor_percentage = 1.0 - float(constants.administrative_percentage)
             past_sesh = PastSesh.objects.create(past_request=open_sesh.past_request, tutor=open_sesh.tutor, student=open_sesh.student, start_time=open_sesh.start_time, end_time=datetime.now(), tutor_percentage=tutor_percentage, student_cancelled=True, tutor_cancelled=False, was_cancelled=True, cancellation_reason=cancellation_reason, set_time=open_sesh.set_time, chatroom=open_sesh.chatroom)
 
-            # archive the chatroom and delete open_sesh
-            open_sesh.chatroom.is_past = True
-            open_sesh.chatroom.save()
+            # remove chatroom_members activity count and delete open_sesh
+            try:
+                members = ChatroomMember.objects.filter(chatroom=open_sesh.chatroom)
+                for cm in members:
+                    cm.unread_activity_count = 0
+                    cm.save()
+            except ChatroomMember.DoesNotExist:
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
+
             open_sesh.delete()
 
             if fee_enabled and has_activity and open_sesh.set_time is not None:
@@ -342,8 +349,13 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             past_sesh.send_tutor_cancelled_notification()
 
             # archive the chatroom and delete open_sesh
-            open_sesh.chatroom.is_past = True
-            open_sesh.chatroom.save()
+            try:
+                members = ChatroomMember.objects.filter(chatroom=open_sesh.chatroom)
+                for cm in members:
+                    cm.unread_activity_count = 0
+                    cm.save()
+            except ChatroomMember.DoesNotExist:
+                return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
             open_sesh.delete()
 
         else:

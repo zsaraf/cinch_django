@@ -148,6 +148,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                 course_member.save()
                 chat_member = ChatroomMember.objects.get(user=user, chatroom=course_group.chatroom)
                 chat_member.is_past = True
+                chat_member.unread_activity_count = 0
                 chat_member.save()
             except CourseGroup.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
@@ -352,6 +353,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 member.save()
                 chat_member = ChatroomMember.objects.get(user=user, chatroom=study_group.chatroom, is_past=False)
                 chat_member.is_past = True
+                chat_member.unread_activity_count = 0
                 chat_member.save()
                 # announce to the group that a member has left
                 announcement_type = AnnouncementType.objects.get(identifier="USER_LEFT_GROUP")
