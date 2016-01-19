@@ -85,6 +85,7 @@ class ChatroomActivity(models.Model):
         else:
             data['chatroom_activity'] = full_object
 
+        data['chatroom_id'] = self.chatroom.id
         return data
 
     def save(self, *args, **kwargs):

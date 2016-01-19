@@ -88,7 +88,7 @@ class SeshRequest(models.Model):
         notifications = OpenNotification.objects.filter(notification_type=new_request_notification_type)
         for n in notifications:
             json_arr = json.loads(n.data)
-            request_id = json_arr.get('request_id').get('id')
+            request_id = json_arr.get('request_id')
             if request_id == self.pk:
                 PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
                 OpenNotification.objects.get(pk=n.pk).delete()
@@ -178,7 +178,7 @@ class OpenSesh(models.Model):
 
         data = {
             "request_id": self.past_request.id,
-            "sesh_id": sesh_id
+            "chatroom_id": self.chatroom.id
         }
         notification_type = NotificationType.objects.get(identifier="SESH_EDITED")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
@@ -187,11 +187,25 @@ class OpenSesh(models.Model):
         '''
         Sends a notification to student that the sesh has started
         '''
+        data = {
+            'chatroom_id': self.chatroom.id
+        }
         merge_vars = {
             "TUTOR_NAME": self.tutor.user.readable_name
         }
         notification_type = NotificationType.objects.get(identifier="SESH_STARTED_STUDENT")
-        OpenNotification.objects.create(self.student.user, notification_type, None, merge_vars, None)
+        OpenNotification.objects.create(self.student.user, notification_type, data, merge_vars, None)
+
+    def clear_approaching_notifications(self):
+        '''
+        Clears old SESH_APPROACHING notifications when new time is set
+        '''
+        search_str = "\"chatroom_id\": " + str(self.chatroom.id)
+        student_type = NotificationType.objects.get(identifier='SESH_APPROACHING_STUDENT')
+        tutor_type = NotificationType.objects.get(identifier='SESH_APPROACHING_TUTOR')
+
+        OpenNotification.objects.filter(user=self.student.user, notification_type=student_type, data__icontains=search_str).delete()
+        OpenNotification.objects.filter(user=self.tutor.user, notification_type=tutor_type, data__icontains=search_str).delete()
 
     def send_set_time_notification(self, chatroom_activity, request):
         '''
@@ -199,12 +213,12 @@ class OpenSesh(models.Model):
         '''
 
         # clear out other set_time requests
-        search_str = "\"chatroom\": " + str(self.chatroom_id)
+        # search_str = "\"chatroom\": " + str(self.chatroom_id)
         notification_type = NotificationType.objects.get(identifier="SET_TIME_UPDATED")
-        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str, notification_type=notification_type)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
+        # existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str, notification_type=notification_type)
+        # for n in existing_notifications:
+        #     PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+        #     OpenNotification.objects.get(pk=n.pk).delete()
 
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.tutor.user)
         merge_vars = {
@@ -467,11 +481,8 @@ class PastSesh(models.Model):
         '''
         Sends a notification to student that tutor has cancelled
         '''
-        search_str = "\"chatroom\": " + str(self.chatroom_id)
-        existing_notifications = OpenNotification.objects.filter(user=self.student.user, data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
+        OpenNotification.objects.clear_by_user_and_chatroom(self.tutor.user, self.chatroom)
+        OpenNotification.objects.clear_by_user_and_chatroom(self.student.user, self.chatroom)
 
         data = {
             "past_sesh_id": self.pk
@@ -487,11 +498,8 @@ class PastSesh(models.Model):
         '''
         Sends a notification to tutor that student has cancelled
         '''
-        search_str = "\"chatroom\": " + str(self.chatroom.pk)
-        existing_notifications = OpenNotification.objects.filter(user=self.tutor.user, data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
+        OpenNotification.objects.clear_by_user_and_chatroom(self.tutor.user, self.chatroom)
+        OpenNotification.objects.clear_by_user_and_chatroom(self.student.user, self.chatroom)
 
         data = {
             "past_sesh_id": self.pk
@@ -507,11 +515,8 @@ class PastSesh(models.Model):
         '''
         Clear existing notifications, sends a notifications to review sesh and refresh
         '''
-        search_str = "\"chatroom\": " + str(self.chatroom_id)
-        existing_notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user], data__icontains=search_str)
-        for n in existing_notifications:
-            PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-            OpenNotification.objects.get(pk=n.pk).delete()
+        OpenNotification.objects.clear_by_user_and_chatroom(self.tutor.user, self.chatroom)
+        OpenNotification.objects.clear_by_user_and_chatroom(self.student.user, self.chatroom)
 
         data = {
             "past_sesh_id": self.pk

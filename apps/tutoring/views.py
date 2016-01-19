@@ -278,6 +278,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         '''
         from apps.university.models import Constant
         from apps.chatroom.models import ChatroomMember
+        from apps.notification.models import OpenNotification
 
         user = request.user
         open_sesh = self.get_object()
@@ -399,6 +400,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         from apps.university.models import Constant
         from apps.transaction.models import OutstandingCharge
         from apps.chatroom.models import ChatroomMember
+        from apps.notification.models import OpenNotification
 
         user = request.user
         tutor = user.tutor
@@ -538,6 +540,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.ANNOUNCEMENT)
         activity = ChatroomActivity.objects.create(chatroom=open_sesh.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
+        open_sesh.clear_approaching_notifications()
         open_sesh.send_set_time_notification(activity, request)
 
         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)

@@ -345,7 +345,6 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             # user is creator of group -> archive group and notify users
             study_group.is_past = True
             study_group.save()
-            study_group.clear_notifications(request)
             study_group.send_group_ended_notification()
         else:
             try:
