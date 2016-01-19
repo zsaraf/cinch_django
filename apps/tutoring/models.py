@@ -96,7 +96,7 @@ class SeshRequest(models.Model):
             )
             for n in notifications:
                 json_arr = json.loads(n.data)
-                request_id = json_arr.get('request_id').get('id')
+                request_id = json_arr['request_id']
                 if request_id == self.pk:
                     PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
                     OpenNotification.objects.get(pk=n.pk).delete()
