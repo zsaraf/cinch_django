@@ -8,6 +8,7 @@ class OpenNotificationManager(models.Manager):
     def send_badge_update(self, user):
         from apps.notification.models import NotificationType
         badge_type = NotificationType.objects.get(identifier="UPDATE_BADGE_NUMBER")
+        self.model.objects.filter(notification_type=badge_type, user=user).delete()
         self.model.objects.create(user, badge_type, None, None, None)
 
     def send_refresh(self, user):

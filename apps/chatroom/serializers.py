@@ -174,6 +174,7 @@ class ChatroomSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         from apps.group.models import Conversation, ConversationParticipant
+        from apps.tutoring.models import OpenSesh
         if 'context_user' in self.context:
             user = self.context['context_user']
         else:
@@ -185,6 +186,14 @@ class ChatroomSerializer(serializers.ModelSerializer):
             return other_participant.user.readable_name
 
         except Conversation.DoesNotExist:
+            pass
+
+        try:
+            open_sesh = OpenSesh.objects.get(chatroom=obj)
+            other_user = open_sesh.student.user if user == open_sesh.tutor.user else open_sesh.tutor.user
+            return other_user.readable_name
+
+        except OpenSesh.DoesNotExist:
             return obj.name
 
     def get_chatroom_members(self, obj):
