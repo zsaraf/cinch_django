@@ -124,7 +124,7 @@ class SeshRequest(models.Model):
         }
         tutor_courses = TutorCourse.objects.filter(course=self.course)
         tutors = [tc.tutor for tc in tutor_courses]
-        tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(id__in=tutor_courses.values('tutor_id'))
+        tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(tutor_id__in=tutor_courses.values('tutor_id'))
         tutors.extend([td.tutor for td in tutor_departments])
 
         notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
