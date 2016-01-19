@@ -79,29 +79,20 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def send_message(self, request, pk=None):
-        data_with_user = request.data
+        user = request.user
         chatroom = self.get_object()
-        chatroom_member = None
+        message = request.data['message']
+
         try:
-            chatroom_member = ChatroomMember.objects.get(user=request.user, chatroom=chatroom, is_past=False)
-        except ChatroomMember.DoesNotExist:
-            return Response({"detail": "You are not a member of this chatroom"}, 405)
-
-        data_with_user['user'] = request.user.id
-        data_with_user['chatroom'] = chatroom.pk
-        data_with_user['chatroom_member'] = chatroom_member.pk
-
-        serializer = MessageSerializer(data=data_with_user)
-        if serializer.is_valid():
-            message = serializer.save()
+            chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
+            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=message)
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
-            activity = ChatroomActivity.objects.create(chatroom=message.chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+            activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
             message.send_notifications(activity, request)
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
-        else:
-            logger.debug("Invalid request.")
 
-        return Response(serializer.errors)
+        except ChatroomMember.DoesNotExist:
+            return Response({"detail": "You are not a member of this chatroom"}, 405)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def upload(self, request, pk=None):
