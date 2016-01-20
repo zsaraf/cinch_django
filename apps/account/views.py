@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
+from django.db.models import Q
 import hashlib
 import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
@@ -169,7 +170,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
             # create auto welcome message from team@seshtutoring
             try:
-                team_user = User.objects.get(email='team@seshtutoring.com', id__ne=user.pk)
+                team_user = User.objects.get(email='team@seshtutoring.com', id__lt=user.pk)
 
                 name = "The Sesh Team"
                 desc = "We're so happy you're here! Any questions?"
