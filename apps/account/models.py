@@ -206,11 +206,15 @@ class User(models.Model):
 
     @property
     def readable_name(self):
-        split_name = self.full_name.split(' ')
+        safe_name = self.full_name.strip()
+        split_name = safe_name.split(' ')
         first_name = split_name[0]
         last_name = split_name[len(split_name) - 1]
 
-        return first_name + " " + last_name[0] + "."
+        if len(last_name) > 0:
+            return first_name + " " + last_name[0] + "."
+        else:
+            return first_name
 
     @property
     def first_name(self):
