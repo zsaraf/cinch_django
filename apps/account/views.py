@@ -169,7 +169,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
             # create auto welcome message from team@seshtutoring
             try:
-                team_user = User.objects.filter(email='team@seshtutoring.com').exclude(id=user.pk)[0]
+                team_user = User.objects.get(email='team@seshtutoring.com').exclude(id=user.pk)
 
                 name = "The Sesh Team"
                 desc = "We're so happy you're here! Any questions?"
