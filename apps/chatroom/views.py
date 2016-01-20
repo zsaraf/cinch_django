@@ -20,6 +20,11 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomSerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def get_basic_info(self, request, pk=None):
+        chatroom = self.get_object()
+        return Response(ChatroomBasicSerializer(chatroom).data)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def mark_as_read(self, request, pk=None):
         chatroom = self.get_object()
         last_activity_id = request.data['last_activity_id']

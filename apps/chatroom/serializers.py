@@ -158,6 +158,12 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+class ChatroomBasicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Chatroom
+
+
 class ChatroomSerializer(serializers.ModelSerializer):
     chatroom_activities = serializers.SerializerMethodField()
     # in the future tags would likely be chatroom-specific so including tags here
