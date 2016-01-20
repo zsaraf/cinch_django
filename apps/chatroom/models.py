@@ -79,7 +79,7 @@ class ChatroomActivity(models.Model):
         from serializers import PNChatroomActivitySerializer
         data = {}
         full_object = PNChatroomActivitySerializer(self, context={'request': request}).data
-        if len(full_object) > 1900:
+        if len(full_object) > 1500:
             data['chatroom_activity_id'] = self.pk
         else:
             data['chatroom_activity'] = full_object
