@@ -140,7 +140,7 @@ class UserViewSet(viewsets.ModelViewSet):
             hex_dig = m.hexdigest()
 
             verification_id = get_random_string(length=32)
-            is_verified = False
+            is_verified = True  # GET RID OF THIS SLDKFJKDLSJFKLDSJFKLSDJFLKSDFJSLKDJFKLSDJF LKSDJLKSDJLFK
 
             # assign unique code
             new_user_promo = get_random_string(length=5).lower()
