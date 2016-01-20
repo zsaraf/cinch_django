@@ -122,7 +122,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if len(full_name) > 100:
                 full_name = full_name[0:99]
 
-            full_name.strip()
+            full_name = full_name.strip()
             parts = full_name.split(" ")
             if len(parts) < 2:
                 return Response({"detail": "Please enter both a first and last name"}, 405)
