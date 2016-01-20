@@ -12,6 +12,7 @@ from decimal import *
 from django.utils import dateparse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from rest_framework import exceptions
 import json
 import logging
 import stripe
@@ -208,8 +209,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         cancellation_reason = request.data.get("cancellation_reason")
         if request.user.student != sesh_request.student:
             return Response({"detail": "You cannot cancel this request"}, 405)
-        if sesh_request.status > 0:
+        if sesh_request.status == 1:
             return Response({"detail": "It's too late to cancel this request"}, 405)
+        elif sesh_request.status > 0:
+            return exceptions.NotFound()
         sesh_request.status = 3
         sesh_request.cancellation_reason = cancellation_reason
         sesh_request.save()
