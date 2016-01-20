@@ -178,6 +178,7 @@ class OpenSesh(models.Model):
 
         data = {
             "request_id": self.past_request.id,
+            "sesh_id": self.pk,
             "chatroom_id": self.chatroom.id
         }
         notification_type = NotificationType.objects.get(identifier="SESH_EDITED")
