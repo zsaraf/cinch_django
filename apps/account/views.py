@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
+from django.db.models import Q
 import hashlib
 import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
@@ -168,29 +169,33 @@ class UserViewSet(viewsets.ModelViewSet):
             user.send_verification_email()
 
             # create auto welcome message from team@seshtutoring
-            team_user = User.objects.get(email='team@seshtutoring.com')
-            name = "The Sesh Team"
-            desc = "We're so happy you're here! Any questions?"
-            chatroom = Chatroom.objects.create(name=name, description=desc)
-            conversation = Conversation.objects.create(chatroom=chatroom)
-            ConversationParticipant.objects.create(user=user, conversation=conversation)
-            ConversationParticipant.objects.create(user=team_user, conversation=conversation)
-            ChatroomMember.objects.create(user=user, chatroom=chatroom)
-            team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
-            text = "Welcome to the new and improved Sesh! Feel free to message us at any time to ask questions, give feedback, or just say hi. We're always here to improve your experience and make sure you get the most out of our platform."
-            message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
-            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
-            activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+            try:
+                team_user = User.objects.get(email='team@seshtutoring.com', id__lt=user.pk)
 
-            merge_vars = {
-                "NAME": team_user.full_name,
-                "MESSAGE": text
-            }
-            data = {
-                "chatroom_activity": WelcomeMessageChatroomActivitySerializer(activity).data,
-            }
-            notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
-            OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
+                name = "The Sesh Team"
+                desc = "We're so happy you're here! Any questions?"
+                chatroom = Chatroom.objects.create(name=name, description=desc)
+                conversation = Conversation.objects.create(chatroom=chatroom)
+                ConversationParticipant.objects.create(user=user, conversation=conversation)
+                ConversationParticipant.objects.create(user=team_user, conversation=conversation)
+                ChatroomMember.objects.create(user=user, chatroom=chatroom)
+                team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
+                text = "Welcome to the new and improved Sesh! Feel free to message us at any time to ask questions, give feedback, or just say hi. We're always here to improve your experience and make sure you get the most out of our platform."
+                message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
+                activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+                activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+                merge_vars = {
+                    "NAME": team_user.full_name,
+                    "MESSAGE": text
+                }
+                data = {
+                    "chatroom_activity": WelcomeMessageChatroomActivitySerializer(activity).data,
+                }
+                notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+                OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
+            except User.DoesNotExist:
+                pass
 
             if promo_code is not None and promo_recipient is not None:
                 constants = Constant.objects.get(school_id=promo_recipient.school.pk)

@@ -238,15 +238,19 @@ class Message(models.Model):
     chatroom_member = models.ForeignKey(ChatroomMember)
 
     def send_notifications(self, chatroom_activity, request):
-        import serializers
         from apps.group.models import CourseGroup, StudyGroup
         '''
         Sends a notification to the chatroom members
         '''
         chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
+
+        display_message = self.message
+        if (len(self.message) > 150):
+            display_message = self.message[:150] + "..."
+
         merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
-            "MESSAGE": self.message,
+            "MESSAGE": display_message,
             "CHATROOM_NAME": self.chatroom.name
         }
         data = chatroom_activity.get_pn_data(request)

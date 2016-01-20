@@ -20,7 +20,6 @@ class OpenNotificationManager(models.Manager):
 
         self.send_refresh(user)
 
-
     def clear_by_user_and_chatroom(self, user, chatroom):
         from apps.notification.models import PastNotification
         notifications = self.model.objects.filter(user=user)
@@ -35,7 +34,6 @@ class OpenNotificationManager(models.Manager):
                 continue
 
         self.send_refresh(user)
-
 
     def send_badge_update(self, user):
         from apps.notification.models import NotificationType

@@ -8,4 +8,5 @@ sesh_db.cnf
 **/static/admin/
 **/static/wagtail/
 **/static/ckeditor/
+sesh/wsgi.py
 media

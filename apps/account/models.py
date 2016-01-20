@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q, Count, F
-from sesh import settings
+from django.conf import settings
 from datetime import datetime
 from apps.university.serializers import DiscountSerializer
 from .managers import TokenManager, DeviceManager
@@ -164,6 +164,7 @@ class User(models.Model):
         Gets both the stripe recipient and payment cards for the user instance
         """
         import stripe
+        logger.debug(settings.STRIPE_API_KEY)
         stripe.api_key = settings.STRIPE_API_KEY
 
         def serialize_card_with_default(stripe_card, default_card_id):
