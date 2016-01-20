@@ -3,6 +3,9 @@ from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
 from rest_framework.response import Response
+import json
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Announcement(models.Model):
@@ -79,7 +82,8 @@ class ChatroomActivity(models.Model):
         from serializers import PNChatroomActivitySerializer
         data = {}
         full_object = PNChatroomActivitySerializer(self, context={'request': request}).data
-        if len(full_object) > 1500:
+        logger.debug(len(json.dumps(full_object)))
+        if len(json.dumps(full_object)) > 1500:
             data['chatroom_activity_id'] = self.pk
         else:
             data['chatroom_activity'] = full_object
