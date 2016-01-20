@@ -62,10 +62,10 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             sesh_request.location_notes = location_notes
         if est_time is not None:
             sesh_request.est_time = est_time
-        if 'available_blocks' in request.data:
-            sesh_request.available_blocks = json.dumps(request.data['available_blocks'])
 
-        if sesh_request.status == 0 and 'available_blocks' in request.data:
+        sesh_request.available_blocks = json.dumps(request.data['available_blocks'])
+
+        if sesh_request.status == 0 and len(request.data['available_blocks']) > 0:
             # calculate new expiration_time
             jsonArr = request.data.get('available_blocks')
             last_end_time = datetime.now()
