@@ -113,13 +113,15 @@ class SeshRequest(models.Model):
         data = {
             'request_id': self.id
         }
-        tutor_courses = TutorCourse.objects.filter(course=self.course)
+        tutor_courses = TutorCourse.objects.filter(course=self.course).exclude()
         tutors = [tc.tutor for tc in tutor_courses]
         tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(tutor_id__in=tutor_courses.values('tutor_id'))
         tutors.extend([td.tutor for td in tutor_departments])
 
         notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
         for tutor in tutors:
+            if tutor.user == self.student.user:
+                continue
             OpenNotification.objects.create(tutor.user, notification_type, data, merge_vars, None)
 
     def send_direct_request_notification(self):
