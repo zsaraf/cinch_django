@@ -188,18 +188,15 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     course_group = CourseGroup.objects.get(pk=int(course_group_id))
                     if course_group.is_past:
                         return Response({"detail": "The class has ended"}, 405)
-                    member = CourseGroupMember.objects.get(course_group=course_group, student=user.student, is_past=False)
-                    if not member.is_past:
-                        return Response({"detail": "You are already a member of the class"}, 405)
-                    else:
-                        member.is_past = False
-                        member.save()
-                        # should also be a member of the chatroom, make them not_past
-                        chat_member = ChatroomMember.objects.get(chatroom=course_group.chatroom, user=user)
-                        chat_member.is_past = False
-                        chat_member.save()
-                        # announcement when they have previously been in the group
-                        continue
+                    member = CourseGroupMember.objects.get(course_group=course_group, student=user.student)
+                    member.is_past = False
+                    member.save()
+                    # should also be a member of the chatroom, make them not_past
+                    chat_member = ChatroomMember.objects.get(chatroom=course_group.chatroom, user=user)
+                    chat_member.is_past = False
+                    chat_member.save()
+                    # announcement when they have previously been in the group
+                    continue
                 except CourseGroup.DoesNotExist:
                     return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
                 except ChatroomMember.DoesNotExist:
