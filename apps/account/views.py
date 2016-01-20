@@ -181,7 +181,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 ChatroomMember.objects.create(user=user, chatroom=chatroom)
                 team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
                 # text = "Welcome to the new and improved Sesh! Feel free to message us at any time to ask questions, give feedback, or just say hi. We're always here to improve your experience and make sure you get the most out of our platform."
-                text = 'Hey {}!'.format(user.first_name)
+                text = "Hey {}!".format(user.first_name)
                 message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
                 activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
@@ -195,8 +195,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 }
                 notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
                 OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
-
-                text = 'Welcome! Please reach out to us here if you ever want to chat. Problems, questions, suggestions, whatever it my be, don’t be shy. We’re here to help out however we can.'
+                text = "Welcome! Please reach out to us here if you ever want to chat. Problems, questions, suggestions, whatever it may be, don't be shy. We're here to help out however we can."
                 message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
                 activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
