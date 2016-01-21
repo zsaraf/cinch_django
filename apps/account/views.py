@@ -88,12 +88,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Download the latest version on the AppStore then try again!"}, 405)
 
         promo_recipient = None
+        contest_code = None
 
-        try:
-            if promo_code is not None and len(promo_code) != 0:
+        if promo_code is not None and len(promo_code) != 0:
+            try:
                 promo_recipient = User.objects.get(share_code=promo_code.lower())
-        except User.DoesNotExist:
-            return Response({"detail": "Invalid promo code"}, 405)
+            except User.DoesNotExist:
+                contest_code = ContestCode.objects.get(identifier=promo_code.upper())
+            except ContestCode.DoesNotExist:
+                return Response({"detail": "Invalid promo code"}, 405)
 
         try:
             existing_user = User.objects.get(email=email)
@@ -212,11 +215,12 @@ class UserViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 pass
 
-            if promo_code is not None and promo_recipient is not None:
+            if promo_recipient is not None:
                 constants = Constant.objects.get(school_id=promo_recipient.school.pk)
                 promo_type = PromoType.objects.get(identifier='user_to_user_share')
                 SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
-
+            elif contest_code is not None:
+                ContestShare.objects.create(user=user, contest_code=contest_code)
             return Response()
 
     @list_route(methods=['POST'])

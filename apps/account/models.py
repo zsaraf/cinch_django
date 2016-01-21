@@ -247,6 +247,24 @@ class PromoType(models.Model):
         db_table = 'promo_type'
 
 
+class ContestCode(models.Model):
+    identifier = models.CharField(max_length=25)
+
+    class Meta:
+        managed = False
+        db_table = 'contest_code'
+
+
+class ContestShare(models.Model):
+    user = models.ForeignKey(User)
+    contest_code = models.ForeignKey(ContestCode)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'contest_share'
+
+
 class SharePromo(models.Model):
     new_user = models.ForeignKey(User, related_name="new_user")
     old_user = models.ForeignKey(User, related_name="old_user")
@@ -265,7 +283,7 @@ class Device(models.Model):
     token = models.CharField(max_length=200, blank=True, null=True)
     type = models.CharField(max_length=100)
     device_model = models.CharField(max_length=40, blank=True, null=True)
-    system_version = models.FloatField(blank=True, null=True)
+    system_version = models.CharField(blank=True, null=True)
     app_version = models.FloatField()
     timezone_name = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
