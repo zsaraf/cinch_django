@@ -92,11 +92,16 @@ class CourseGroupFullSerializer(serializers.ModelSerializer):
         from apps.tutoring.models import PastSesh
 
         seshes = PastSesh.objects.filter(past_request__course=obj.course)
-        tutors = [item.tutor.id for item in seshes]
+        tutors = [item.tutor for item in seshes]
         courses = TutorCourse.objects.filter(course=obj.course)
-        tutors.extend([item.tutor.id for item in courses])
+        tutors.extend([item.tutor for item in courses])
 
-        return PeerTutorSerializer(Tutor.objects.filter(id__in=tutors), many=True).data
+        tutor_ids = []
+        for t in tutors:
+            if t.user.device.type != 'android':
+                tutor_ids.append(t.id)
+
+        return PeerTutorSerializer(Tutor.objects.filter(id__in=tutor_ids), many=True).data
 
 
 class CourseGroupRegularSerializer(CourseGroupFullSerializer):
