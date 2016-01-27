@@ -185,12 +185,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 except:
                     break
 
+            logger.debug(pending_tutor_verification_id)
+            logger.debug(email)
             if pending_tutor_verification_id is not None:
                 # check for pending verification stuff and change is_verified if appropriate
                 try:
                     PendingTutor.objects.get(email=email, verification_id=pending_tutor_verification_id)
                     is_verified = True
-                except:
+                except PendingTutor.DoesNotExist:
                     return Response({"detail": "Invalid pending tutor id"}, 405)
 
             school = School.objects.get_school_from_email(email)

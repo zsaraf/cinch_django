@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import *
 from .managers import TutorManager
 
+
 class OpenTutorPromo(models.Model):
     old_user_id = models.IntegerField()
     tutor_email = models.CharField(max_length=100)

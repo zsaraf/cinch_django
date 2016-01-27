@@ -21,7 +21,7 @@ SERVER_NAME = 'seshtutoring'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
-#Slack Integration - for API tips see https://github.com/os/slacker
+# Slack Integration - for API tips see https://github.com/os/slacker
 
 # Below is the dev (Cinch) slack bot
 SLACK_BOT_TOKEN = 'xoxb-18843217328-ICDugF9g9eMKgaxGXkX646yY'
