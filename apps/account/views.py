@@ -61,6 +61,36 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserRegularInfoSerializer
 
     @list_route(methods=['post'])
+    def populate_welcome_messages(self, request):
+        from apps.chatroom.models import Chatroom, ChatroomMember, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager, Message
+        from apps.group.models import Conversation, ConversationParticipant
+
+        team_user = User.objects.get(email='team@seshtutoring.com')
+
+        name = "The Sesh Team"
+        desc = "We're so happy you're here! Any questions?"
+        text_2 = "Welcome! Please reach out to us here if you ever want to chat. Problems, questions, suggestions, whatever it may be, don't be shy. We're here to help out however we can."
+
+        for user in User.objects.all():
+            text_1 = "Hey {}!".format(user.first_name)
+            chatroom = Chatroom.objects.create(name=name, description=desc)
+            conversation = Conversation.objects.create(chatroom=chatroom)
+            ConversationParticipant.objects.create(user=user, conversation=conversation)
+            ConversationParticipant.objects.create(user=team_user, conversation=conversation)
+            ChatroomMember.objects.create(user=user, chatroom=chatroom)
+            team_member = ChatroomMember.objects.create(user=team_user, chatroom=chatroom)
+
+            message = Message.objects.create(message=text_1, chatroom=chatroom, chatroom_member=team_member)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+            ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+            message = Message.objects.create(message=text_2, chatroom=chatroom, chatroom_member=team_member)
+            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+            ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+        return Response()
+
+    @list_route(methods=['post'])
     def toggle_daily_digest(self, request):
         user = request.user
         user.daily_digest_enabled = not user.daily_digest_enabled
@@ -94,9 +124,10 @@ class UserViewSet(viewsets.ModelViewSet):
             try:
                 promo_recipient = User.objects.get(share_code=promo_code.lower())
             except User.DoesNotExist:
-                contest_code = ContestCode.objects.get(identifier=promo_code.upper())
-            except ContestCode.DoesNotExist:
-                return Response({"detail": "Invalid promo code"}, 405)
+                try:
+                    contest_code = ContestCode.objects.get(identifier=promo_code.upper())
+                except ContestCode.DoesNotExist:
+                    return Response({"detail": "Invalid promo code"}, 405)
 
         try:
             existing_user = User.objects.get(email=email)
