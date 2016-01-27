@@ -5,11 +5,9 @@ class TutorManager(models.Manager):
 
     def create_default_tutor_with_user(self, user):
 
-        # change to enabled=False after rep testing!!!
-
         tutor = self.model(
             user=user,
-            enabled=True,
+            enabled=False,
             num_seshes=0,
             ave_rating_1=5,
             ave_rating_2=5,
