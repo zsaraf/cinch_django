@@ -10,7 +10,7 @@ import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
 from .models import *
 from .serializers import *
-from apps.tutor.models import Tutor
+from apps.tutor.models import Tutor, PendingTutor
 from apps.student.models import Student
 import logging
 logger = logging.getLogger(__name__)
