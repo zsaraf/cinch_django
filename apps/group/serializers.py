@@ -98,8 +98,11 @@ class CourseGroupFullSerializer(serializers.ModelSerializer):
 
         tutor_ids = []
         for t in tutors:
-            if t.user.device.type != 'android':
-                tutor_ids.append(t.id)
+            try:
+                if t.user.device.type != 'android':
+                    tutor_ids.append(t.id)
+            except:
+                continue
 
         return PeerTutorSerializer(Tutor.objects.filter(id__in=tutor_ids), many=True).data
 
