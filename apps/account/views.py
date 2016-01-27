@@ -4,7 +4,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
-from django.db.models import Q
 import hashlib
 import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
@@ -185,8 +184,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 except:
                     break
 
-            logger.debug(pending_tutor_verification_id)
-            logger.debug(email)
             if pending_tutor_verification_id is not None:
                 # check for pending verification stuff and change is_verified if appropriate
                 try:
@@ -254,7 +251,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
             elif contest_code is not None:
                 ContestShare.objects.create(user=user, contest_code=contest_code)
-            return Response()
+            return Response({"is_verified": is_verified})
 
     @list_route(methods=['POST'])
     def update_user_info(self, request):
