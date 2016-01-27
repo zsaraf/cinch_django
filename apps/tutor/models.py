@@ -39,6 +39,7 @@ class PendingTutor(models.Model):
     class_year = models.CharField(max_length=25)
     verification_id = models.CharField(max_length=100)
     timestamp = models.DateTimeField()
+    graduation_type = models.CharField(max_length=25)
 
     def make_real_tutor(self):
         try:
@@ -49,6 +50,7 @@ class PendingTutor(models.Model):
         # Update the user to reflect tutor information
         user.major = self.major
         user.class_year = self.class_year
+        user.graduation_type = self.graduation_type
         user.tutor.enabled = True
         user.save()
         user.tutor.save()
