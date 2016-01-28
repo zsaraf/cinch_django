@@ -92,13 +92,13 @@ class TutorDepartment(models.Model):
 
 class Tutor(models.Model):
     user = models.OneToOneField('account.User')
-    enabled = models.IntegerField()
+    enabled = models.BooleanField(default=False)
     num_seshes = models.IntegerField()
     ave_rating_1 = models.FloatField()
     ave_rating_2 = models.FloatField()
     ave_rating_3 = models.FloatField()
     credits = models.DecimalField(max_digits=19, decimal_places=4)
-    did_accept_terms = models.IntegerField()
+    did_accept_terms = models.BooleanField(default=False)
     bonus_points = models.FloatField()
     objects = TutorManager()
 

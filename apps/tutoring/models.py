@@ -37,7 +37,7 @@ class SeshRequest(models.Model):
     num_people = models.IntegerField(default=1)
     hourly_rate = models.DecimalField(max_digits=19, decimal_places=4)
     expiration_time = models.DateTimeField(blank=True, null=True)
-    is_instant = models.IntegerField(default=0)
+    is_instant = models.BooleanField(default=False)
     available_blocks = models.TextField(blank=True, null=True)
     location_notes = models.CharField(max_length=32, blank=True, null=True)
     discount = models.ForeignKey('university.Discount', blank=True, null=True)

@@ -89,7 +89,7 @@ class User(models.Model):
     token = models.ForeignKey(Token, on_delete=models.SET_NULL, blank=True, null=True)
     web_token_id = models.IntegerField()
     school = models.ForeignKey('university.School')
-    is_verified = models.IntegerField()
+    is_verified = models.BooleanField(default=False)
     verification_id = models.CharField(max_length=100)
     stripe_customer_id = models.CharField(max_length=32, blank=True, null=True)
     stripe_recipient_id = models.CharField(max_length=32, blank=True, null=True)

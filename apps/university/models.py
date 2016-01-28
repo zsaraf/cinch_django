@@ -127,12 +127,12 @@ class DiscountUse(models.Model):
 
 class School(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
-    enabled = models.IntegerField()
+    enabled = models.BooleanField(default=False)
     email_domain = models.CharField(max_length=100)
     num_tutors = models.IntegerField()
     tutors_needed = models.IntegerField()
-    ready_to_add_classes = models.IntegerField()
-    requests_enabled = models.IntegerField()
+    ready_to_add_classes = models.BooleanField(default=False)
+    requests_enabled = models.BooleanField(default=False)
     objects = SchoolManager()
 
     class Meta:
