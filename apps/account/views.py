@@ -199,7 +199,8 @@ class UserViewSet(viewsets.ModelViewSet):
             state = SeshState.objects.get(identifier='SeshStateNone')
             user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=verification_id, school=school, sesh_state=state, is_verified=is_verified, share_code=new_user_promo)
 
-            user.send_verification_email()
+            if not is_verified:
+                user.send_verification_email()
 
             # create auto welcome message from team@seshtutoring
             try:
