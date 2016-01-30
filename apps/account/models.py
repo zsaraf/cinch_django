@@ -109,6 +109,7 @@ class User(models.Model):
     graduation_type = models.CharField(max_length=25, blank=True, null=True)
     chavatar_color = models.CharField(max_length=25, blank=True, null=True)
     daily_digest_enabled = models.BooleanField(default=True)
+    total_unread_count = models.IntegerField(default=0)
 
     def send_verification_email(self):
 

@@ -366,6 +366,9 @@ class UserViewSet(viewsets.ModelViewSet):
         user.refresh_from_db()
         user.tutor.refresh_from_db()
 
+        user.total_unread_count = 0
+        user.save()
+
         serializer = UserHuskyInfoSerializer(user, context={'request': request})
         return Response(serializer.data)
 
