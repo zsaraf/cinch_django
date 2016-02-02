@@ -165,7 +165,6 @@ class User(models.Model):
         Gets both the stripe recipient and payment cards for the user instance
         """
         import stripe
-        logger.debug(settings.STRIPE_API_KEY)
         stripe.api_key = settings.STRIPE_API_KEY
 
         def serialize_card_with_default(stripe_card, default_card_id):
