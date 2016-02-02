@@ -8,13 +8,15 @@ import json
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
-    sesh_completed_points = models.SmallIntegerField()
-    tutor_referral_points = models.SmallIntegerField()
+    sesh_completed_points = models.FloatField()
+    tutor_referral_points = models.FloatField()
     monthly_point_goal = models.SmallIntegerField(blank=True, null=True)
     max_awards = models.SmallIntegerField()
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
     bonus_amount = models.DecimalField(max_digits=19, decimal_places=4)
+    user_referral_points = models.FloatField()
+    direct_sesh_completed_points = models.FloatField()
 
     class Meta:
         managed = False

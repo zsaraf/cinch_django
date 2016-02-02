@@ -188,3 +188,14 @@ class TutorTier(models.Model):
     class Meta:
         managed = False
         db_table = 'tutor_tiers'
+
+    @property
+    def image_url(self):
+        if self.identifier == 'GREEN':
+            return "http://cloud.cinchtutoring.com/image/1l1z1Z2T021y/Level%201@3x.png"
+        elif self.identifier == 'BLUE':
+            return "http://cloud.cinchtutoring.com/image/3g2w1j3C2V30/Level%202@3x.png"
+        elif self.identifier == 'BLACK':
+            return "http://cloud.cinchtutoring.com/image/2M411i033b1t/Level%203@3x.png"
+        else:
+            return ''

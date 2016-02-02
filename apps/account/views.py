@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
+from sesh.bonus_utils import BonusManager
 import hashlib
 import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
@@ -250,6 +251,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 constants = Constant.objects.get(school_id=promo_recipient.school.pk)
                 promo_type = PromoType.objects.get(identifier='user_to_user_share')
                 SharePromo.objects.create(new_user=user, old_user=promo_recipient, promo_type=promo_type, amount=getattr(constants, promo_type.award_constant_name))
+                # award bonus points if applicable
+                BonusManager.award_points_for_action(promo_recipient, BonusManager.REFER_USER)
             elif contest_code is not None:
                 ContestShare.objects.create(user=user, contest_code=contest_code)
             return Response({"is_verified": is_verified})

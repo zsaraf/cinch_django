@@ -436,7 +436,11 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             return Response({"detail": "This Sesh has not started"}, 405)
 
         # check for bonus completion
-        BonusManager.award_points_for_action(user, BonusManager.END_SESH)
+        if (open_sesh.past_request.tutor != None):
+            # extra points for direct request
+            BonusManager.award_points_for_action(user, BonusManager.END_DIRECT_SESH)
+        else:
+            BonusManager.award_points_for_action(user, BonusManager.END_SESH)
 
         # move sesh to past
         past_sesh = PastSesh.objects.create(
@@ -531,6 +535,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
         # increment num_seshes for tutor
         tutor.num_seshes = tutor.num_seshes + 1
         tutor.save()
+
+        BonusManager.check_tier_status(user)
 
         # update states
         past_sesh.student.user.update_sesh_state('SeshStateNone')
