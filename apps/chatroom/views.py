@@ -57,14 +57,39 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def load_old_uploads_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
+        tag_id = request.data.get('tag_id', None)
+
+        tag = None
+        if tag_id is not None:
+            try:
+                tag = Tag.objects.get(pk=tag_id)
+            except Tag.DoesNotExist:
+                return Response({"detail": "The requested tag does not exist"}, 405)
+
         try:
             ChatroomMember.objects.get(user=request.user, chatroom=chatroom, is_past=False)
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
-        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
-        return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
+
+        if tag is not None:
+            activities = []
+            count = 0
+            for activity in ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type):
+                upload = Upload.objects.get(pk=activity.activity_id)
+                if upload.tag == tag:
+                    count += 1
+                    activities.append(activity)
+
+                if count >= 50:
+                    continue
+
+            return Response(ChatroomActivitySerializer(activities, many=True, context={'request': request}).data)
+
+        else:
+            activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
+            return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def refresh_recent_uploads_with_offset(self, request, pk=None):
