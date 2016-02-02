@@ -8,6 +8,7 @@ from apps.university.models import Constant
 from decimal import *
 from sesh.mandrill_utils import EmailManager
 from sesh import settings
+from rest_framework import exceptions
 import locale
 import stripe
 
@@ -169,6 +170,18 @@ class OpenSesh(models.Model):
     has_received_start_time_approaching_reminder = models.IntegerField(blank=True, null=True)
     has_received_set_start_time_initial_reminder = models.IntegerField(blank=True, null=True)
     chatroom = models.ForeignKey('chatroom.Chatroom', blank=True, null=True)
+
+    def clear_notifications(self):
+        import json
+
+        notifications = OpenNotification.objects.filter(user__in=[self.student.user, self.tutor.user])
+        for n in notifications:
+            json_arr = json.loads(n.data)
+            if json_arr is not None and 'sesh_id' in json_arr:
+                sesh_id = json_arr.get('sesh_id')
+                if sesh_id == self.pk:
+                    PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                    OpenNotification.objects.get(pk=n.pk).delete()
 
     def send_sesh_edited_notification(self, request, sesh_id):
         '''

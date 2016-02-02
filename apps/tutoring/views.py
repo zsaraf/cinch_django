@@ -320,6 +320,7 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             except ChatroomMember.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
 
+            open_sesh.clear_notifications()
             open_sesh.delete()
 
             if fee_enabled and has_activity and open_sesh.set_time is not None:
@@ -374,6 +375,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
                     OpenNotification.objects.send_badge_update(cm.user)
             except ChatroomMember.DoesNotExist:
                 return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
+
+            open_sesh.clear_notifications()
             open_sesh.delete()
 
         else:
@@ -452,6 +455,8 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             set_time=open_sesh.set_time,
             chatroom=open_sesh.chatroom
             )
+
+        open_sesh.clear_notifications()
         open_sesh.delete()
 
         # calculate price and charge
