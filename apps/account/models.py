@@ -167,12 +167,12 @@ class User(models.Model):
         import stripe
         stripe.api_key = settings.STRIPE_API_KEY
 
-        def serialize_card_with_default(stripe_card, default_card_id):
+        def serialize_card_with_default(stripe_card, default_card_id, is_recipient):
             card_object = {}
             card_object['card_id'] = card.id
             card_object['last_four'] = card.last4
             card_object['type'] = card.brand
-            card_object['is_recipient'] = False
+            card_object['is_recipient'] = is_recipient
             if (default_card_id == card.id):
                 card_object['is_default'] = True
             else:
@@ -190,14 +190,14 @@ class User(models.Model):
             default_card_id = cu.default_source
             all_cards = cu.sources.data
             for card in all_cards:
-                cards.append(serialize_card_with_default(card, default_card_id))
+                cards.append(serialize_card_with_default(card, default_card_id, False))
 
         if (self.stripe_recipient_id):
             rp = stripe.Recipient.retrieve(self.stripe_recipient_id)
             default_card_id = rp.default_card
             all_cards = rp.cards.data
             for card in all_cards:
-                cards.append(serialize_card_with_default(card, default_card_id))
+                cards.append(serialize_card_with_default(card, default_card_id, True))
 
         return cards
 
