@@ -251,6 +251,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
             user=sesh_request.student.user
         )
         sesh = OpenSesh.objects.create(past_request=sesh_request, tutor=sesh_request.tutor, student=sesh_request.student, chatroom=chatroom)
+        sesh_request.clear_notifications()
         sesh_request.send_tutor_accepted_notification(sesh)
 
         message = request.user.email + " accepted " + sesh_request.student.user.email + "'s direct request!"
@@ -273,6 +274,7 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         sesh_request.status = 4
         sesh_request.save()
+        sesh_request.clear_notifications()
         sesh_request.send_tutor_rejected_notification()
 
         # post to slack

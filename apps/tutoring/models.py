@@ -84,15 +84,19 @@ class SeshRequest(models.Model):
         '''
         import json
 
-        new_request_notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
+        types = NotificationType.objects.filter(identifier__in=["NEW_REQUEST", 'NEW_DIRECT_REQUEST'])
 
-        notifications = OpenNotification.objects.filter(notification_type=new_request_notification_type)
+        notifications = OpenNotification.objects.filter(notification_type__in=types)
         for n in notifications:
             json_arr = json.loads(n.data)
             request_id = json_arr.get('request_id')
+
+            if n.notification_type.identifier == "NEW_DIRECT_REQUEST":
+                request_id = json_arr.get('request').get('id')
+
             if request_id == self.pk:
-                PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
-                OpenNotification.objects.get(pk=n.pk).delete()
+                    PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                    OpenNotification.objects.get(pk=n.pk).delete()
 
     def send_request_notification(self):
         '''
