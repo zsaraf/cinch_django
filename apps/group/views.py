@@ -234,6 +234,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             promo.old_user.tutor.credits += promo.amount
             promo.old_user.tutor.save()
             promo.is_past = True
+            promo.send_alert_email()
             promo.save()
 
             # notify old user that they got a promo

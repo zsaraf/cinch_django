@@ -27,6 +27,7 @@ class EmailManager:
     STUDENT_CANCELLATION_FEE_RECEIPT = 'student-cancellation-fee-receipt'
     TUTOR_CANCELLATION_FEE_RECEIPT = 'tutor-cancellation-fee-receipt'
     PAYMENT_FAILED = "payment-failed"
+    STUDENT_REFERRAL = 'student-referral-update'
 
 # NOTE: change in merge_vars format from php emailManager - now dict is just { MERGE_VAR_NAME:content, ... }
 # example use:

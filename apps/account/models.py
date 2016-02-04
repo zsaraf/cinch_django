@@ -5,8 +5,10 @@ from datetime import datetime
 from apps.university.serializers import DiscountSerializer
 from .managers import TokenManager, DeviceManager
 from random import randint
+from sesh.mandrill_utils import EmailManager
 import stripe
 import logging
+import urllib
 from sesh.mandrill_utils import EmailManager
 
 stripe.api_key = settings.STRIPE_API_KEY
@@ -276,6 +278,22 @@ class SharePromo(models.Model):
     class Meta:
         managed = False
         db_table = 'share_promo'
+
+    def send_alert_email(self):
+        link = "https://{}.com/registration?action=create&pc={}".format(settings.SERVER_NAME, self.old_user.share_code)
+        fb_link = "https://www.facebook.com/sharer/sharer.php?m2w&u={}".format(link)
+        url_message = urllib.quote_plus("Check out this new app on campus - helps you ace all your classes and meet cool people along the way. Use my code to sign up!")
+        twitter_link = "https://twitter.com/intent/tweet?text={}&url={}".format(url_message, link)
+
+        merge_vars = {
+            'FIRST_NAME': self.old_user.first_name,
+            'REFERRAL_NAME': self.new_user.first_name,
+            'PROMO_CODE': self.old_user.share_code,
+            'FACEBOOK_LINK': fb_link,
+            'TWITTER_LINK': twitter_link,
+            'SHARE_LINK': link
+        }
+        EmailManager.send_email(EmailManager.STUDENT_REFERRAL, merge_vars, self.old_user.email, self.old_user.full_name, None, None)
 
 
 class Device(models.Model):
