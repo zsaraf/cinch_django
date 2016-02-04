@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
 from sesh.bonus_utils import BonusManager
+from django.shortcuts import render
+from datetime import datetime, timedelta
 import hashlib
 import re
 from sesh.s3utils import upload_image_to_s3, get_file_from_s3, get_resized_image, delete_image_from_s3
@@ -54,6 +56,37 @@ class SeshStateViewSet(viewsets.ModelViewSet):
 class TokenViewSet(viewsets.ModelViewSet):
     queryset = Token.objects.all()
     serializer_class = TokenSerializer
+
+
+class ContestShareViewSet(viewsets.ModelViewSet):
+    queryset = ContestShare.objects.all()
+
+    @list_route(methods=['get'])
+    def leaderboard(self, request):
+        from apps.chatroom.models import File, Upload
+        referral_leaders = ContestShare.objects.values('contest_code_id', 'contest_code__identifier').annotate(count=Count('contest_code_id')).order_by('-count')
+        uploads = File.objects.values('upload_id').annotate(count=Count('upload_id')).order_by('-count')
+        upload_leaders = {}
+        for u in uploads:
+            try:
+                upload = Upload.objects.get(pk=u['upload_id'])
+                share = ContestShare.objects.get(user=upload.chatroom_member.user)
+                if share.contest_code.identifier in upload_leaders:
+                    upload_leaders[share.contest_code.identifier] += int(u['count'])
+                else:
+                    upload_leaders[share.contest_code.identifier] = int(u['count'])
+            except ContestShare.DoesNotExist:
+                pass
+
+        today = datetime.now().date()
+        num_days = today.weekday()
+        min_date = today - timedelta(days=num_days)
+
+        individual_referrals = SharePromo.objects.filter(is_past=True, timestamp__gt=min_date).values('old_user', 'old_user__email').annotate(count=Count('old_user')).order_by('-count')
+
+        individual_uploads = File.objects.filter(timestamp__gt=min_date).values('upload__chatroom_member__user__email').annotate(count=Count('upload__chatroom_member__user__email')).order_by('-count')
+
+        return render(request, 'test.html', {'referral_leaders': referral_leaders, 'upload_leaders': upload_leaders, 'individual_uploads': individual_uploads, 'individual_referrals': individual_referrals})
 
 
 class UserViewSet(viewsets.ModelViewSet):

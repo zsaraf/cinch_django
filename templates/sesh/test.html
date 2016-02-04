@@ -1,0 +1,70 @@
+{% load staticfiles %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Test Page</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+</head>
+<body>
+
+  <h1>Organization Contests</h1>
+  <div>
+    <div id=referrals>
+    <h2>Referrals</h2>
+
+    <ul>
+      {% for item in referral_leaders %}
+          <li>
+            <p class="descriptor">{{item.contest_code__identifier}}</p>
+            <p class="count">{{item.count}}</p>
+          </li>
+      {% endfor %}
+    </ul>
+    </div>
+
+    <div id=uploads>
+    <h2>Uploads</h2>
+
+    <ul>
+      {% for name,count in upload_leaders.items %}
+          <li>
+            <p class="descriptor">{{name}}</p>
+            <p class="count">{{count}}</p>
+          </li>
+      {% endfor %}
+    </ul>
+    </div>
+  </div>
+
+  <h1>Individual Contests</h1>
+  <div>
+    <div id=referrals>
+    <h2>Referrals</h2>
+
+    <ul>
+      {% for item in individual_referrals %}
+          <li>
+            <p class="descriptor">{{item.old_user__email}}</p>
+            <p class="count">{{item.count}}</p>
+          </li>
+      {% endfor %}
+    </ul>
+    </div>
+
+    <div id=uploads>
+    <h2>Uploads</h2>
+
+    <ul>
+      {% for item in individual_uploads %}
+          <li>
+            <p class="descriptor">{{item.upload__chatroom_member__user__email}}</p>
+            <p class="count">{{item.count}}</p>
+          </li>
+      {% endfor %}
+    </ul>
+    </div>
+  </div>
+
+</body>

@@ -1,0 +1,56 @@
+body {
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    position:relative;
+    min-width:300px;
+}
+
+#uploads {
+    display: inline-block;
+    float: right;
+    width: 50%;
+}
+
+#referrals {
+    display: inline-block;
+    width: 50%;
+}
+
+
+h1, h2 {
+    text-align: center;
+    color: #666666;
+}
+
+ul {
+    list-style-type: none;
+    margin:15px;
+    padding:0;
+    background: #f5f5f5;
+}
+ul li {
+    position: relative;
+    color: #F4806E;
+    font-family: helvetica;
+    padding:2% 5%;
+    border-bottom: 1px solid white;
+}
+
+ul li:last-child { 
+    border-bottom:none;
+}
+
+ul li:first-child {
+    background: #F4806E;
+    color: white;
+}
+
+.count {
+    display: inline-block;
+    float: right;
+    font-weight: bold;
+}
+
+.descriptor {
+    font-weight: bold;
+    display: inline-block;
+}

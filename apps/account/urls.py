@@ -12,6 +12,7 @@ router.register(r'promo_codes', views.PromoCodeViewSet)
 router.register(r'sesh_states', views.SeshStateViewSet)
 router.register(r'tokens', views.TokenViewSet)
 router.register(r'users', views.UserViewSet)
+router.register(r'contests', views.ContestShareViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls))
