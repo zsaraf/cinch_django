@@ -283,7 +283,7 @@ class BasicMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ('message', 'chatroom_member', 'id')
+        fields = ('message', 'chatroom_member', 'id', 'embedded_data')
 
 
 class MessageSerializer(serializers.ModelSerializer):

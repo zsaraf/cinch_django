@@ -240,13 +240,34 @@ class Message(models.Model):
     message = models.CharField(max_length=500)
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
+    embedded_data = models.TextField(blank=True, null=True)
 
-    def send_notifications(self, chatroom_activity, request):
+    def send_mention_notification(self, chatroom_activity, request, chatroom_member_id):
+        '''
+        Sends a notification to someone who was mentioned in a message
+        '''
+        from apps.group.models import CourseGroup, StudyGroup
+        chatroom_member = ChatroomMember.objects.get(pk=chatroom_member_id)
+
+        merge_vars = {
+            "NAME": self.chatroom_member.user.readable_name,
+            "CHATROOM_NAME": self.chatroom.name
+        }
+        data = chatroom_activity.get_pn_data(request)
+        notification_type = NotificationType.objects.get(identifier="NEW_MENTION")
+        if CourseGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_MENTION_COURSE_GROUP")
+        elif StudyGroup.objects.filter(chatroom=self.chatroom, is_past=False).count() > 0:
+            notification_type = NotificationType.objects.get(identifier="NEW_MENTION_STUDY_GROUP")
+
+        OpenNotification.objects.create(chatroom_member.user, notification_type, data, merge_vars, None, chatroom_member.notifications_enabled)
+
+    def send_notifications_excluding_members(self, chatroom_activity, request, exclude_list):
         from apps.group.models import CourseGroup, StudyGroup
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
+        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(id__in=exclude_list)
 
         display_message = self.message
         if (len(self.message) > 150):
