@@ -57,6 +57,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupRegularSerializer
 
+    def list(self, request):
+        course_group_memberships = CourseGroupMember.objects.filter(student=request.user.student, is_past=False)
+        return Response(CourseGroupFullSerializer(CourseGroup.objects.filter(is_past=False, id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': request}).data)
+
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def create_study_group(self, request, pk=None):
         """
