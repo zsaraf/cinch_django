@@ -187,7 +187,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     # no such group, create a new one
                     chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
                     course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
-                    slack_message = "{} created a new course group: [{}, professor {}]".format(user.email, course.get_readable_name(), professor_name)
+                    slack_message = "{} created a new course group: [{}, course {}, professor {}]".format(user.email, course_group.id, course.get_readable_name(), professor_name)
                     slack_utils.send_simple_slack_message(slack_message)
             else:
                 try:
