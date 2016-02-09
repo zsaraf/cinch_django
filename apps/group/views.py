@@ -9,7 +9,7 @@ from apps.student.models import Student
 from apps.chatroom.models import Chatroom, Announcement, AnnouncementType
 from apps.account.serializers import UserRegularInfoSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import exceptions
+from django.shortcuts import render
 from datetime import datetime
 from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager
 from apps.chatroom.serializers import ChatroomActivitySerializer
@@ -56,6 +56,11 @@ class ConversationParticipantViewSet(viewsets.ModelViewSet):
 class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupRegularSerializer
+
+    @list_route(methods=['get'])
+    def dashboard(self, request):
+
+        return render(request, 'course_group_dashboard.html', {})
 
     def list(self, request):
         course_group_memberships = CourseGroupMember.objects.filter(student=request.user.student, is_past=False)

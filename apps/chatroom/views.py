@@ -131,7 +131,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
 
             # post to slack TODO add detail
-            slack_message = user.email + " posted in " + chatroom.name + ":\n" + text
+            slack_message = user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
             slack_utils.send_simple_slack_message(slack_message)
 
             # process embedded data
@@ -177,7 +177,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             new_upload.send_created_notification(activity, request)
 
             # post to slack TODO add detail
-            message = request.user.email + " uploaded files to " + chatroom.name + ":\n" + all_urls
+            message = request.user.email + " uploaded files to " + chatroom.name + ":\n[" + str(new_upload.id) + "] " + all_urls
             slack_utils.send_simple_slack_message(message)
 
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)

@@ -1,0 +1,55 @@
+{% load staticfiles %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Team Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+</head>
+<body>
+
+<div id='content'>
+
+  <div id='header'>
+    <h1>team@seshtutoring dashboard</h1>
+  </div>
+
+  <div class='divider' id='unread_messages'>
+      {% if team_user.total_unread_count > 0 %}
+      <p>unread messages: <b>{{ team_user.total_unread_count }}</b></p>
+      {% else %}
+      <p>no unread messages</p>
+      {% endif %}
+  </div>
+
+  <div class='divider'>
+    <form class='main_form' method='POST'>
+    {% csrf_token %}
+    {% if form.is_valid %}
+      <p>Success!</p>
+    {% endif %}
+    <div id='user_id_strings'>
+      <p>User IDs (comma separated):</p>
+      {{ form.user_id_strings }}
+    </div>
+    <br><br>
+    <div id='message_text'>
+      <p>Message Text:</p>
+      {{ form.message_text }}
+    </div>
+    <br><br>
+    <input type='submit' id='send_messages' value="SEND MESSAGES">
+    </form>
+  </div>
+</div>
+
+<div id='footer'>
+   <a href="/django/accounts/contests/leaderboard/">leaderboard</a>
+   <a href="/django/groups/course_groups/dashboard/">course group dashboard</a>
+   <a href="/django/accounts/contests/leaderboard/">stats</a>
+</div>
+
+</body>
+
+</html>
