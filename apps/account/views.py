@@ -146,7 +146,7 @@ class UserViewSet(viewsets.ModelViewSet):
         from apps.group.models import Conversation, ConversationParticipant
 
         for chatroom in Chatroom.objects.all():
-            activity = ChatroomActivity.objects.all().order_by('pk')[:1].get()
+            activity = ChatroomActivity.objects.filter(chatroom=chatroom).order_by('pk')[:1].get()
             activity.timestamp = activity.timestamp - datetime.timedelta(minutes=1)
             activity.save()
 
