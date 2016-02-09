@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
 from sesh.bonus_utils import BonusManager
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponseRedirect
 from datetime import datetime, timedelta
 import hashlib
 import re
@@ -92,6 +92,52 @@ class ContestShareViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserRegularInfoSerializer
+
+    @list_route(methods=['get', 'post'])
+    def team_dashboard(self, request):
+        from forms import AutoMessageForm
+        from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomMember, Message, ChatroomActivityTypeManager
+        from apps.chatroom.serializers import WelcomeMessageChatroomActivitySerializer
+        from apps.notification.models import NotificationType, OpenNotification
+
+        team_user = User.objects.get(email='team@seshtutoring.com')
+
+        if request.method == 'POST':
+            form = AutoMessageForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                text = data['message_text']
+                users = form.get_user_list()
+
+                for user_id in users:
+                    user = User.objects.get(pk=int(user_id))
+
+                    name = "The Sesh Team"
+                    desc = "We're so happy you're here! Any questions?"
+                    user_member = ChatroomMember.objects.get(user=user, chatroom__name=name, chatroom__description=desc)
+                    chatroom = user_member.chatroom
+                    team_member = ChatroomMember.objects.get(user=team_user, chatroom=chatroom)
+
+                    message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
+                    activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+                    activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+                    merge_vars = {
+                        "NAME": team_user.full_name,
+                        "MESSAGE": text
+                    }
+                    data = {
+                        "chatroom_activity": WelcomeMessageChatroomActivitySerializer(activity).data,
+                    }
+                    notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+                    OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
+
+                return Response(form.get_user_list())
+
+        else:
+            form = AutoMessageForm()
+
+        return render(request, 'team_dashboard.html', {'team_user': team_user, 'form': form})
 
     @list_route(methods=['post'])
     def populate_welcome_messages(self, request):
@@ -320,12 +366,18 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response(UserRegularInfoSerializer(user).data)
 
-    @list_route(methods=['POST'])
+    @list_route(methods=['post'])
+    def assign_existing_chavatars(self, request):
+        for user in User.objects.all():
+            user.assign_chavatar()
+
+    @list_route(methods=['post'])
     def resize_existing_pictures(self, request):
         path = 'images/profile_pictures'
         users = []
 
         for user in User.objects.all():
+
             if user.profile_picture:
                 if get_file_from_s3(path, '%s_small.jpeg' % user.profile_picture):
                     # this user has sized images already
