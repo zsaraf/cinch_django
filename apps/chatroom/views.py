@@ -111,9 +111,52 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id)[:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
+    # @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    # def send_message(self, request, pk=None):
+
+    #     user = request.user
+    #     chatroom = self.get_object()
+    #     text = request.data['message']
+    #     embedded_data = None
+    #     if 'embedded_data' in request.data:
+    #         embedded_data = json.dumps(request.data['embedded_data'])
+
+    #     if len(text) > 500:
+    #         return Response({"detail": "Message must be less than 500 characters. Shorten it up!"}, 405)
+
+    #     try:
+    #         chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
+    #         message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text)
+    #         activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+    #         activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+    #         # post to slack TODO add detail
+    #         slack_message = user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
+    #         slack_utils.send_simple_slack_message(slack_message)
+
+    #         # process embedded data
+    #         exclude_list = [chatroom_member.pk]
+    #         if embedded_data is not None:
+    #             json_arr = request.data['embedded_data']
+    #             for obj in json_arr:
+    #                 if obj['type'] == 'mention':
+    #                     chatroom_member_id = obj['chatroom_member_id']
+    #                     try:
+    #                         mentioned_member = ChatroomMember.objects.get(pk=chatroom_member_id)
+    #                         Mention.objects.create(message=message, chatroom_member=mentioned_member, start_index=obj['start_index'], end_index=obj['end_index'])
+    #                         message.send_mention_notification(activity, request, chatroom_member_id)
+    #                         exclude_list.append(chatroom_member_id)
+    #                     except:
+    #                         continue
+
+    #         message.send_notifications_excluding_members(activity, request, exclude_list)
+    #         return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
+
+    #     except ChatroomMember.DoesNotExist:
+    #         return Response({"detail": "You are not a member of this chatroom"}, 405)
+
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def send_message(self, request, pk=None):
-
         user = request.user
         chatroom = self.get_object()
         text = request.data['message']
@@ -126,12 +169,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         try:
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
-            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text)
+            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text, embedded_data=embedded_data)
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
 
             # post to slack TODO add detail
-            slack_message = user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
+            slack_message = user.email + " posted in " + chatroom.name + ":\n" + text
             slack_utils.send_simple_slack_message(slack_message)
 
             # process embedded data
@@ -140,14 +183,9 @@ class ChatroomViewSet(viewsets.ModelViewSet):
                 json_arr = request.data['embedded_data']
                 for obj in json_arr:
                     if obj['type'] == 'mention':
-                        chatroom_member_id = obj['chatroom_member_id']
-                        try:
-                            mentioned_member = ChatroomMember.objects.get(pk=chatroom_member_id)
-                            Mention.objects.create(message=message, chatroom_member=mentioned_member, start_index=obj['start_index'], end_index=obj['end_index'])
-                            message.send_mention_notification(activity, request, chatroom_member_id)
-                            exclude_list.append(chatroom_member_id)
-                        except:
-                            continue
+                        exclude_list.append(obj['chatroom_member_id'])
+                        message.send_mention_notification(activity, request, obj['chatroom_member_id'])
+                        # FUTURE: save mention as object? good for indexing/stats
 
             message.send_notifications_excluding_members(activity, request, exclude_list)
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)

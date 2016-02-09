@@ -278,24 +278,32 @@ class FileSerializer(serializers.ModelSerializer):
         model = File
 
 
-class MentionSerializer(serializers.ModelSerializer):
-    chatroom_member = ChatroomMemberBasicSerializer()
-
-    class Meta:
-        model = Mention
-        fields = ('chatroom_member', 'start_index', 'end_index')
-
-
 class BasicMessageSerializer(serializers.ModelSerializer):
     chatroom_member = ChatroomMemberBasicSerializer()
-    mentions = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ('message', 'chatroom_member', 'id', 'mentions')
+        fields = ('message', 'chatroom_member', 'id', 'embedded_data')
 
-    def get_mentions(self, obj):
-        return MentionSerializer(Mention.objects.filter(message=obj), many=True).data
+
+# class MentionSerializer(serializers.ModelSerializer):
+#     chatroom_member = ChatroomMemberBasicSerializer()
+
+#     class Meta:
+#         model = Mention
+#         fields = ('chatroom_member', 'start_index', 'end_index')
+
+
+# class BasicMessageSerializer(serializers.ModelSerializer):
+#     chatroom_member = ChatroomMemberBasicSerializer()
+#     mentions = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = Message
+#         fields = ('message', 'chatroom_member', 'id', 'mentions')
+
+#     def get_mentions(self, obj):
+#         return MentionSerializer(Mention.objects.filter(message=obj), many=True).data
 
 
 class MessageSerializer(serializers.ModelSerializer):

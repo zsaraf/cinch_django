@@ -292,13 +292,13 @@ class Message(models.Model):
         db_table = 'message'
 
 
-class Mention(models.Model):
-    start_index = models.IntegerField()
-    end_index = models.IntegerField()
-    chatroom_member = models.ForeignKey(ChatroomMember)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    message = models.ForeignKey(Message)
+# class Mention(models.Model):
+#     start_index = models.IntegerField()
+#     end_index = models.IntegerField()
+#     chatroom_member = models.ForeignKey(ChatroomMember)
+#     timestamp = models.DateTimeField(auto_now_add=True)
+#     message = models.ForeignKey(Message)
 
-    class Meta:
-        managed = False
-        db_table = 'mention'
+#     class Meta:
+#         managed = False
+#         db_table = 'mention'
