@@ -1,7 +1,91 @@
+html {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
 body {
-    font-family: "Trebuchet MS", Helvetica, sans-serif;
     position:relative;
-    min-width:300px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    min-height: 100%;
+    padding-bottom: 50px;
+    margin: 0;
+}
+
+textarea {
+    height: 100px;
+    resize: none;
+}
+
+#content {
+    margin: 0 auto;
+    padding-top: 10px;
+    width: 100%
+}
+
+#header {
+    width: 100%;
+    background: #F4806E;
+    height: 75px;
+}
+
+#footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #F4806E;
+    text-align: center;
+    padding: 1rem;
+    height: 50px;
+}
+
+#header h1 {
+    color: white;
+    height: 75px;
+    line-height: 75px;
+    width: 100%;
+}
+
+#unread_messages {
+    margin: 5px;
+}
+
+#unread_messages b {
+    color: red;
+}
+
+.emphasized {
+    color: red;
+}
+
+.main_form {
+    text-align: center;
+    font-size: 20px;
+    margin: 0 auto;
+    margin-top: 50px;
+    width: 300px;
+}
+
+textarea, input[type='text'], input [type='submit'] {
+    border: 3px solid #cccccc;
+    padding: 5px;
+    width: 284px;
+    font-size: 16px;
+}
+
+#send_messages {
+    background: #F4806E;
+    border: none;
+    color: white;
+    padding: 10px;
+    font-size: 20px;
+    width: 300px;
 }
 
 #uploads {
@@ -13,6 +97,13 @@ body {
 #referrals {
     display: inline-block;
     width: 50%;
+}
+
+a {
+    padding-right: 30px;
+    padding-right: 30px;
+    color: white;
+    text-decoration: none;
 }
 
 
