@@ -240,6 +240,7 @@ class Message(models.Model):
     message = models.CharField(max_length=500)
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
+    embedded_data = models.TextField(blank=True, null=True)
 
     def send_mention_notification(self, chatroom_activity, request, chatroom_member_id):
         '''
