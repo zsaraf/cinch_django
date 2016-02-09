@@ -57,7 +57,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupRegularSerializer
 
-    @list_route(methods=['get'], permission_classes=[])
+    @list_route(methods=['get'], permission_classes=[]rest_framework.authentication.BasicAuthentication)
     def dashboard(self, request):
 
         return render(request, 'course_group_dashboard.html', {})
