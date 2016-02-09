@@ -141,11 +141,13 @@ class ChatroomViewSet(viewsets.ModelViewSet):
                 for obj in json_arr:
                     if obj['type'] == 'mention':
                         chatroom_member_id = obj['chatroom_member_id']
-                        exclude_list.append(chatroom_member_id)
-
-                        mentioned_member = ChatroomMember.objects.get(pk=chatroom_member_id)
-                        Mention.objects.create(message=message, chatroom_member=mentioned_member, start_index=obj['start_index'], end_index=obj['end_index'])
-                        message.send_mention_notification(activity, request, chatroom_member_id)
+                        try:
+                            mentioned_member = ChatroomMember.objects.get(pk=chatroom_member_id)
+                            Mention.objects.create(message=message, chatroom_member=mentioned_member, start_index=obj['start_index'], end_index=obj['end_index'])
+                            message.send_mention_notification(activity, request, chatroom_member_id)
+                            exclude_list.append(chatroom_member_id)
+                        except:
+                            continue
 
             message.send_notifications_excluding_members(activity, request, exclude_list)
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
