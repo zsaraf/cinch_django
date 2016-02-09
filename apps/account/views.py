@@ -366,12 +366,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response(UserRegularInfoSerializer(user).data)
 
-    @list_route(methods=['post'])
+    @list_route(methods=['get'])
     def assign_existing_chavatars(self, request):
         for user in User.objects.all():
             user.assign_chavatar()
+        return Response()
 
-    @list_route(methods=['post'])
+    @list_route(methods=['get'])
     def resize_existing_pictures(self, request):
         path = 'images/profile_pictures'
         users = []
