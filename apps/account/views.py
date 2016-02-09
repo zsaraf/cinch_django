@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from apps.university.models import Constant
 from django.utils.crypto import get_random_string
@@ -63,7 +63,7 @@ class TokenViewSet(viewsets.ModelViewSet):
 class ContestShareViewSet(viewsets.ModelViewSet):
     queryset = ContestShare.objects.all()
 
-    @list_route(methods=['get'], permission_classes=[])
+    @list_route(methods=['get'], permission_classes=[AllowAny])
     def leaderboard(self, request):
         from apps.chatroom.models import File, Upload
         referral_leaders = ContestShare.objects.values('contest_code_id', 'contest_code__identifier').annotate(count=Count('contest_code_id')).order_by('-count')
@@ -95,7 +95,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserRegularInfoSerializer
 
-    @list_route(methods=['get', 'post'], permission_classes=[])
+    @list_route(methods=['get', 'post'], permission_classes=[AllowAny])
     def team_dashboard(self, request):
         from forms import AutoMessageForm
         from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomMember, Message, ChatroomActivityTypeManager

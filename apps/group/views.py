@@ -1,5 +1,6 @@
 from .models import *
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 from .serializers import *
 from sesh import slack_utils
 from rest_framework.response import Response
@@ -57,7 +58,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
     queryset = CourseGroup.objects.all()
     serializer_class = CourseGroupRegularSerializer
 
-    @list_route(methods=['get'], permission_classes=[])
+    @list_route(methods=['get'], permission_classes=[AllowAny])
     def dashboard(self, request):
 
         return render(request, 'course_group_dashboard.html', {})
