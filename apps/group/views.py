@@ -229,7 +229,7 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             chatroom_activity = ChatroomActivity.objects.create(chatroom=course_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
             announcement.send_notifications(request, chatroom_activity)
-            course_group.send_new_member_notification(user, request)
+            # course_group.send_new_member_notification(user, request)
 
         try:
             # check for completion of user_to_user_share promos
@@ -429,7 +429,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             chatroom_activity = ChatroomActivity.objects.create(chatroom=study_group.chatroom, chatroom_activity_type=activity_type, activity_id=announcement.pk)
 
             announcement.send_notifications(request, chatroom_activity)
-            study_group.send_new_member_notification(user, request)
+            # study_group.send_new_member_notification(user, request)
 
             obj = StudyGroupMemberSerializer(new_group_member, context={'request': request})
             return Response(obj.data)
