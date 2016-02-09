@@ -113,6 +113,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def send_message(self, request, pk=None):
+
         user = request.user
         chatroom = self.get_object()
         text = request.data['message']
@@ -125,7 +126,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
         try:
             chatroom_member = ChatroomMember.objects.get(user=user, chatroom=chatroom, is_past=False)
-            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text, embedded_data=embedded_data)
+            message = Message.objects.create(chatroom=chatroom, chatroom_member=chatroom_member, message=text)
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
 
@@ -139,9 +140,12 @@ class ChatroomViewSet(viewsets.ModelViewSet):
                 json_arr = request.data['embedded_data']
                 for obj in json_arr:
                     if obj['type'] == 'mention':
-                        exclude_list.append(obj['chatroom_member_id'])
-                        message.send_mention_notification(activity, request, obj['chatroom_member_id'])
-                        # FUTURE: save mention as object? good for indexing/stats
+                        chatroom_member_id = obj['chatroom_member_id']
+                        exclude_list.append(chatroom_member_id)
+
+                        mentioned_member = ChatroomMember.objects.get(pk=chatroom_member_id)
+                        Mention.objects.create(message=message, chatroom_member=mentioned_member, start_index=obj['start_index'], end_index=obj['end_index'])
+                        message.send_mention_notification(activity, request, chatroom_member_id)
 
             message.send_notifications_excluding_members(activity, request, exclude_list)
             return Response(ChatroomActivitySerializer(activity, context={'request': request}).data)
