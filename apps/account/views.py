@@ -141,6 +141,17 @@ class UserViewSet(viewsets.ModelViewSet):
 
     #     return render(request, 'team_dashboard.html', {'team_user': team_user, 'form': form})
 
+    def fix_welcome_messages(self, request):
+        from apps.chatroom.models import Chatroom, ChatroomMember, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager, Message
+        from apps.group.models import Conversation, ConversationParticipant
+
+        for chatroom in Chatroom.objects.all():
+            activity = ChatroomActivity.objects.filter(chatroom=chatroom).order_by('pk')[:1].get()
+            activity.timestamp = activity.timestamp - datetime.timedelta(minutes=1)
+            activity.save()
+
+
+
     @list_route(methods=['post'])
     def populate_welcome_messages(self, request):
         from apps.chatroom.models import Chatroom, ChatroomMember, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager, Message
