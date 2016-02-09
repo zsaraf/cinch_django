@@ -80,7 +80,11 @@ class UserHuskyInfoSerializer(serializers.ModelSerializer):
         exclude = ['password', 'salt']
 
     def get_constants(self, obj):
-        return ConstantSerializer(Constant.objects.get(school_id=obj.school.pk)).data
+        try:
+            constant = Constant.objects.get(school_id=obj.school.pk)
+        except Constant.DoesNotExist:
+            constant = Constant.objects.get(school_id=0)
+        return ConstantSerializer(constant).data
 
     def get_student(self, obj):
         return StudentBasicSerializer(obj.student, context={'request': self.context['request']}).data
