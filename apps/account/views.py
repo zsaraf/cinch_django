@@ -105,7 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
     #     team_user = User.objects.get(email='team@seshtutoring.com')
 
     #     if request.method == 'POST':
-    #         form = AutoMessageForm(request.POST)
+            # form = AutoMessageForm(request.POST)
     #         if form.is_valid():
     #             data = form.cleaned_data
     #             text = data['message_text']
@@ -152,7 +152,7 @@ class UserViewSet(viewsets.ModelViewSet):
         desc = "We're so happy you're here! Any questions?"
         text_2 = "Welcome! Please reach out to us here if you ever want to chat. Problems, questions, suggestions, whatever it may be, don't be shy. We're here to help out however we can."
 
-        for user in User.objects.all().exlude():
+        for user in User.objects.filter(id__gt=1569).exclude(team_user):
             text_1 = "Hey {}!".format(user.first_name)
             chatroom = Chatroom.objects.create(name=name, description=desc)
             conversation = Conversation.objects.create(chatroom=chatroom)
