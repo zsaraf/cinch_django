@@ -142,6 +142,7 @@ class UserViewSet(viewsets.ModelViewSet):
     #     return render(request, 'team_dashboard.html', {'team_user': team_user, 'form': form})
 
     def fix_welcome_messages(self, request):
+        import datetime
         from apps.chatroom.models import Chatroom, ChatroomMember, ChatroomActivity, ChatroomActivityType, ChatroomActivityTypeManager, Message
         from apps.group.models import Conversation, ConversationParticipant
 
