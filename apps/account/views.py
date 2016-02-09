@@ -63,7 +63,7 @@ class TokenViewSet(viewsets.ModelViewSet):
 class ContestShareViewSet(viewsets.ModelViewSet):
     queryset = ContestShare.objects.all()
 
-    @list_route(methods=['get'], permission_classes=[rest_framework.permissions.AllowAny])
+    @list_route(methods=['get'], permission_classes=[])
     def leaderboard(self, request):
         from apps.chatroom.models import File, Upload
         referral_leaders = ContestShare.objects.values('contest_code_id', 'contest_code__identifier').annotate(count=Count('contest_code_id')).order_by('-count')
@@ -95,7 +95,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserRegularInfoSerializer
 
-    @list_route(methods=['get', 'post'], permission_classes=[rest_framework.authentication.BasicAuthentication])
+    @list_route(methods=['get', 'post'], permission_classes=[])
     def team_dashboard(self, request):
         from forms import AutoMessageForm
         from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomMember, Message, ChatroomActivityTypeManager
