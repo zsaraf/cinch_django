@@ -240,7 +240,6 @@ class Message(models.Model):
     message = models.CharField(max_length=500)
     chatroom = models.ForeignKey(Chatroom)
     chatroom_member = models.ForeignKey(ChatroomMember)
-    embedded_data = models.TextField(blank=True, null=True)
 
     def send_mention_notification(self, chatroom_activity, request, chatroom_member_id):
         '''
@@ -293,13 +292,13 @@ class Message(models.Model):
         db_table = 'message'
 
 
-# class Mention(models.Model):
-#     start_index = models.IntegerField()
-#     end_index = models.IntegerField()
-#     chatroom_member = models.ForeignKey(ChatroomMember)
-#     timestamp = models.DateTimeField(auto_now_add=True)
-#     message = models.ForeignKey(Message)
+class Mention(models.Model):
+    start_index = models.IntegerField()
+    end_index = models.IntegerField()
+    chatroom_member = models.ForeignKey(ChatroomMember)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    message = models.ForeignKey(Message)
 
-#     class Meta:
-#         managed = False
-#         db_table = 'mention'
+    class Meta:
+        managed = False
+        db_table = 'mention'
