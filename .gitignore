@@ -10,3 +10,4 @@ sesh_db.cnf
 **/static/ckeditor/
 sesh/wsgi.py
 media
+*.paw
