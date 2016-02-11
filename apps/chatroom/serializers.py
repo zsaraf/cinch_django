@@ -283,7 +283,7 @@ class MentionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mention
-        fields = ('chatroom_member', 'start_index', 'end_index')
+        fields = ('chatroom_member', 'start_index', 'end_index', 'id')
 
 
 class BasicMessageSerializer(serializers.ModelSerializer):
