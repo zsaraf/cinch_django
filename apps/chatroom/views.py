@@ -134,7 +134,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
 
             # post to slack TODO add detail
-            slack_message = "[" + user.id + "] " + user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
+            slack_message = "[" + str(user.id) + "] " + user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
             slack_utils.send_simple_slack_message(slack_message)
 
             # process embedded data
