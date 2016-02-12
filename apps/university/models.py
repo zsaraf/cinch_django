@@ -4,7 +4,8 @@ import re
 from .managers import SchoolManager
 from rest_framework import exceptions
 import json
-
+import logging
+logger = logging.getLogger(__name__)
 
 class BonusPointAllocation(models.Model):
     school_id = models.IntegerField()
@@ -35,17 +36,34 @@ class Department(models.Model):
 
 class CourseManager(models.Manager):
     def search(self, user, search_term):
+        search_term.strip()
         dept_name = ""
         class_num = ""
         all_courses = []
-        matches = re.search(r'([a-zA-Z]+)', search_term)
+        letter_in_class = False
+
+        matches = re.search(r'([^\d\s]+)', search_term)
         if (matches):
-            dept_name = matches.group(0)
+            potential_match = matches.group(0)
+            num_depts = Department.objects.filter(school__id=user.school.pk, abbrev__istartswith=potential_match).order_by('abbrev')[:10].count()
+            if num_depts == 0:
+                letter_in_class = True
+                dept_name = potential_match[:-1]
+            else:
+                dept_name = potential_match
 
-        num_matches = re.search(r'([0-9]+[a-zA-z]*)', search_term)
-        if (num_matches):
-            class_num = num_matches.group(0)
+        if ' ' in search_term:
+            space_pos = search_term.find(' ')
+            class_num = search_term[(space_pos + 1):]
+        elif letter_in_class:
+            class_num = search_term[len(dept_name):]
+        else:
+            num_matches = re.search(r'([0-9]+[a-zA-z]*)', search_term)
+            if (num_matches):
+                class_num = num_matches.group(0)
 
+        logger.debug("Class: " + class_num)
+        logger.debug("Dept Name: " + dept_name)
         depts = Department.objects.filter(school__id=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
         for dept in depts:
             dept_id = dept.pk
