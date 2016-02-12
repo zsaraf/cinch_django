@@ -193,9 +193,8 @@ class UserViewSet(viewsets.ModelViewSet):
             m.update(str_to_hash)
             hex_dig = m.hexdigest()
 
-            # temporarily auto verify
             verification_id = get_random_string(length=32)
-            is_verified = True
+            is_verified = False
 
             # assign unique code
             new_user_promo = get_random_string(length=5).lower()
@@ -217,6 +216,10 @@ class UserViewSet(viewsets.ModelViewSet):
             school = School.objects.get_school_from_email(email)
             if not school:
                 return Response({"detail": "Sorry, we're not at your school yet!"}, 405)
+
+            # temporarily auto verify ucla
+            if school.pk == 724:
+                is_verified = True
 
             state = SeshState.objects.get(identifier='SeshStateNone')
             user = User.objects.create(email=email, password=hex_dig, salt=salt, full_name=full_name, verification_id=verification_id, school=school, sesh_state=state, is_verified=is_verified, share_code=new_user_promo)
