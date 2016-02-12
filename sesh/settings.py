@@ -23,12 +23,6 @@ SERVER_NAME = 'seshtutoring'
 
 # Slack Integration - for API tips see https://github.com/os/slacker
 
-# Below is the dev (Cinch) slack bot
-# SLACK_BOT_TOKEN = 'xoxb-18843217328-ICDugF9g9eMKgaxGXkX646yY'
-
-# Below is the dev (Cinch) slack channel
-# SLACK_CHANNEL = '#slack_testing'
-
 # Below is the prod (Sesh) slack bot
 SLACK_BOT_TOKEN = 'xoxb-18843597536-6nv8LjUVidq2oTtkT0qAQ5OY'
 
@@ -83,12 +77,16 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+FILE_UPLOAD_HANDLERS = (
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+)
+
 ROOT_URLCONF = 'sesh.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(ROOT_DIR, 'templates/sesh')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

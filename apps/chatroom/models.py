@@ -82,7 +82,6 @@ class ChatroomActivity(models.Model):
         from serializers import PNChatroomActivitySerializer
         data = {}
         full_object = PNChatroomActivitySerializer(self, context={'request': request}).data
-        logger.debug(len(json.dumps(full_object)))
         if len(json.dumps(full_object)) > 1500:
             data['chatroom_activity_id'] = self.pk
         else:
@@ -164,7 +163,7 @@ class Upload(models.Model):
         url = upload_image_to_s3(fp, 'images/files', file_name)
 
         File.objects.create(src=url, upload=self, width=width, height=height)
-
+        
         return url
 
     def send_created_notification(self, chatroom_activity, request):
