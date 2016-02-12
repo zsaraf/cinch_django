@@ -193,8 +193,9 @@ class UserViewSet(viewsets.ModelViewSet):
             m.update(str_to_hash)
             hex_dig = m.hexdigest()
 
+            # temporarily auto verify
             verification_id = get_random_string(length=32)
-            is_verified = False
+            is_verified = True
 
             # assign unique code
             new_user_promo = get_random_string(length=5).lower()
