@@ -247,6 +247,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
                 merge_vars = {
                     "NAME": team_user.full_name,
+                    "CHATROOM_NAME": chatroom.name,
                     "MESSAGE": text
                 }
                 data = {
@@ -263,6 +264,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
                 merge_vars = {
                     "NAME": team_user.full_name,
+                    "CHATROOM_NAME": chatroom.name,
                     "MESSAGE": text
                 }
                 data = {

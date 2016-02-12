@@ -134,7 +134,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
 
             # post to slack TODO add detail
-            slack_message = user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
+            slack_message = "[" + user.id + "] " + user.email + " posted in " + chatroom.name + ":\n[" + str(message.id) + "] " + text
             slack_utils.send_simple_slack_message(slack_message)
 
             # process embedded data
@@ -265,6 +265,11 @@ class ChatroomMemberViewSet(viewsets.ModelViewSet):
 class ChatroomActivityViewSet(viewsets.ModelViewSet):
     queryset = ChatroomActivity.objects.all()
     serializer_class = ChatroomActivitySerializer
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def post_retrieve(self, request, pk=None):
+        return Response(ChatroomActivitySerializer(self.get_object(), context={'request': request}).data)
+
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def record_view(self, request, pk=None):
