@@ -281,6 +281,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 BonusManager.award_points_for_action(promo_recipient, BonusManager.REFER_USER)
             elif contest_code is not None:
                 ContestShare.objects.create(user=user, contest_code=contest_code)
+
+            # Create the student and tutor object
+            user.student = Student.objects.create_default_student_with_user(user)
+            user.tutor = Tutor.objects.create_default_tutor_with_user(user)
+            user.save()
+
             return Response({"is_verified": is_verified})
 
     @list_route(methods=['POST'])
@@ -427,20 +433,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if not request.auth:
             return Response({"status": "UNVERIFIED"})
-
-        # See if the user has a tutor make one if not
-        try:
-            user.tutor
-        except Tutor.DoesNotExist:
-            user.tutor = Tutor.objects.create_default_tutor_with_user(user)
-
-        # Same thing with student
-        try:
-            user.student
-        except Student.DoesNotExist:
-            user.student = Student.objects.create_default_student_with_user(user)
-
-        user.save()
 
         # Check pending tutor stuff
         user.tutor.check_if_pending()
