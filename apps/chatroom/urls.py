@@ -2,6 +2,10 @@ from django.conf.urls import include, url
 from rest_framework import routers
 from . import views
 
+chatroom_activity_vs = views.ChatroomActivityViewSet.as_view({
+    'get': 'retrieve',
+    'post': 'retrieve'
+})
 
 router = routers.DefaultRouter()
 router.register(r'announcements', views.AnnouncementViewSet)
@@ -15,5 +19,6 @@ router.register(r'tags', views.TagViewSet)
 router.register(r'interactions', views.InteractionViewSet)
 
 urlpatterns = [
+    url(r'^chatroom_activity/(?P<pk>[0-9]+)/$', chatroom_activity_vs, name='chatroom-activity-vs'),
     url(r'^', include(router.urls))
 ]

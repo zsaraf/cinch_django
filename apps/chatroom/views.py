@@ -267,11 +267,6 @@ class ChatroomActivityViewSet(viewsets.ModelViewSet):
     serializer_class = ChatroomActivitySerializer
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
-    def post_retrieve(self, request, pk=None):
-        return Response(ChatroomActivitySerializer(self.get_object(), context={'request': request}).data)
-
-
-    @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def record_view(self, request, pk=None):
         user = request.user
         activity = self.get_object()
