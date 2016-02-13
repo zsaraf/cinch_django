@@ -118,7 +118,7 @@ class TeamChat(TemplateView):
                 user_member = ChatroomMember.objects.get(user=user, chatroom__name=name, chatroom__description=desc)
                 chatroom = user_member.chatroom
 
-                recent_messages = Message.objects.filter(chatroom=chatroom)[10:]
+                recent_messages = Message.objects.filter(chatroom=chatroom).order_by('-id')[:5][::-1]
                 message_form = MessageForm(initial={'user_id': user.pk})
 
                 self.kwargs['user_obj'] = user

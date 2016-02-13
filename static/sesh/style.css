@@ -18,8 +18,14 @@ body {
 }
 
 textarea {
-    height: 100px;
+    height: 300px;
     resize: none;
+}
+
+#user_content {
+	margin: 0 auto;
+	width: 600px;
+	
 }
 
 #content {
@@ -69,23 +75,26 @@ textarea {
     font-size: 20px;
     margin: 0 auto;
     margin-top: 50px;
-    width: 300px;
+    width: 400px;
 }
 
 textarea, input[type='text'], input [type='submit'] {
     border: 3px solid #cccccc;
     padding: 5px;
-    width: 284px;
+    width: 384px;
     font-size: 16px;
 }
 
-#send_messages {
+input[type='submit'] {
     background: #F4806E;
     border: none;
     color: white;
     padding: 10px;
     font-size: 20px;
-    width: 300px;
+    width: 280px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+
 }
 
 #uploads {
@@ -130,7 +139,7 @@ ul li:last-child {
     border-bottom:none;
 }
 
-ul li:first-child {
+.leader_list ul li:first-child {
     background: #F4806E;
     color: white;
 }
