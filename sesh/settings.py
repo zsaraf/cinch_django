@@ -77,9 +77,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-FILE_UPLOAD_HANDLERS = (
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
-)
+# FILE_UPLOAD_HANDLERS = (
+#     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+# )
 
 ROOT_URLCONF = 'sesh.urls'
 

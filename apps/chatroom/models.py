@@ -163,17 +163,20 @@ class Upload(models.Model):
         url = upload_image_to_s3(fp, 'images/files', file_name)
 
         File.objects.create(src=url, upload=self, width=width, height=height)
-        
+
         return url
 
-    def send_created_notification(self, chatroom_activity, request):
+    def send_created_notification(self, chatroom_activity, request, should_send_self=False):
         import serializers
         from apps.group.models import CourseGroup, StudyGroup, Conversation
         from apps.tutoring.models import OpenSesh
         '''
         Sends a notification to the chatroom members
         '''
-        chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
+        if should_send_self:
+            chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False)
+        else:
+            chatroom_members = ChatroomMember.objects.filter(chatroom=self.chatroom, is_past=False).exclude(user=self.chatroom_member.user)
         creator_name = self.chatroom_member.user.readable_name
         if self.is_anonymous:
             creator_name = "Someone"
@@ -195,7 +198,7 @@ class Upload(models.Model):
         else:
             return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
+            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled, should_send_self)
 
     class Meta:
         managed = False

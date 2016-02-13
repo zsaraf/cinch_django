@@ -7,6 +7,7 @@ from .serializers import *
 from .models import *
 from wand.image import Image
 from wand import exceptions as wand_exceptions
+import tempfile
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -160,7 +161,6 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def upload_from_web(self, request, pk=None):
-        logger.debug(request.data)
 
         chatroom = self.get_object()
 
@@ -175,33 +175,23 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
             for fp in request.FILES:
                 uploadedFile = request.data.get(fp)
-                logger.debug(uploadedFile.temporary_file_path())
                 if uploadedFile.content_type == "application/pdf":
-                    pageIndex = 0
-                    while True:
-                        try:
-                            logger.debug("Trying page index: " + str(pageIndex))
-                            f = open('temp_image.jpeg', 'w+')
-                            with Image(filename=(uploadedFile.temporary_file_path() + '[' + str(pageIndex) + ']'), resolution=200) as img:
-                                img.format = 'jpeg'
-                                logger.debug(img)
-                                img.save(file=f)
-                            url = new_upload.upload_file(f)
-                            f.close()
-                            all_urls = all_urls + url + "\n"
-                            pageIndex += 1
-                        except wand_exceptions.WandException:
-                            logger.debug("Breaking...")
-                            break
-
+                    image_pdf = Image(file=uploadedFile, resolution=500)
+                    image_jpeg = image_pdf.convert('jpeg')
+                    for single_img in image_jpeg.sequence:
+                        img = Image(image=single_img, resolution=500)
+                        temp = tempfile.TemporaryFile()
+                        img.save(file=temp)
+                        url = new_upload.upload_file(temp)
+                        temp.close()
+                        all_urls = all_urls + url + "\n"
                     break
-
                 url = new_upload.upload_file(uploadedFile)
                 all_urls = all_urls + url + "\n"
 
             activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
             activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
-            new_upload.send_created_notification(activity, request)
+            new_upload.send_created_notification(activity, request, True)
 
             # post to slack TODO add detail
             message = request.user.email + " uploaded files to " + chatroom.name + ":\n[" + str(new_upload.id) + "] " + all_urls

@@ -47,7 +47,7 @@ class OpenNotificationManager(models.Manager):
         self.model.objects.filter(notification_type=refresh_type, user=user).delete()
         self.model.objects.create(user, refresh_type, None, None, None)
 
-    def create(self, to_user, notification_type, data, merge_vars, send_time, notifications_enabled=True):
+    def create(self, to_user, notification_type, data, merge_vars, send_time, notifications_enabled=True, has_sent=False):
 
         if not send_time:
             send_time = datetime.now()
@@ -59,7 +59,7 @@ class OpenNotificationManager(models.Manager):
             data=json.dumps(data),
             notification_type=notification_type,
             notification_vars=json.dumps(merge_vars),
-            has_sent=False,
+            has_sent=has_sent,
             send_time=send_time,
             muted=muted
         )
