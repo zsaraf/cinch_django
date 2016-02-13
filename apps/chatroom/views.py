@@ -176,10 +176,10 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             for fp in request.FILES:
                 uploadedFile = request.data.get(fp)
                 if uploadedFile.content_type == "application/pdf":
-                    image_pdf = Image(file=uploadedFile, resolution=500)
+                    image_pdf = Image(file=uploadedFile, resolution=100)
                     image_jpeg = image_pdf.convert('jpeg')
                     for single_img in image_jpeg.sequence:
-                        img = Image(image=single_img, resolution=500)
+                        img = Image(image=single_img, resolution=100)
                         temp = tempfile.TemporaryFile()
                         img.save(file=temp)
                         url = new_upload.upload_file(temp)
