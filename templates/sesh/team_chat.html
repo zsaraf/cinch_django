@@ -1,0 +1,74 @@
+{% load staticfiles %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Team Chat</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+</head>
+<body>
+
+<div id='content'>
+
+  <div id='header'>
+    <h1>team@seshtutoring chat tool</h1>
+  </div>
+
+  <div class='divider'>
+    <form class='main_form' method='POST'>
+      {% csrf_token %}
+        {% if form.is_valid %}
+          <p>Success!</p>
+        {% endif %}
+        <div id='user_id_strings'>
+          <p>User ID or email:</p>
+          {{ user_form.user_identifier }}
+        </div>
+        <input type='submit' name='user_lookup' id='user_lookup' value="FIND USER">
+    </form>
+  </div>
+
+  <div clas='divider'>
+    <p>Name: {{ user_obj.full_name }}</p>
+    <p>Email: {{ user_obj.email }}</p>
+    <p>School: {{ user_obj.school.name }}</p>
+    <p>Recent Messages:</p>
+    <div>
+      <ul>
+        {% for m in recent_messages %}
+          <li>
+            <p>{{ m.chatroom_member.user.full_name }}: "{{ m.message }}"</p>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class='divider'>
+    <form class='main_form' method='POST'>
+    {% csrf_token %}
+        {% if form.is_valid %}
+          <p>Success!</p>
+        {% endif %}
+      <div id='user_id' class=hidden>
+        {{ message_form.user_id }}
+      </div>
+      <div id='message_text'>
+        <p>Message Text:</p>
+        {{ message_form.message_text }}
+      </div>
+      <input type='submit' name='send_message' id='send_messages' value="SEND MESSAGE">
+    </form>
+  </div>
+</div>
+
+<div id='footer'>
+   <a href="'/django/tools/leaderboard/'">leaderboard</a>
+   <a href="'/django/tools/dashboard/'">course group dashboard</a>
+   <a href="'/django/tools/dashboard/'">stats</a>
+</div>
+
+</body>
+
+</html>
