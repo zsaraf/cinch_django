@@ -10,6 +10,7 @@ from sesh.mandrill_utils import EmailManager
 from sesh import settings
 from rest_framework import exceptions
 import locale
+import json
 import stripe
 
 locale.setlocale(locale.LC_ALL, '')
@@ -529,6 +530,28 @@ class PastSesh(models.Model):
         }
         notification_type = NotificationType.objects.get(identifier="SESH_CANCELLED_TUTOR")
         OpenNotification.objects.create(self.tutor.user, notification_type, data, merge_vars, None)
+
+    def clear_review_notifications(self):
+        '''
+        After student rating, clear SESH_REVIEW_TUTOR notifications
+        '''
+        from apps.notification.models import PastNotification
+
+        user = self.student.user
+
+        notification_type = NotificationType.objects.get(identifier="SESH_REVIEW_STUDENT")
+        notifications = OpenNotification.objects.filter(user=user, notification_type=notification_type)
+        for n in notifications:
+            json_arr = json.loads(n.data)
+            past_sesh_id = json_arr.get('past_sesh_id')
+            if past_sesh_id == self.pk:
+                PastNotification.objects.create(data=n.data, user_id=n.user.pk, notification_type=n.notification_type, notification_vars=n.notification_vars, has_sent=n.has_sent, send_time=n.send_time)
+                OpenNotification.objects.get(pk=n.pk).delete()
+
+        # send refresh notification
+        refresh_type = NotificationType.objects.get(identifier="REFRESH_NOTIFICATIONS")
+        OpenNotification.objects.filter(notification_type=refresh_type, user=user).delete()
+        OpenNotification.objects.create(user, refresh_type, None, None, None)
 
     def send_has_ended_notifications(self):
         '''
