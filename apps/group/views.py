@@ -211,6 +211,10 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
                     # announcement when they have previously been in the group
                     newCourseGroups.append(course_group)
+
+                    slack_message = "{} joined an existing course group: [{}, professor {}]".format(user.email, course_group.id, professor_name)
+                    slack_utils.send_simple_slack_message(slack_message)
+
                     continue
                 except CourseGroup.DoesNotExist:
                     return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
