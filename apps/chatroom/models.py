@@ -198,7 +198,10 @@ class Upload(models.Model):
         else:
             return Response({"detail": "Sorry, something's wrong with the network. Be back soon!"}, 405)
         for cm in chatroom_members:
-            OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled, should_send_self)
+            if cm.user == request.user:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled, True)
+            else:
+                OpenNotification.objects.create(cm.user, notification_type, data, merge_vars, None, cm.notifications_enabled)
 
     class Meta:
         managed = False
