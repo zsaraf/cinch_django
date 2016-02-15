@@ -16,7 +16,7 @@
 
     <ul>
       {% for item in referral_leaders %}
-          <li>
+          <li class='leader_list'>
             <p class="descriptor">{{item.contest_code__identifier}}</p>
             <p class="count">{{item.count}}</p>
           </li>
@@ -29,7 +29,7 @@
 
     <ul>
       {% for name,count in upload_leaders.items %}
-          <li>
+          <li class='leader_list'>
             <p class="descriptor">{{name}}</p>
             <p class="count">{{count}}</p>
           </li>
@@ -45,7 +45,7 @@
 
     <ul>
       {% for item in individual_referrals %}
-          <li>
+          <li class='leader_list'>
             <p class="descriptor">{{item.old_user__email}}</p>
             <p class="count">{{item.count}}</p>
           </li>
@@ -58,7 +58,7 @@
 
     <ul>
       {% for item in individual_uploads %}
-          <li>
+          <li class='leader_list'>
             <p class="descriptor">{{item.upload__chatroom_member__user__email}}</p>
             <p class="count">{{item.count}}</p>
           </li>
