@@ -252,6 +252,7 @@ class Message(models.Model):
 
         merge_vars = {
             "NAME": self.chatroom_member.user.readable_name,
+            "MESSAGE": self.message,
             "CHATROOM_NAME": self.chatroom.name
         }
         data = chatroom_activity.get_pn_data(request)
