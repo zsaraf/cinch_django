@@ -5,8 +5,6 @@ from rest_framework.decorators import detail_route
 from sesh import slack_utils
 from .serializers import *
 from .models import *
-from wand.image import Image
-from wand import exceptions as wand_exceptions
 import tempfile
 import json
 import logging
@@ -161,6 +159,8 @@ class ChatroomViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def upload_from_web(self, request, pk=None):
+        from wand.image import Image
+        from wand import exceptions as wand_exceptions
 
         chatroom = self.get_object()
 
