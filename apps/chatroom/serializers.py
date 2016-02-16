@@ -136,8 +136,8 @@ class ChatroomMemberBasicSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'chatroom']
 
     def get_user(self, obj):
-        from apps.account.serializers import UserSlimInfoSerializer
-        return UserSlimInfoSerializer(obj.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.user).data
 
 
 class ChatroomMemberSerializer(serializers.ModelSerializer):
@@ -147,8 +147,8 @@ class ChatroomMemberSerializer(serializers.ModelSerializer):
         model = ChatroomMember
 
     def get_user(self, obj):
-        from apps.account.serializers import UserSlimInfoSerializer
-        return UserSlimInfoSerializer(obj.user).data
+        from apps.account.serializers import UserRegularInfoSerializer
+        return UserRegularInfoSerializer(obj.user).data
 
 
 class TagSerializer(serializers.ModelSerializer):

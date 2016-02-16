@@ -50,19 +50,13 @@ class StudentBasicSerializer(serializers.ModelSerializer):
         return SeshRequestSerializer(SeshRequest.objects.filter(student=obj, status=0), many=True).data
 
 
-class StudentSerializer(serializers.ModelSerializer):
-    favorites = serializers.SerializerMethodField()
+class StudentSerializer(StudentBasicSerializer):
     open_seshes = serializers.SerializerMethodField()
     past_seshes = PastSeshStudentSerializer(many=True, source='pastsesh_set')
-    requests = serializers.SerializerMethodField()
     course_groups = serializers.SerializerMethodField()
-    stats = serializers.ReadOnlyField()
 
     class Meta:
         model = Student
-
-    def get_favorites(self, obj):
-        return FavoriteSerializer(Favorite.objects.filter(student=obj), many=True).data
 
     def get_open_seshes(self, obj):
         return OpenSeshSerializer(OpenSesh.objects.filter(student=obj), many=True, context={'request': self.context['request']}).data
@@ -70,7 +64,3 @@ class StudentSerializer(serializers.ModelSerializer):
     def get_course_groups(self, obj):
         course_group_memberships = CourseGroupMember.objects.filter(student=obj, is_past=False)
         return CourseGroupFullSerializer(CourseGroup.objects.filter(is_past=False, id__in=course_group_memberships.values('course_group_id')), many=True, context={'request': self.context['request']}).data
-
-    def get_requests(self, obj):
-        from apps.tutoring.models import SeshRequest
-        return SeshRequestSerializer(SeshRequest.objects.filter(student=obj, status=0), many=True).data
