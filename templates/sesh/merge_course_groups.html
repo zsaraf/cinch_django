@@ -1,0 +1,41 @@
+{% load staticfiles %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Merge</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+</head>
+<body>
+
+<div id='content'>
+
+  <div id='header'>
+    <h1>merge course groups</h1>
+  </div>
+
+  <div class='divider'>
+    <form class='main_form' method='POST'>
+    {% csrf_token %}
+    {% if form.is_valid %}
+      <p>Success!</p>
+    {% endif %}
+    <div id='user_id_strings'>
+      <p>course group ids (comma separated):</p>
+      {{ form.group_id_strings }}
+    </div>
+    <input type='submit' id='merge' value="MERGE">
+    </form>
+  </div>
+</div>
+
+<div id='footer'>
+   <a href="'/django/tools/leaderboard/'">leaderboard</a>
+   <a href="'/django/tools/dashboard/'">course group dashboard</a>
+   <a href="'/django/tools/dashboard/'">stats</a>
+</div>
+
+</body>
+
+</html>

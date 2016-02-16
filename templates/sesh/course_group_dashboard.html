@@ -20,6 +20,20 @@
     <p>{{ num_lonely_groups }} Lonely Course Groups :(</p>
   </div>
 
+  <div id='filter_div'>
+    <form id='filter_form'>
+      {% csrf_token %}
+        {% if form.is_valid %}
+          <p>Success!</p>
+        {% endif %}
+        <div id='filter_selection'>
+          <p>Filter by:</p>
+          {{ filter_form.filter_type }}
+        </div>
+        <input type='submit' name='update_filter' id='update_filter' value="filter">
+    </form>
+  </div>
+
   <div class='divider'>
     <ul>
       {% for group in course_groups %}
