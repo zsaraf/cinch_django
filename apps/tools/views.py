@@ -5,6 +5,37 @@ from django.http import HttpResponseRedirect
 from rest_framework import exceptions
 
 
+class CourseGroupDash(TemplateView):
+    template_name = 'course_group_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        from apps.group.models import CourseGroup, CourseGroupMember
+        from apps.chatroom.models import Message, Upload
+
+        context = super(CourseGroupDash, self).get_context_data(**kwargs)
+
+        course_group_count = CourseGroup.objects.all().count()
+        course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM(SELECT cg.id, cg.timestamp, cg.course_id, cg.professor_name, COUNT(*) as count FROM course_group_member cm INNER JOIN course_group cg ON cm.course_group_id=cg.id INNER JOIN students s ON cm.student_id = s.id INNER JOIN users u ON s.user_id=u.id WHERE u.is_test=0 GROUP BY cm.course_group_id) as temp WHERE count=1")
+        lonely_count = len(list(course_groups_lonely))
+
+        context['num_groups'] = course_group_count
+        context['num_lonely_groups'] = lonely_count
+        course_groups = CourseGroup.objects.all()
+        context_course_groups = []
+        for group in course_groups:
+            course_group = {}
+            course_group['num_uploads'] = Upload.objects.filter(chatroom=group.chatroom).count()
+            course_group['num_messages'] = Message.objects.filter(chatroom=group.chatroom).count()
+            course_group['num_students'] = CourseGroupMember.objects.filter(course_group=group).count()
+            course_group['course_name'] = group.course.get_readable_name()
+            course_group['professor_name'] = group.professor_name
+            course_group['school_name'] = group.course.school.name
+            course_group['timestamp'] = group.timestamp
+            context_course_groups.append(course_group)
+        context['course_groups'] = context_course_groups
+        return context
+
+
 class Leaderboard(TemplateView):
     template_name = 'test.html'
 
@@ -15,7 +46,7 @@ class Leaderboard(TemplateView):
         context = super(Leaderboard, self).get_context_data(**kwargs)
 
         referral_leaders = ContestShare.objects.values('contest_code_id', 'contest_code__identifier').annotate(count=Count('contest_code_id')).order_by('-count')
-        uploads = File.objects.values('upload_id').annotate(count=Count('upload_id')).order_by('-count')
+        uploads = File.objects.values('upload_id').annotate(count=Count('upload_id')).order_by('count')
         upload_leaders = {}
         for u in uploads:
             try:
