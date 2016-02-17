@@ -161,6 +161,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def upload_from_web(self, request, pk=None):
         from wand.image import Image
         from wand import exceptions as wand_exceptions
+        from apps.group.models import CourseGroup, CourseGroupMember
 
         chatroom = self.get_object()
         try:
