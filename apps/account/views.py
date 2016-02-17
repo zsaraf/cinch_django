@@ -193,9 +193,8 @@ class UserViewSet(viewsets.ModelViewSet):
             m.update(str_to_hash)
             hex_dig = m.hexdigest()
 
-            # temporarily auto verify
             verification_id = get_random_string(length=32)
-            is_verified = True
+            is_verified = False
 
             # assign unique code
             new_user_promo = get_random_string(length=5).lower()
@@ -449,6 +448,20 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if not request.auth:
             return Response({"status": "UNVERIFIED"})
+
+        # See if the user has a tutor make one if not
+        try:
+            user.tutor
+        except Tutor.DoesNotExist:
+            user.tutor = Tutor.objects.create_default_tutor_with_user(user)
+
+        # Same thing with student
+        try:
+            user.student
+        except Student.DoesNotExist:
+            user.student = Student.objects.create_default_student_with_user(user)
+
+        user.save()
 
         # Check pending tutor stuff
         user.tutor.check_if_pending()

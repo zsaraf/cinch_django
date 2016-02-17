@@ -163,47 +163,48 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         from wand import exceptions as wand_exceptions
 
         chatroom = self.get_object()
-
         try:
-            chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user, is_past=False)
-            name = request.data.get('name')
-            is_anonymous = int(request.data.get('is_anonymous', False))
-            tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
-
-            new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)
-            all_urls = ""
-
-            for fp in request.FILES:
-                uploadedFile = request.data.get(fp)
-                if uploadedFile.content_type == "application/pdf":
-                    image_pdf = Image(file=uploadedFile, resolution=100)
-                    image_jpeg = image_pdf.convert('jpeg')
-                    for single_img in image_jpeg.sequence:
-                        img = Image(image=single_img, resolution=100)
-                        temp = tempfile.TemporaryFile()
-                        img.save(file=temp)
-                        url = new_upload.upload_file(temp)
-                        temp.close()
-                        all_urls = all_urls + url + "\n"
-                    break
-                url = new_upload.upload_file(uploadedFile)
-                all_urls = all_urls + url + "\n"
-
-            activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
-            activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
-            new_upload.send_created_notification(activity, request, True)
-
-            # post to slack TODO add detail
-            message = request.user.email + " uploaded files to " + chatroom.name + ":\n[" + str(new_upload.id) + "] " + all_urls
-            slack_utils.send_simple_slack_message(message)
-
+            chatroom_member = ChatroomMember.objects.get(chatroom=chatroom, user=request.user)
         except ChatroomMember.DoesNotExist:
-            return Response({"detail": "You are not a member of this chatroom"}, 405)
+            # Create the course group member (is past)
+            course_group = CourseGroup.objects.get(chatroom=chatroom)
+            course_group_member = CourseGroupMember.objects.create(course_group=course_group, student=request.user.student, is_past=True)
 
-        logger.debug("Returning success")
+            # Create the chatroom member (is past)
+            chatroom_member = ChatroomMember.objects.create(user=request.user, chatroom=chatroom, is_past=True)
+
+        name = request.data.get('name')
+        is_anonymous = int(request.data.get('is_anonymous', False))
+        tag = Tag.objects.get(pk=int(request.POST.get('tag_id')))
+
+        new_upload = Upload.objects.create(chatroom_member=chatroom_member, chatroom=chatroom, name=name, tag=tag, is_anonymous=is_anonymous)
+        all_urls = ""
+
+        for fp in request.FILES:
+            uploadedFile = request.data.get(fp)
+            if uploadedFile.content_type == "application/pdf":
+                image_pdf = Image(file=uploadedFile, resolution=100)
+                image_jpeg = image_pdf.convert('jpeg')
+                for single_img in image_jpeg.sequence:
+                    img = Image(image=single_img, resolution=100)
+                    temp = tempfile.TemporaryFile()
+                    img.save(file=temp)
+                    url = new_upload.upload_file(temp)
+                    temp.close()
+                    all_urls = all_urls + url + "\n"
+                break
+            url = new_upload.upload_file(uploadedFile)
+            all_urls = all_urls + url + "\n"
+
+        activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.UPLOAD)
+        activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=new_upload.pk)
+        new_upload.send_created_notification(activity, request, True)
+
+        # post to slack TODO add detail
+        message = request.user.email + " uploaded files to " + chatroom.name + ":\n[" + str(new_upload.id) + "] " + all_urls
+        slack_utils.send_simple_slack_message(message)
+
         return Response(200)
-
-
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def upload(self, request, pk=None):
