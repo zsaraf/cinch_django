@@ -63,6 +63,7 @@ INSTALLED_APPS = (
     'apps.tutoring',
     'apps.notification',
     'apps.transaction',
+    'apps.tools',
     'storages'
 )
 
