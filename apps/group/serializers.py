@@ -23,6 +23,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
 
 class CourseGroupSlimSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
 
     class Meta:
         model = CourseGroup

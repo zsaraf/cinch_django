@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from apps.university.models import Constant
@@ -424,6 +424,23 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = UserFullInfoSerializer(user, context={'request': request})
         return Response(serializer.data)
+
+    @detail_route(methods=['POST'], permission_classes=[IsAuthenticated], url_path='get_courses')
+    def get_courses(self, request, pk):
+        user = request.user
+
+        is_tutor = bool(request.data.get('is_tutor', False))
+
+        if is_tutor:
+            from apps.tutor.serializers import TutorBasicSerializer
+            serializer = TutorBasicSerializer(user.tutor)
+            return Response(serializer.data)
+        else:
+            from apps.group.serializers import CourseGroupSlimSerializer
+            from apps.group.models import CourseGroupMember, CourseGroup
+            course_group_memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
+            serializer = CourseGroupSlimSerializer(CourseGroup.objects.filter(is_past=False, id__in=course_group_memberships.values('course_group_id')), many=True)
+            return Response(serializer.data)
 
     @list_route(methods=['POST'], url_path='login')
     def login(self, request):
