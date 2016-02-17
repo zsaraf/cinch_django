@@ -220,6 +220,9 @@ class MergeCourseGroups(TemplateView):
             loser_members = CourseGroupMember.objects.filter(course_group=loser_group, is_past=False)
             for member in loser_members:
                 member.is_past = True
+                old_chat_member = ChatroomMember.objects.get(chatroom=loser_group.chatroom, user=member.student.user)
+                old_chat_member.is_past = True
+                old_chat_member.save()
                 member.save()
 
                 try:
