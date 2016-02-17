@@ -225,8 +225,11 @@ class MergeCourseGroups(TemplateView):
                 try:
                     # see if they're already a member of the other group
                     existing_member = CourseGroupMember.objects.get(course_group=winner_group, student=member.student)
+                    chat_member = ChatroomMember.objects.get(chatroom=winner_group.chatroom, user=member.student.user)
                     if existing_member.is_past:
                         existing_member.is_past = False
+                        chat_member.is_past = False
+                        chat_member.save()
                         existing_member.save()
                 except CourseGroupMember.DoesNotExist:
                     # they weren't already a member, create a new one
