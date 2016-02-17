@@ -426,7 +426,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['POST'], permission_classes=[IsAuthenticated], url_path='get_courses')
     def get_courses(self, request, pk):
-        user = request.user
+        user = self.get_object()
 
         is_tutor = bool(request.data.get('is_tutor', False))
 
