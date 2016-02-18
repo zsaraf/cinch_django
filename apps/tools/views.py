@@ -272,7 +272,7 @@ class Messaging(TemplateView):
             data = form.cleaned_data
             original_text = data['message_text']
 
-            course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM(SELECT cg.id, cg.timestamp, cg.course_id, cg.professor_name, COUNT(*) as count FROM course_group_member cm INNER JOIN course_group cg ON cm.course_group_id=cg.id INNER JOIN students s ON cm.student_id = s.id INNER JOIN users u ON s.user_id=u.id WHERE u.is_test=0 AND cg.is_past=0 GROUP BY cm.course_group_id) as temp WHERE count=1")
+            course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM (SELECT cg.id, cg.professor_name, COUNT(*) as count FROM course_group cg INNER JOIN course_group_member cgm ON cg.id=cgm.course_group_id GROUP BY cg.id) as temp WHERE count=1")
             users = {}
             for course_group in course_groups_lonely:
                 group = CourseGroup.objects.get(pk=course_group.id)
