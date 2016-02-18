@@ -1,0 +1,43 @@
+{% load staticfiles %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Team Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+</head>
+<body>
+
+<div id='content'>
+
+  <div id='header'>
+    <h1>mass messages</h1>
+  </div>
+
+  <div class='divider'>
+    <form class='main_form' method='POST'>
+    {% csrf_token %}
+    {% if form.is_valid %}
+      <p>Success!</p>
+    {% endif %}
+    <p>Currently messaging members of empty course groups</p>
+    <div id='message_text'>
+      <p>Message Text:</p>
+      {{ form.message_text }}
+    </div>
+    <br><br>
+    <input type='submit' id='send_messages' value="SEND MESSAGES">
+    </form>
+  </div>
+</div>
+
+<div id='footer'>
+   <a href="'/django/tools/leaderboard/'">leaderboard</a>
+   <a href="'/django/tools/dashboard/'">course group dashboard</a>
+   <a href="'/django/tools/dashboard/'">stats</a>
+</div>
+
+</body>
+
+</html>

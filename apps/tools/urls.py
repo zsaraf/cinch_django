@@ -7,5 +7,6 @@ urlpatterns = [
     url(r'dashboard', views.Dashboard.as_view(), name='dashboard'),
     url(r'chat', views.TeamChat.as_view(), name='chat'),
     url(r'course_groups', views.CourseGroupDash.as_view(), name='course_groups'),
-    url(r'merge', views.MergeCourseGroups.as_view(), name='merge')
+    url(r'merge', views.MergeCourseGroups.as_view(), name='merge'),
+    url(r'messaging', views.Messaging.as_view(), name='messaging')
 ]

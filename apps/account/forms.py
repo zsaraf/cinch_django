@@ -11,6 +11,10 @@ class AutoMessageForm(forms.Form):
         return [item.strip() for item in data['user_id_strings'].split(',')]
 
 
+class SimpleMessageForm(forms.Form):
+    message_text = forms.CharField(widget=forms.Textarea)
+
+
 class MessageForm(forms.Form):
     message_text = forms.CharField(widget=forms.Textarea)
     user_id = forms.IntegerField(widget=forms.HiddenInput)

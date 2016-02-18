@@ -246,6 +246,68 @@ class MergeCourseGroups(TemplateView):
         return HttpResponseRedirect('/django/tools/merge/')
 
 
+class Messaging(TemplateView):
+    template_name = 'messaging.html'
+
+    def get_context_data(self, **kwargs):
+        from apps.account.forms import SimpleMessageForm
+
+        context = super(Messaging, self).get_context_data(**kwargs)
+        form = SimpleMessageForm()
+        context = {'form': form}
+        return context
+
+    def post(self, request, *args, **kwargs):
+        from apps.account.forms import SimpleMessageForm
+        from apps.chatroom.models import ChatroomActivity, ChatroomActivityType, ChatroomMember, Message, ChatroomActivityTypeManager
+        from apps.chatroom.serializers import WelcomeMessageChatroomActivitySerializer
+        from apps.notification.models import NotificationType, OpenNotification
+        from apps.account.models import User
+        from apps.group.models import CourseGroupMember, CourseGroup
+
+        team_user = User.objects.get(email='team@seshtutoring.com')
+
+        form = SimpleMessageForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            text = data['message_text']
+
+            course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM(SELECT cg.id, cg.timestamp, cg.course_id, cg.professor_name, COUNT(*) as count FROM course_group_member cm INNER JOIN course_group cg ON cm.course_group_id=cg.id INNER JOIN students s ON cm.student_id = s.id INNER JOIN users u ON s.user_id=u.id WHERE u.is_test=0 AND cg.is_past=0 GROUP BY cm.course_group_id) as temp WHERE count=1")
+            users = {}
+            for course_group in course_groups_lonely:
+                group = CourseGroup.objects.get(pk=course_group.id)
+                group_member = CourseGroupMember.objects.filter(course_group=group, is_past=False)
+                if len(group_member) == 1:
+                    user = group_member[0].student.user
+                    if user.pk not in users:
+                        users[user.pk] = user
+
+            for user_id, user in users.iteritems():
+                name = "The Sesh Team"
+                desc = "We're so happy you're here! Any questions?"
+                user_member = ChatroomMember.objects.get(user=user, chatroom__name=name, chatroom__description=desc)
+                chatroom = user_member.chatroom
+                team_member = ChatroomMember.objects.get(user=team_user, chatroom=chatroom)
+
+                text = text.replace("|*NAME*|", user.first_name)
+
+                message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
+                activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
+                activity = ChatroomActivity.objects.create(chatroom=chatroom, chatroom_activity_type=activity_type, activity_id=message.pk)
+
+                merge_vars = {
+                    "NAME": team_user.full_name,
+                    "CHATROOM_NAME": chatroom.name,
+                    "MESSAGE": text
+                }
+                data = {
+                    "chatroom_activity": WelcomeMessageChatroomActivitySerializer(activity).data,
+                }
+                notification_type = NotificationType.objects.get(identifier="NEW_MESSAGE")
+                OpenNotification.objects.create(user, notification_type, data, merge_vars, None)
+
+        return HttpResponseRedirect('/django/tools/messaging/')
+
 
 class Dashboard(TemplateView):
     template_name = 'team_dashboard.html'
@@ -271,7 +333,7 @@ class Dashboard(TemplateView):
 
         form = AutoMessageForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_datai
+            data = form.cleaned_data
             text = data['message_text']
             users = form.get_user_list()
 
