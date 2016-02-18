@@ -160,6 +160,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def upload_from_web(self, request, pk=None):
         from wand.image import Image
+        from wand.color import Color
         from wand import exceptions as wand_exceptions
         from apps.group.models import CourseGroup, CourseGroupMember
 
@@ -184,15 +185,20 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         for fp in request.FILES:
             uploadedFile = request.data.get(fp)
             if uploadedFile.content_type == "application/pdf":
-                image_pdf = Image(file=uploadedFile, resolution=100)
+                image_pdf = Image(file=uploadedFile, resolution=250, background=Color("white"))
                 image_jpeg = image_pdf.convert('jpeg')
+                count = 0
                 for single_img in image_jpeg.sequence:
-                    img = Image(image=single_img, resolution=100)
+                    img = Image(image=single_img, resolution=250)
                     temp = tempfile.TemporaryFile()
+                    img.alpha_channel = False
                     img.save(file=temp)
                     url = new_upload.upload_file(temp)
                     temp.close()
                     all_urls = all_urls + url + "\n"
+                    count += 1
+                    if count >= 25:
+                        break
                 break
             url = new_upload.upload_file(uploadedFile)
             all_urls = all_urls + url + "\n"
