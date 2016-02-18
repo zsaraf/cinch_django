@@ -10,7 +10,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             try:
-                urlopen("https://seshtutorin.com")
+                urlopen("https://seshtutoring.com")
             except:
                 slack_utils.send_slack_message("*URGENT: THE SERVER IS DOWN*", True)
                 pass
