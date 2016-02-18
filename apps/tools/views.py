@@ -270,7 +270,7 @@ class Messaging(TemplateView):
         form = SimpleMessageForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            text = data['message_text']
+            original_text = data['message_text']
 
             course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM(SELECT cg.id, cg.timestamp, cg.course_id, cg.professor_name, COUNT(*) as count FROM course_group_member cm INNER JOIN course_group cg ON cm.course_group_id=cg.id INNER JOIN students s ON cm.student_id = s.id INNER JOIN users u ON s.user_id=u.id WHERE u.is_test=0 AND cg.is_past=0 GROUP BY cm.course_group_id) as temp WHERE count=1")
             users = {}
@@ -289,7 +289,7 @@ class Messaging(TemplateView):
                 chatroom = user_member.chatroom
                 team_member = ChatroomMember.objects.get(user=team_user, chatroom=chatroom)
 
-                text = text.replace("|*NAME*|", user.first_name)
+                text = original_text.replace("|*NAME*|", user.first_name)
 
                 message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
