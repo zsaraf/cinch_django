@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 class FavoriteSerializer(serializers.ModelSerializer):
     user_data = serializers.SerializerMethodField()
     tutor_id = serializers.SerializerMethodField()
+    tier = serializers.SerializerMethodField()
 
     class Meta:
         model = Favorite
@@ -21,6 +22,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
     def get_user_data(self, obj):
         from apps.account.serializers import UserRegularInfoSerializer
         return UserRegularInfoSerializer(obj.tutor.user).data
+
+    def get_tier(self, obj):
+        from apps.tutor.serializers import TutorTierSerializer
+        return TutorTierSerializer(obj.tutor.tier).data
 
 
 class StudentUserInfoSerializer(serializers.ModelSerializer):
