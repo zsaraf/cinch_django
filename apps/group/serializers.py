@@ -72,6 +72,7 @@ class CourseGroupFullSerializer(serializers.ModelSerializer):
     chatroom = serializers.SerializerMethodField()
     study_groups = serializers.SerializerMethodField()
     tutors = serializers.SerializerMethodField()
+    department_tutors = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
 
     class Meta:
@@ -88,14 +89,35 @@ class CourseGroupFullSerializer(serializers.ModelSerializer):
         return StudyGroupBasicSerializer(open_groups, many=True, context={'request': self.context['request']}).data
 
     def get_tutors(self, obj):
-        from apps.tutor.models import Tutor, TutorCourse
+        from apps.tutor.models import Tutor, TutorCourse, TutorDepartment
         from apps.tutor.serializers import PeerTutorSerializer
         from apps.tutoring.models import PastSesh
 
         seshes = PastSesh.objects.filter(past_request__course=obj.course)
         tutors = [item.tutor for item in seshes]
+
         courses = TutorCourse.objects.filter(course=obj.course)
         tutors.extend([item.tutor for item in courses])
+
+        tutor_departments = TutorDepartment.objects.filter(department=obj.course.department)
+        tutors.extend([item.tutor for item in tutor_departments])
+
+        tutor_ids = []
+        for t in tutors:
+            try:
+                if t.user.device.type != 'android':
+                    tutor_ids.append(t.id)
+            except:
+                continue
+
+        return PeerTutorSerializer(Tutor.objects.filter(id__in=tutor_ids), many=True).data
+
+    def get_department_tutors(self, obj):
+        from apps.tutor.models import Tutor, TutorDepartment
+        from apps.tutor.serializers import PeerTutorSerializer
+
+        tutor_departments = TutorDepartment.objects.filter(department=obj.course.department)
+        tutors = ([item.tutor for item in tutor_departments])
 
         tutor_ids = []
         for t in tutors:
