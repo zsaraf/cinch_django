@@ -290,6 +290,7 @@ class Messaging(TemplateView):
                 team_member = ChatroomMember.objects.get(user=team_user, chatroom=chatroom)
 
                 text = original_text.replace("|*NAME*|", user.first_name)
+                text = text.replace("|*CODE*|", user.share_code)
 
                 message = Message.objects.create(message=text, chatroom=chatroom, chatroom_member=team_member)
                 activity_type = ChatroomActivityType.objects.get_activity_type(ChatroomActivityTypeManager.MESSAGE)
