@@ -147,7 +147,10 @@ class PastSeshStudentSerializer(PastSeshSerializer):
 
     def get_tutor_data(self, obj):
         from apps.account.serializers import UserRegularInfoSerializer
-        return UserRegularInfoSerializer(obj.tutor.user).data
+        from apps.tutor.serializers import TutorTierSerializer
+        data = UserRegularInfoSerializer(obj.tutor.user).data
+        data['tier'] = TutorTierSerializer(obj.tutor.tier).data
+        return data
 
 
 class PastSeshTutorSerializer(PastSeshSerializer):

@@ -62,8 +62,6 @@ class CourseManager(models.Manager):
             if (num_matches):
                 class_num = num_matches.group(0)
 
-        logger.debug("Class: " + class_num)
-        logger.debug("Dept Name: " + dept_name)
         depts = Department.objects.filter(school__id=user.school.pk, abbrev__istartswith=dept_name).order_by('abbrev')[:10]
         for dept in depts:
             dept_id = dept.pk
