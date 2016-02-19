@@ -111,7 +111,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
-        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id).order_by('-id')[:5]
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id).order_by('-id')[:50]
         act_list = list(activity)
         if len(activity) > 0:
             if act_list[-1].parent_chatroom_activity is not None:
