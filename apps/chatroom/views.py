@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from sesh import slack_utils
+from itertools import chain
 from .serializers import *
 from .models import *
 import tempfile
@@ -90,7 +91,7 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             return Response(ChatroomActivitySerializer(activities, many=True, context={'request': request}).data)
 
         else:
-            activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type)[:50]
+            activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id, chatroom_activity_type=upload_type).order_by['-id'][:50]
             return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
@@ -103,14 +104,14 @@ class ChatroomViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
         upload_type = ChatroomActivityType.objects.get(identifier='upload')
-        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__gte=min_id, chatroom_activity_type=upload_type)[:50]
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__gte=min_id, chatroom_activity_type=upload_type).order_by['id'][:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
     def get_activity_with_offset(self, request, pk=None):
         chatroom = self.get_object()
         max_id = request.data.get('max_id')
-        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id)[:50]
+        activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=max_id).order_by['-id'][:50]
         return Response(ChatroomActivitySerializer(activity, many=True, context={'request': request}).data)
 
     @detail_route(methods=['post'], permission_classes=[IsAuthenticated])
