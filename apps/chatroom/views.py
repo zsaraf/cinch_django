@@ -251,6 +251,13 @@ class ChatroomViewSet(viewsets.ModelViewSet):
         except ChatroomMember.DoesNotExist:
             return Response({"detail": "You are not a member of this chatroom"}, 405)
 
+    @detail_route(methods=['get'], permission_classes=[IsAuthenticated])
+    def get_chatroom_members(self, request, pk=None):
+        chatroom = self.get_object()
+
+        chatroom_members = ChatroomMember.objects.filter(chatroom=chatroom, is_past=False)
+        return Response(ChatroomMemberSerializer(chatroom_members, many=True).data)
+
 
 class InteractionViewSet(viewsets.ModelViewSet):
     queryset = Interaction.objects.all()
