@@ -3,6 +3,7 @@ from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
 from rest_framework.response import Response
+from datetime import datetime, timedelta
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ class ChatroomActivity(models.Model):
     activity_id = models.IntegerField(blank=True, null=True)
     total_views = models.IntegerField(default=0)
     total_likes = models.IntegerField(default=0)
+    parent_chatroom_activity = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -90,9 +92,33 @@ class ChatroomActivity(models.Model):
         data['chatroom_id'] = self.chatroom.id
         return data
 
+    @property
+    def activity_object(self):
+        if self.chatroom_activity_type.is_message():
+            return Message.objects.get(pk=self.activity_id)
+        elif self.chatroom_activity_type.is_announcement():
+            return Announcement.objects.get(pk=self.activity_id)
+        elif self.chatroom_activity_type.is_upload():
+            return Upload.objects.get(pk=self.activity_id)
+        elif self.chatroom_activity_type.is_study_group():
+            from apps.group.models import StudyGroup
+            return StudyGroup.objects.get(pk=self.activity_id)
+        return None
+
     def save(self, *args, **kwargs):
         if not self.pk:
             # only happens when not in db
+
+            # right now only bundle messages
+            if self.chatroom_activity_type.is_message():
+                cutoff = datetime.now() - timedelta(minutes=4)
+                past_activity = ChatroomActivity.objects.filter(chatroom=self.chatroom, chatroom_activity_type=self.chatroom_activity_type).order_by('-id')
+                if len(past_activity) > 0:
+                    last = past_activity[0]
+                    if last.activity_object.chatroom_member == self.activity_object.chatroom_member and last.timestamp > cutoff:
+                        # they belong in the same parent
+                        self.parent_chatroom_activity = last.parent_chatroom_activity if last.parent_chatroom_activity is not None else last
+
             chatroom_members = []
             if self.chatroom_activity_type.is_message():
                 message = Message.objects.get(pk=self.activity_id)
