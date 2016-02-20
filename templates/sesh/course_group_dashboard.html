@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Course Groups</title>
+    <title>{{ test }}</title>
     <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
 </head>
 <body>
@@ -17,11 +17,11 @@
 
   <div id='general_stats'>
     <p>{{ num_groups }} Course Groups</p>
-    <p>{{ num_lonely_groups }} Lonely Course Groups :(</p>
+    <p>{{ num_lonely_groups }} Ghost Towns </p>
   </div>
 
   <div id='filter_div'>
-    <form id='filter_form'>
+    <form id='filter_form' method='POST'>
       {% csrf_token %}
         {% if form.is_valid %}
           <p>Success!</p>
@@ -39,6 +39,7 @@
       {% for group in course_groups %}
         <li>
           <div class='group_detail'>
+          <p>{{ group.id }}</p>
           <p>{{ group.school_name }}  -  {{ group.course_name }}  -  {{ group.professor_name }}</p>
           <p>Enrollement: {{ group.num_students }}</p>
           <p>Total Messages: {{ group.num_messages }}</p>

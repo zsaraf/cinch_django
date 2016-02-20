@@ -14,13 +14,12 @@ class CourseGroupDash(TemplateView):
 
         context = super(CourseGroupDash, self).get_context_data(**kwargs)
 
-        context['filter_form'] = self.kwargs.get('filter_form', FilterForm())
-        context['course_groups'] = self.kwargs.get('course_groups', None)
-
         course_group_count = CourseGroup.objects.all().count()
-        course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM(SELECT cg.id, cg.timestamp, cg.course_id, cg.professor_name, COUNT(*) as count FROM course_group_member cm INNER JOIN course_group cg ON cm.course_group_id=cg.id INNER JOIN students s ON cm.student_id = s.id INNER JOIN users u ON s.user_id=u.id WHERE u.is_test=0 GROUP BY cm.course_group_id) as temp WHERE count=1")
+        course_groups_lonely = CourseGroup.objects.raw("SELECT * FROM (SELECT cg.id, cg.professor_name, COUNT(*) as count FROM course_group cg INNER JOIN course_group_member cgm ON cg.id=cgm.course_group_id GROUP BY cg.id) as temp WHERE count=1")
         lonely_count = len(list(course_groups_lonely))
 
+        context['filter_form'] = self.kwargs.get('filter_form', FilterForm())
+        context['course_groups'] = self.kwargs.get('course_groups', None)
         context['num_groups'] = course_group_count
         context['num_lonely_groups'] = lonely_count
 
@@ -43,6 +42,7 @@ class CourseGroupDash(TemplateView):
                 context_course_groups = []
                 for group in course_groups:
                     course_group = {}
+                    course_group['id'] = group.id
                     course_group['num_uploads'] = Upload.objects.filter(chatroom=group.chatroom).count()
                     course_group['num_messages'] = Message.objects.filter(chatroom=group.chatroom).count()
                     course_group['num_students'] = CourseGroupMember.objects.filter(course_group=group).count()
@@ -51,6 +51,16 @@ class CourseGroupDash(TemplateView):
                     course_group['school_name'] = group.course.school.name
                     course_group['timestamp'] = group.timestamp
                     context_course_groups.append(course_group)
+
+                if filter_type == 'descending_enrollment':
+                    context_course_groups = sorted(context_course_groups, reverse=True, key=lambda k: k['num_students'])
+                elif filter_type == 'descending_activity':
+                    context_course_groups = sorted(context_course_groups, reverse=True, key=lambda k: k['num_messages'])
+                elif filter_type == 'ascending_enrollment':
+                    context_course_groups = sorted(context_course_groups, key=lambda k: k['num_students'])
+                elif filter_type == 'ascending_activity':
+                    context_course_groups = sorted(context_course_groups, key=lambda k: k['num_messages'])
+
                 self.kwargs['course_groups'] = context_course_groups
 
                 return super(CourseGroupDash, self).get(request, args, **kwargs)
