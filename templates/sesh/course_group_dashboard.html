@@ -38,14 +38,16 @@
     <ul>
       {% for group in course_groups %}
         <li>
+          <div class='group_title'></div>
+            <p>#{{ group.id }}</p>
+            <p>{{ group.school_name }}  -  {{ group.course_name }}  -  {{ group.professor_name }}</p>
+          </div>
           <div class='group_detail'>
-          <p>{{ group.id }}</p>
-          <p>{{ group.school_name }}  -  {{ group.course_name }}  -  {{ group.professor_name }}</p>
-          <p>Enrollement: {{ group.num_students }}</p>
-          <p>Total Messages: {{ group.num_messages }}</p>
-          <p>Total Uploads: {{ group.num_uploads }}</p>
-          <p>Date Created: {{ group.timestamp }}</p>
-          <div>
+            <p>Enrollement: {{ group.num_students }}</p>
+            <p>Total Messages: {{ group.num_messages }}</p>
+            <p>Total Uploads: {{ group.num_uploads }}</p>
+            <p>Date Created: {{ group.timestamp }}</p>
+          </div>
         </li>
       {% endfor %}
     </ul>    
