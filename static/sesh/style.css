@@ -22,6 +22,18 @@ textarea {
     resize: none;
 }
 
+.group_title {
+	border:1px solid red;
+    float:left;
+    width:48%;
+}
+
+.group_detail {
+	border:1px solid magenta;
+    float:right;
+    width:48%;
+}
+
 #user_content {
 	margin: 0 auto;
 	width: 600px;
@@ -31,7 +43,7 @@ textarea {
 #content {
     margin: 0 auto;
     padding-top: 10px;
-    width: 100%
+    width: 100%;
 }
 
 #header {
@@ -95,6 +107,11 @@ input[type='submit'] {
 	margin-top: 20px;
 	margin-bottom: 20px;
 
+}
+
+#update_filter {
+	width: 100px;
+	font-size: 16px;
 }
 
 #uploads {
