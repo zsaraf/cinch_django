@@ -1,4 +1,5 @@
 from django.db import models
+from itertools import chain
 from django.utils.crypto import get_random_string
 from sesh.s3utils import upload_image_to_s3, get_true_image_size
 from apps.notification.models import NotificationType, OpenNotification
@@ -51,7 +52,12 @@ class Chatroom(models.Model):
         db_table = 'chatroom'
 
     def get_chatroom_activities(self):
-        return ChatroomActivity.objects.filter(chatroom=self).order_by('-id')[:50]
+        activity = ChatroomActivity.objects.filter(chatroom=self).order_by('-id')[:50][::-1]
+        if len(activity) > 0:
+            if activity[0].parent_chatroom_activity is not None:
+                parent_activity = ChatroomActivity.objects.filter(chatroom=chatroom, pk__lt=activity[0].pk, pk__gte=activity[0].parent_chatroom_activity.pk).order_by('id')
+                activity = chain(parent_activity, activity)
+        return activity
 
 
 class ChatroomMember(models.Model):
