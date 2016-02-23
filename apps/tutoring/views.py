@@ -1,4 +1,4 @@
-from apps.tutoring.models import OpenBid, SeshRequest, OpenSesh, PastBid, PastSesh, ReportedProblem
+from apps.tutoring.models import *
 from rest_framework import viewsets
 from datetime import datetime, timedelta
 from sesh import slack_utils
@@ -106,7 +106,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
 
         courses = TutorCourse.objects.filter(tutor=user.tutor)
         departments = TutorDepartment.objects.filter(tutor=user.tutor)
-        requests = SeshRequest.objects.filter(Q(course__in=courses.values('course_id')) | Q(course__department_id__in=departments.values('department_id')), status=0, tutor=None).exclude(student=user.student)
+        students_who_blocked = BlockedTutor.objects.filter(tutor=user.tutor)
+        requests = SeshRequest.objects.filter(Q(course__in=courses.values('course_id')) | Q(course__department_id__in=departments.values('department_id')), status=0, tutor=None).exclude(Q(student=user.student) | Q(student__in=students_who_blocked.values('student_id')))
 
         return Response(SeshRequestSerializer(requests, many=True).data)
 
@@ -627,6 +628,10 @@ class PastSeshViewSet(viewsets.ModelViewSet):
         tutor.save()
 
         user.update_sesh_state('SeshStateNone')
+
+        if past_sesh.rating_1 + past_sesh.rating_2 < 6:
+            # Add them to the tutor blocked list
+            BlockedTutor.objects.create(student=user.student, tutor=tutor)
 
         message = user.email + " gave a rating of ({}, {}, {})".format(past_sesh.rating_1, past_sesh.rating_2, past_sesh.rating_3)
         slack_utils.send_simple_slack_message(message)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
+from django.db.models import Q
 from apps.chatroom.models import ChatroomMember
 from datetime import datetime, timedelta
 from apps.notification.models import OpenNotification, NotificationType, PastNotification
@@ -16,6 +17,13 @@ import stripe
 locale.setlocale(locale.LC_ALL, '')
 stripe.api_key = settings.STRIPE_API_KEY
 
+class BlockedTutor(models.Model):
+    tutor = models.ForeignKey('tutor.Tutor')
+    student = models.ForeignKey('student.Student')
+
+    class Meta:
+        managed = False
+        db_table = 'blocked_tutor'
 
 class OpenBid(models.Model):
     request_id = models.IntegerField()
@@ -119,9 +127,11 @@ class SeshRequest(models.Model):
         data = {
             'request_id': self.id
         }
-        tutor_courses = TutorCourse.objects.filter(course=self.course).exclude()
+
+        blocked_tutors = BlockedTutor.objects.filter(student=self.student)
+        tutor_courses = TutorCourse.objects.filter(course=self.course).exclude(tutor__in=blocked_tutors.values('tutor_id'))
         tutors = [tc.tutor for tc in tutor_courses]
-        tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(tutor_id__in=tutor_courses.values('tutor_id'))
+        tutor_departments = TutorDepartment.objects.filter(department=self.course.department).exclude(Q(tutor_id__in=tutor_courses.values('tutor_id')) | Q(tutor__in=blocked_tutors.values('tutor_id')))
         tutors.extend([td.tutor for td in tutor_departments])
 
         notification_type = NotificationType.objects.get(identifier="NEW_REQUEST")
