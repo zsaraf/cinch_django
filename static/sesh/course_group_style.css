@@ -1,0 +1,103 @@
+html {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+body {
+    position:relative;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    min-height: 100%;
+    padding-bottom: 50px;
+    margin: 0;
+}
+
+ul {
+	list-style-type: none;
+	width: 75%;
+	margin: 0 auto;
+}
+
+li {	
+	background: #f5f5f5;
+	margin-bottom: 2px;
+	width: 100%;
+	overflow: hidden; /* will contain if #first is longer than #second */
+}
+
+.group_title {
+   	width: 40%;
+    	float:left; /* add this */
+	color: white;
+	margin: 5%;
+	text-align: center;
+	padding: 5px;
+	background: #F4806E;
+}
+
+.group_detail {
+    overflow: hidden; /* if you don't want #second to wrap below #first */
+	color: #F4806E;
+	margin: 2%;
+}
+
+#content {
+    margin: 0 auto;
+    padding: 10px;
+    width: 100%;
+}
+
+#header {
+    width: 100%;
+    background: #F4806E;
+    height: 75px;
+}
+
+#footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #F4806E;
+    text-align: center;
+    padding: 1rem;
+    height: 50px;
+}
+
+#header h1 {
+    color: white;
+    height: 75px;
+    line-height: 75px;
+    width: 100%;
+}
+
+input[type='submit'] {
+    background: #F4806E;
+    border: none;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    width: 100px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+
+}
+
+a {
+    padding-right: 30px;
+    padding-right: 30px;
+    color: white;
+    text-decoration: none;
+}
+
+
+h1, h2 {
+    text-align: center;
+    color: #666666;
+}
+

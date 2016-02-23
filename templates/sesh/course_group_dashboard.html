@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <title>{{ test }}</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'sesh/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'sesh/course_group_style.css' %}">
 </head>
 <body>
 
@@ -45,10 +45,10 @@
             <p>{{ group.school_name }}  -  {{ group.course_name }}  -  {{ group.professor_name }}</p>
           </div>
           <div class='group_detail'>
-            <p>Enrollement: {{ group.num_students }}</p>
-            <p>Total Messages: {{ group.num_messages }}</p>
-            <p>Total Uploads: {{ group.num_uploads }}</p>
-            <p>Date Created: {{ group.timestamp }}</p>
+    	    <p><b>Enrollement:</b> {{ group.num_students }}</p>
+            <p><b>Total Messages:</b> {{ group.num_messages }}</p>
+            <p><b>Total Uploads:</b> {{ group.num_uploads }}</p>
+            <p><b>Date Created:</b> {{ group.timestamp }}</p>
           </div>
         </li>
       {% endfor %}
