@@ -27,6 +27,8 @@
           <p>Success!</p>
         {% endif %}
         <div id='filter_selection'>
+          <p>School Id (enter 0 for all schools):</p>
+          {{ filter_form.school_id }}
           <p>Filter by:</p>
           {{ filter_form.filter_type }}
         </div>
@@ -38,7 +40,7 @@
     <ul>
       {% for group in course_groups %}
         <li>
-          <div class='group_title'></div>
+          <div class='group_title'>
             <p>#{{ group.id }}</p>
             <p>{{ group.school_name }}  -  {{ group.course_name }}  -  {{ group.professor_name }}</p>
           </div>

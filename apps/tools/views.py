@@ -37,8 +37,13 @@ class CourseGroupDash(TemplateView):
             if form.is_valid():
                 data = form.cleaned_data
                 filter_type = data['filter_type']
+                school_id = data.get('school_id', 0)
 
-                course_groups = CourseGroup.objects.all()
+                if school_id == 0:
+                    course_groups = CourseGroup.objects.all()
+                else:
+                    course_groups = CourseGroup.objects.filter(course__school_id=school_id)
+
                 context_course_groups = []
                 for group in course_groups:
                     course_group = {}
@@ -62,6 +67,7 @@ class CourseGroupDash(TemplateView):
                     context_course_groups = sorted(context_course_groups, key=lambda k: k['num_messages'])
 
                 self.kwargs['course_groups'] = context_course_groups
+                self.kwargs['school_id'] = school_id
 
                 return super(CourseGroupDash, self).get(request, args, **kwargs)
 
