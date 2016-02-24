@@ -348,6 +348,10 @@ class OpenSeshViewSet(viewsets.ModelViewSet):
             past_sesh.send_student_cancelled_notification()
             past_sesh.save()
 
+            should_block = request.data.get('should_block', False)
+            if should_block:
+                BlockedTutor.objects.create(student=user.student, tutor=past_sesh.tutor)
+
         elif open_sesh.tutor == user.tutor:
 
             tutor_percentage = 1.0 - constants.administrative_percentage
