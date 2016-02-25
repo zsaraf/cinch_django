@@ -188,8 +188,11 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
                     # no such group, create a new one
                     chatroom = Chatroom.objects.create(name=course.get_readable_name(), description=course.name)
                     course_group = CourseGroup.objects.create(course=course, professor_name=professor_name, chatroom=chatroom)
-                    slack_message = "{} created a new course group: [{}, course {}, professor {}]".format(user.email, course_group.id, course.get_readable_name(), professor_name)
-                    slack_utils.send_simple_slack_message(slack_message)
+                    try:
+                        slack_message = "{} created a new course group: [{}, course {}, professor {}]".format(user.email, course_group.id, course.get_readable_name(), professor_name)
+                        slack_utils.send_simple_slack_message(slack_message)
+                    except:
+                        pass
             else:
                 try:
                     course_group = CourseGroup.objects.get(pk=int(course_group_id))
@@ -260,7 +263,6 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
             # this is fine, just means they weren't involved in a promo
             pass
 
-        logger.debug(newCourseGroups)
         memberships = CourseGroupMember.objects.filter(student=user.student, is_past=False)
         serializer = CourseGroupFullSerializer(newCourseGroups, many=True, context={'request': request})
         return Response(serializer.data)
