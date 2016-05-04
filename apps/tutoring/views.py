@@ -119,6 +119,8 @@ class SeshRequestViewSet(viewsets.ModelViewSet):
         from apps.tutor.models import Tutor
         from apps.university.models import Course, Discount, Constant
 
+        return Response({"detail": "Sesh is closed for business. Thanks for your support!"}, 405)
+
         student = Student.objects.get(user=request.user)
 
         try:
